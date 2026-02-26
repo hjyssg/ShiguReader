@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AuthorsReadAuthorsData, AuthorsReadAuthorsResponse, CosersReadCosersData, CosersReadCosersResponse, FilesystemGetRootsResponse, FilesystemGetFavoriteRootResponse, FilesystemGetAlreadyReadRootResponse, FilesystemGetDrivesResponse, FilesystemListDirectoryData, FilesystemListDirectoryResponse, FilesystemMoveFileData, FilesystemMoveFileResponse, FilesystemMoveFolderData, FilesystemMoveFolderResponse, FilesystemDeletePathData, FilesystemDeletePathResponse, FilesystemZipFolderData, FilesystemZipFolderResponse, FilesystemRenamePathData, FilesystemRenamePathResponse, FilesystemDownloadFileData, FilesystemDownloadFileResponse, FilesystemUnzipArchiveData, FilesystemUnzipArchiveResponse, FilesystemScanFavoriteResponse, FilesystemScanDirectoryData, FilesystemScanDirectoryResponse, FilesystemBackfillDirectoryData, FilesystemBackfillDirectoryResponse, FilesystemScanAndWatchData, FilesystemScanAndWatchResponse, FilesystemGetScanStatusData, FilesystemGetScanStatusResponse, FilesystemGetThumbnailData, FilesystemGetThumbnailResponse, FilesystemListArchiveData, FilesystemListArchiveResponse, FilesystemClearExtractCacheEndpointResponse, FilesystemExtractArchiveData, FilesystemExtractArchiveResponse, FilesystemGetArchiveFileData, FilesystemGetArchiveFileResponse, FilesystemGetFileData, FilesystemGetFileResponse, FilesystemCompressArchiveImagesEndpointData, FilesystemCompressArchiveImagesEndpointResponse, HistoryRecordHistoryData, HistoryRecordHistoryResponse, HistoryListHistoryData, HistoryListHistoryResponse, ParseBatchParseData, ParseBatchParseResponse, ParseGetParseResultData, ParseGetParseResultResponse, PrivateCreateUserData, PrivateCreateUserResponse, SearchSearchFilesData, SearchSearchFilesResponse, SettingsGetSettingsResponse, SettingsUpdateSettingsData, SettingsUpdateSettingsResponse, TagsReadTagsData, TagsReadTagsResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AuthorsReadAuthorsData, AuthorsReadAuthorsResponse, CosersReadCosersData, CosersReadCosersResponse, FilesystemGetRootsResponse, FilesystemGetDrivesResponse, FilesystemListDirectoryData, FilesystemListDirectoryResponse, FilesystemMoveFileData, FilesystemMoveFileResponse, FilesystemMoveFolderData, FilesystemMoveFolderResponse, FilesystemDeletePathData, FilesystemDeletePathResponse, FilesystemZipFolderData, FilesystemZipFolderResponse, FilesystemRenamePathData, FilesystemRenamePathResponse, FilesystemDownloadFileData, FilesystemDownloadFileResponse, FilesystemUnzipArchiveData, FilesystemUnzipArchiveResponse, FilesystemScanFavoriteResponse, FilesystemScanDirectoryData, FilesystemScanDirectoryResponse, FilesystemBackfillDirectoryData, FilesystemBackfillDirectoryResponse, FilesystemScanAndWatchData, FilesystemScanAndWatchResponse, FilesystemGetScanStatusData, FilesystemGetScanStatusResponse, FilesystemGetThumbnailData, FilesystemGetThumbnailResponse, FilesystemListArchiveData, FilesystemListArchiveResponse, FilesystemClearExtractCacheEndpointResponse, FilesystemExtractArchiveData, FilesystemExtractArchiveResponse, FilesystemGetArchiveFileData, FilesystemGetArchiveFileResponse, FilesystemGetFileData, FilesystemGetFileResponse, FilesystemCompressArchiveImagesEndpointData, FilesystemCompressArchiveImagesEndpointResponse, HistoryRecordHistoryData, HistoryRecordHistoryResponse, HistoryListHistoryData, HistoryListHistoryResponse, ParseBatchParseData, ParseBatchParseResponse, ParseGetParseResultData, ParseGetParseResultResponse, PrivateCreateUserData, PrivateCreateUserResponse, SearchSearchFilesData, SearchSearchFilesResponse, SettingsGetSettingsResponse, SettingsUpdateSettingsData, SettingsUpdateSettingsResponse, TagsReadTagsData, TagsReadTagsResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class AuthorsService {
     /**
@@ -76,32 +76,6 @@ export class FilesystemService {
     }
     
     /**
-     * Get Favorite Root
-     * Get configured favorite directory as a root-like item.
-     * @returns unknown Successful Response
-     * @throws ApiError
-     */
-    public static getFavoriteRoot(): CancelablePromise<FilesystemGetFavoriteRootResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/fs/favorite'
-        });
-    }
-    
-    /**
-     * Get Already Read Root
-     * Get configured already-read directory as a root-like item.
-     * @returns unknown Successful Response
-     * @throws ApiError
-     */
-    public static getAlreadyReadRoot(): CancelablePromise<FilesystemGetAlreadyReadRootResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/fs/already-read'
-        });
-    }
-    
-    /**
      * Get Drives
      * Get available drive letters (Windows only).
      * @returns RootItem Successful Response
@@ -129,7 +103,7 @@ export class FilesystemService {
     public static listDirectory(data: FilesystemListDirectoryData): CancelablePromise<FilesystemListDirectoryResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/fs/list',
+            url: '/api/v1/fs/listdir',
             query: {
                 path: data.path,
                 sort_by: data.sortBy,
@@ -323,7 +297,7 @@ export class FilesystemService {
     public static backfillDirectory(data: FilesystemBackfillDirectoryData): CancelablePromise<FilesystemBackfillDirectoryResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/fs/backfill',
+            url: '/api/v1/fs/generate',
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -343,7 +317,7 @@ export class FilesystemService {
     public static scanAndWatch(data: FilesystemScanAndWatchData): CancelablePromise<FilesystemScanAndWatchResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/fs/scan-watch',
+            url: '/api/v1/fs/scan-and-watch',
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -424,7 +398,7 @@ export class FilesystemService {
     public static clearExtractCacheEndpoint(): CancelablePromise<FilesystemClearExtractCacheEndpointResponse> {
         return __request(OpenAPI, {
             method: 'DELETE',
-            url: '/api/v1/fs/extract-cache'
+            url: '/api/v1/fs/clean-extract-cache'
         });
     }
     

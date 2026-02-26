@@ -49,6 +49,7 @@ function DialogContent({
   children,
   showCloseButton = true,
   onOpenAutoFocus,
+  onKeyDown,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
@@ -58,6 +59,13 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
+        onKeyDown={(e) => {
+          // 阻止非 Escape 按键冒泡到 window，避免触发页面热键
+          if (e.key !== "Escape") {
+            e.stopPropagation()
+          }
+          onKeyDown?.(e)
+        }}
         onOpenAutoFocus={(event) => {
           onOpenAutoFocus?.(event)
           if (event.defaultPrevented) return

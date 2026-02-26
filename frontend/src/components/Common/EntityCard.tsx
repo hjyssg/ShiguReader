@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 
 import { OpenAPI } from "@/client"
 import { CardInfo, CardThumbnail, ItemCard } from "@/components/semantic/layout"
+import { THUMBNAIL_TOOLTIP_SIDE } from "@/constants/ui"
 import {
   Tooltip,
   TooltipContent,
@@ -16,7 +17,8 @@ export type EntityCardItem = {
   name: string
   thumbnail?: string | null
   file_count: number
-  avg_rec_score?: number | null
+  recommendation_score?: number | null
+  entityType?: "tag" | "author" | "coser"
 }
 
 export function EntityCard({
@@ -27,12 +29,18 @@ export function EntityCard({
   href?: string
 }) {
   const { t } = useTranslation()
-  const recScore = item.avg_rec_score ?? 0
+  const recScore = item.recommendation_score ?? 0
   const tooltipText = `${t("authors.recommendation")}: ${recScore.toFixed(3)}`
 
-  const thumbContent = item.thumbnail ? (
+  const resolvedThumbSrc = item.thumbnail
+    ? `${OpenAPI.BASE}${item.thumbnail}`
+    : item.entityType
+      ? `${OpenAPI.BASE}/api/v1/thumbnail?type=${item.entityType}&name=${encodeURIComponent(item.name)}`
+      : null
+
+  const thumbContent = resolvedThumbSrc ? (
     <ThumbnailImage
-      src={`${OpenAPI.BASE}${item.thumbnail}`}
+      src={resolvedThumbSrc}
       alt={item.name}
       fallback={<ImageIcon className="size-10 text-muted-foreground" />}
     />
@@ -54,31 +62,34 @@ export function EntityCard({
             <div>{thumbContent}</div>
           )}
         </TooltipTrigger>
-        <TooltipContent className="whitespace-pre-line">
+        <TooltipContent side={THUMBNAIL_TOOLTIP_SIDE} className="whitespace-pre-line">
           {tooltipText}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
   )
 
+  const entityNameNode = href ? (
+    <a
+      className="entity-name text-sm truncate block text-center mt-1 mb-1  hover:underline"
+      href={href}
+      title={item.name}
+      aria-label={item.name}
+    >
+      {item.name}
+    </a>
+  ) : (
+    <p className="entity-name text-sm truncate text-center mt-1 mb-1 " title={item.name}>
+      {item.name}
+    </p>
+  )
+
   return (
     <ItemCard title={item.name} className="entity-card">
+      {entityNameNode}
       {wrappedThumb}
 
       <CardInfo className="entity-info">
-        {href ? (
-          <a
-            className="text-sm truncate block hover:underline"
-            href={href}
-            title={item.name}
-          >
-            {item.name}
-          </a>
-        ) : (
-          <p className="text-sm truncate" title={item.name}>
-            {item.name}
-          </p>
-        )}
         <p className="text-xs text-muted-foreground">{item.file_count} files</p>
       </CardInfo>
     </ItemCard>

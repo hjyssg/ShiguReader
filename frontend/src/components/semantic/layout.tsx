@@ -1,4 +1,5 @@
 import { Loader2 } from "lucide-react"
+import { forwardRef } from "react"
 import type React from "react"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
@@ -189,15 +190,13 @@ export function ItemCard({
   )
 }
 
-export function CardThumbnail({
-  children,
-  className,
-}: {
-  children: React.ReactNode
-  className?: string
-}) {
+export const CardThumbnail = forwardRef<
+  HTMLDivElement,
+  { children: React.ReactNode; className?: string }
+>(({ children, className }, ref) => {
   return (
     <div
+      ref={ref}
       className={cn(
         "card-thumbnail aspect-square w-full overflow-hidden rounded-t-lg flex items-center justify-center",
         className,
@@ -206,7 +205,8 @@ export function CardThumbnail({
       {children}
     </div>
   )
-}
+})
+CardThumbnail.displayName = "CardThumbnail"
 
 export function CardInfo({
   children,
@@ -331,7 +331,7 @@ export function ExtractingIndicator({
   variant = "inline",
   className,
 }: {
-  status?: "extracting" | "completed" | "error"
+  status?: "extracting" | "completed" | "error" | "started" | "already_running"
   variant?: "overlay" | "inline" | "fixed"
   className?: string
 }) {

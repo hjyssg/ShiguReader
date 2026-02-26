@@ -1,11 +1,11 @@
 // 删除确认对话框
 
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -31,6 +31,7 @@ export function DeleteDialog({
   isPending,
 }: DeleteDialogProps) {
   const count = filePaths.length
+  const { t } = useTranslation()
   const displayNames = filePaths.slice(0, 5).map((p) => getBaseName(p))
   const hasMore = count > 5
   const [deleteMode, setDeleteMode] = useState<"recycle" | "permanent">(
@@ -42,11 +43,8 @@ export function DeleteDialog({
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>
-            Delete {count > 1 ? `${count} items` : "item"}
+            {t("fileOps.deleteItems", { count })}
           </DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete the following items?
-          </DialogDescription>
         </DialogHeader>
 
         <div className="py-4 space-y-4">
@@ -57,7 +55,7 @@ export function DeleteDialog({
               </li>
             ))}
             {hasMore && (
-              <li className="text-muted-foreground">...and {count - 5} more</li>
+              <li className="text-muted-foreground">{t("fileOps.andMore", { count: count - 5 })}</li>
             )}
           </ul>
 
@@ -67,12 +65,12 @@ export function DeleteDialog({
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="recycle" id="r1" />
-              <Label htmlFor="r1">Move to Recycle Bin</Label>
+              <Label htmlFor="r1">{t("fileOps.moveToRecycleBin")}</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="permanent" id="r2" />
               <Label htmlFor="r2" className="text-destructive">
-                Permanently Delete
+                {t("fileOps.permanentlyDelete")}
               </Label>
             </div>
           </RadioGroup>
@@ -84,7 +82,7 @@ export function DeleteDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button
             type="button"
@@ -94,10 +92,10 @@ export function DeleteDialog({
             disabled={isPending}
           >
             {isPending
-              ? "Deleting..."
+              ? t("fileOps.deleting")
               : deleteMode === "permanent"
-                ? "Permanently Delete"
-                : "Move to Recycle Bin"}
+                ? t("fileOps.permanentlyDelete")
+                : t("fileOps.moveToRecycleBin")}
           </Button>
         </DialogFooter>
       </DialogContent>

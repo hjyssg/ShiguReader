@@ -17,12 +17,14 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "allowJs": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@common/*": ["../common/src/*"]
     }
   },
-  "include": ["src", "tests", "playwright.config.ts"],
+  "include": ["src", "tests", "playwright.config.ts", "../common/src"],
   "references": [
     {
       "path": "./tsconfig.node.json"

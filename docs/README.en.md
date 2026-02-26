@@ -6,9 +6,7 @@
 
   <div>
     <a href="../README.md">中文</a> |
-    <a href="#ShiguReader">English</a> |
-    <a href="README.ja.md">日本語</a> |
-    <a href="README.ko.md">한국어</a>
+    <a href="#ShiguReader">English</a>
   </div>
 </div>
 

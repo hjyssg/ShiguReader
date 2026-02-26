@@ -51,3 +51,8 @@ backend/app/file_processing/name_parser/coser_names.idx
 /backend/tools/ffmpeg/ffprobe.exe
 /backend/tools/ffmpeg/swresample-6.dll
 /backend/tools/ffmpeg/swscale-9.dll
+/backendnode/tools/ffmpeg
+/data/index_node.db-shm
+/data/index_node.db
+/data/index_node.db-wal
+/backendnode/dist

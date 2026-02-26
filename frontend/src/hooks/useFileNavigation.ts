@@ -1,10 +1,4 @@
-// 文件导航 Hook — 处理双击打开和新标签页打开
-import { useNavigate } from "@tanstack/react-router"
-import { useCallback } from "react"
-
 import type { FileSystemItem } from "@/client"
-import { useIsMobile } from "@/hooks/useMobile"
-import { getParentPath } from "@/lib/path-utils"
 
 /** 根据文件类型构建导航目标 */
 export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
@@ -21,14 +15,12 @@ export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
     }
   }
   if (isArchive) {
-    const readRoute = isMobile ? "/read-mobile" : "/read"
     return {
-      to: readRoute as "/read" | "/read-mobile",
+      to: "/read" as const,
       search: {
         path: item.path,
-        source: "archive" as const,
         page: 0,
-        filePath: "",
+        mode: isMobile ? ("mobile" as const) : undefined,
       },
     }
   }
@@ -40,20 +32,21 @@ export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
   }
   if (isAudio) {
     return {
-      to: "/audio" as const,
-      search: { path: item.path, entry: undefined },
+      to: "/read" as const,
+      search: {
+        path: item.path,
+        page: 0,
+        mode: "audio" as const,
+      },
     }
   }
   if (isImage) {
-    const parentPath = getParentPath(item.path)
-    const readRoute = isMobile ? "/read-mobile" : "/read"
     return {
-      to: readRoute as "/read" | "/read-mobile",
+      to: "/read" as const,
       search: {
-        path: parentPath,
-        source: "folder" as const,
+        path: item.path,
         page: 0,
-        filePath: item.path,
+        mode: isMobile ? ("mobile" as const) : undefined,
       },
     }
   }
@@ -61,7 +54,7 @@ export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
 }
 
 /** 构建完整 URL 用于新标签页打开 */
-function buildUrl(
+export function buildUrl(
   target: ReturnType<typeof buildNavigationTarget>,
 ): string | null {
   if (!target) return null
@@ -72,42 +65,4 @@ function buildUrl(
     }
   }
   return `${target.to}?${params.toString()}`
-}
-
-export function useFileNavigation() {
-  const navigate = useNavigate()
-  const isMobile = useIsMobile()
-
-  /** 当前标签页打开 */
-  const openItem = useCallback(
-    (item: FileSystemItem) => {
-      const target = buildNavigationTarget(item, isMobile)
-      if (target) {
-        navigate({ to: target.to, search: target.search as any })
-      }
-    },
-    [navigate, isMobile],
-  )
-
-  /** 新标签页打开 */
-  const openItemInNewTab = useCallback(
-    (item: FileSystemItem) => {
-      const target = buildNavigationTarget(item, isMobile)
-      const url = buildUrl(target)
-      if (url) {
-        window.open(url, "_blank")
-      }
-    },
-    [isMobile],
-  )
-
-  /** 判断文件是否可打开 */
-  const isOpenable = useCallback(
-    (item: FileSystemItem) => {
-      return buildNavigationTarget(item, isMobile) !== null
-    },
-    [isMobile],
-  )
-
-  return { openItem, openItemInNewTab, isOpenable }
 }

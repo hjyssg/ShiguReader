@@ -15,7 +15,9 @@
     "refresh": "Refresh",
     "extracting": "Extracting...",
     "noData": "No data",
-    "reset": "Reset"
+    "reset": "Reset",
+    "copied": "Copied",
+    "close": "Close"
   },
   "nav": {
     "home": "Home",
@@ -147,6 +149,12 @@
     "coser": "Coser",
     "tag": "Tag",
     "mode": "Mode",
+    "modeExact": "Exact",
+    "modeHybrid": "Hybrid",
+    "presence": "Presence",
+    "presenceAll": "All",
+    "presenceWatched": "Watched only",
+    "presenceScannedRecent": "Scanned < 10min",
     "noResults": "No matching results found",
     "goTo": "Go to",
     "confirm": "Confirm"
@@ -176,7 +184,9 @@
     "jumpPage": "Jump",
     "reset": "Reset",
     "page": "Page",
-    "of": "of"
+    "of": "of",
+    "waterfall": "Waterfall",
+    "mobileView": "Mobile View"
   },
   "settings": {
     "title": "Settings",
@@ -214,7 +224,7 @@
     "updateFailed": "Failed to update settings",
     "clearCacheFailed": "Failed to clear cache",
     "general": "General",
-    "scanProgress": "Scan Progress",
+    "scanProgress": "Scan",
     "scanStatus": "File Watcher / Scan",
     "path": "Path",
     "status": "Status",
@@ -236,12 +246,56 @@
     "movePlaceDirDesc": "Default destination prefilled when opening \"Move to...\"",
     "movePlaceDirPlaceholder": "Enter directory path, e.g., E:\\_To_Sort",
     "envFilePath": ".env file path",
-    "envFilePathDesc": "The currently used .env file location for manual editing"
+    "dbFilePath": "DB file path",
+    "envFilePathDesc": "The currently used .env file location for manual editing",
+    "selectDirsToScan": "Select directories to scan",
+    "selectAll": "Select All",
+    "selectNone": "Deselect All",
+    "noConfiguredDirs": "No directories configured. Add paths in General settings first.",
+    "startScan": "Start Scan ({{count}})",
+    "scanning": "Scanning...",
+    "scanStarted": "Scan task started",
+    "scanFailed": "Failed to start scan"
   },
   "archive": {
     "unknownError": "Unknown error"
   },
   "audio": {
     "noAudioFiles": "No audio files found"
+  },
+  "fileOps": {
+    "title": "File operations",
+    "rename": "Rename",
+    "renaming": "Renaming...",
+    "newName": "New name",
+    "move": "Move",
+    "moveTo": "Move to...",
+    "moveItems": "Move {{count}} items",
+    "moving": "Moving",
+    "movingAction": "Moving...",
+    "itemsCount": "{{count}} items",
+    "destinationDirectory": "Destination directory",
+    "enterDestinationPath": "Enter destination path...",
+    "andMore": " and {{count}} more",
+    "deleteItems": "Delete {{count}} items",
+    "deleting": "Deleting...",
+    "moveToRecycleBin": "Move to Recycle Bin",
+    "permanentlyDelete": "Permanently Delete",
+    "moveToFavorites": "Move to Favorites",
+    "moveToAlreadyRead": "Move to Already Read",
+    "moveToDestination": "move {{item}} to \"{{destination}}\"?",
+    "moveToSubfolder": "Move to subfolder",
+    "subfolderName": "Subfolder name",
+    "compressToZip": "Compress to Zip",
+    "compressToZipDescription": "This will compress the folder into a Zip archive.",
+    "compress": "Compress",
+    "compressing": "Compressing...",
+    "minifyZipImages": "Minify Zip Images",
+    "minifyZipImagesDescription": "This will compress large images inside the archive and repack it. The original archive will be replaced.",
+    "minify": "Minify",
+    "minifying": "Minifying...",
+    "target": "Target",
+    "download": "Download",
+    "fileActions": "File actions"
   }
 }

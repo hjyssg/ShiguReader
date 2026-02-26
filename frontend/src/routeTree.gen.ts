@@ -9,47 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SignupRouteImport } from './routes/signup'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutVideoRouteImport } from './routes/_layout/video'
-import { Route as LayoutTagsRouteImport } from './routes/_layout/tags'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutSearchRouteImport } from './routes/_layout/search'
-import { Route as LayoutReadWaterfallRouteImport } from './routes/_layout/read-waterfall'
-import { Route as LayoutReadMobileRouteImport } from './routes/_layout/read-mobile'
-import { Route as LayoutReadRouteImport } from './routes/_layout/read'
 import { Route as LayoutHistoryRouteImport } from './routes/_layout/history'
 import { Route as LayoutExplorerRouteImport } from './routes/_layout/explorer'
-import { Route as LayoutCosersRouteImport } from './routes/_layout/cosers'
-import { Route as LayoutAuthorsRouteImport } from './routes/_layout/authors'
-import { Route as LayoutAudioRouteImport } from './routes/_layout/audio'
-import { Route as LayoutArchiveRouteImport } from './routes/_layout/archive'
-import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
+import { Route as LayoutEntitiesRouteImport } from './routes/_layout/_entities'
+import { Route as LayoutReadIndexRouteImport } from './routes/_layout/read/index'
+import { Route as LayoutEntitiesTagsRouteImport } from './routes/_layout/_entities/tags'
+import { Route as LayoutEntitiesCosersRouteImport } from './routes/_layout/_entities/cosers'
+import { Route as LayoutEntitiesAuthorsRouteImport } from './routes/_layout/_entities/authors'
 
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RecoverPasswordRoute = RecoverPasswordRouteImport.update({
-  id: '/recover-password',
-  path: '/recover-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
   getParentRoute: () => rootRouteImport,
@@ -64,11 +36,6 @@ const LayoutVideoRoute = LayoutVideoRouteImport.update({
   path: '/video',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutTagsRoute = LayoutTagsRouteImport.update({
-  id: '/tags',
-  path: '/tags',
-  getParentRoute: () => LayoutRoute,
-} as any)
 const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -77,21 +44,6 @@ const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
 const LayoutSearchRoute = LayoutSearchRouteImport.update({
   id: '/search',
   path: '/search',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutReadWaterfallRoute = LayoutReadWaterfallRouteImport.update({
-  id: '/read-waterfall',
-  path: '/read-waterfall',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutReadMobileRoute = LayoutReadMobileRouteImport.update({
-  id: '/read-mobile',
-  path: '/read-mobile',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutReadRoute = LayoutReadRouteImport.update({
-  id: '/read',
-  path: '/read',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutHistoryRoute = LayoutHistoryRouteImport.update({
@@ -104,202 +56,117 @@ const LayoutExplorerRoute = LayoutExplorerRouteImport.update({
   path: '/explorer',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutCosersRoute = LayoutCosersRouteImport.update({
+const LayoutEntitiesRoute = LayoutEntitiesRouteImport.update({
+  id: '/_entities',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutReadIndexRoute = LayoutReadIndexRouteImport.update({
+  id: '/read/',
+  path: '/read/',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutEntitiesTagsRoute = LayoutEntitiesTagsRouteImport.update({
+  id: '/tags',
+  path: '/tags',
+  getParentRoute: () => LayoutEntitiesRoute,
+} as any)
+const LayoutEntitiesCosersRoute = LayoutEntitiesCosersRouteImport.update({
   id: '/cosers',
   path: '/cosers',
-  getParentRoute: () => LayoutRoute,
+  getParentRoute: () => LayoutEntitiesRoute,
 } as any)
-const LayoutAuthorsRoute = LayoutAuthorsRouteImport.update({
+const LayoutEntitiesAuthorsRoute = LayoutEntitiesAuthorsRouteImport.update({
   id: '/authors',
   path: '/authors',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutAudioRoute = LayoutAudioRouteImport.update({
-  id: '/audio',
-  path: '/audio',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutArchiveRoute = LayoutArchiveRouteImport.update({
-  id: '/archive',
-  path: '/archive',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutAdminRoute = LayoutAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => LayoutRoute,
+  getParentRoute: () => LayoutEntitiesRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
-  '/login': typeof LoginRoute
-  '/recover-password': typeof RecoverPasswordRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/signup': typeof SignupRoute
-  '/admin': typeof LayoutAdminRoute
-  '/archive': typeof LayoutArchiveRoute
-  '/audio': typeof LayoutAudioRoute
-  '/authors': typeof LayoutAuthorsRoute
-  '/cosers': typeof LayoutCosersRoute
   '/explorer': typeof LayoutExplorerRoute
   '/history': typeof LayoutHistoryRoute
-  '/read': typeof LayoutReadRoute
-  '/read-mobile': typeof LayoutReadMobileRoute
-  '/read-waterfall': typeof LayoutReadWaterfallRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
-  '/tags': typeof LayoutTagsRoute
   '/video': typeof LayoutVideoRoute
+  '/authors': typeof LayoutEntitiesAuthorsRoute
+  '/cosers': typeof LayoutEntitiesCosersRoute
+  '/tags': typeof LayoutEntitiesTagsRoute
+  '/read/': typeof LayoutReadIndexRoute
 }
 export interface FileRoutesByTo {
-  '/login': typeof LoginRoute
-  '/recover-password': typeof RecoverPasswordRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/signup': typeof SignupRoute
-  '/admin': typeof LayoutAdminRoute
-  '/archive': typeof LayoutArchiveRoute
-  '/audio': typeof LayoutAudioRoute
-  '/authors': typeof LayoutAuthorsRoute
-  '/cosers': typeof LayoutCosersRoute
+  '/': typeof LayoutIndexRoute
   '/explorer': typeof LayoutExplorerRoute
   '/history': typeof LayoutHistoryRoute
-  '/read': typeof LayoutReadRoute
-  '/read-mobile': typeof LayoutReadMobileRoute
-  '/read-waterfall': typeof LayoutReadWaterfallRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
-  '/tags': typeof LayoutTagsRoute
   '/video': typeof LayoutVideoRoute
-  '/': typeof LayoutIndexRoute
+  '/authors': typeof LayoutEntitiesAuthorsRoute
+  '/cosers': typeof LayoutEntitiesCosersRoute
+  '/tags': typeof LayoutEntitiesTagsRoute
+  '/read': typeof LayoutReadIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
-  '/login': typeof LoginRoute
-  '/recover-password': typeof RecoverPasswordRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/signup': typeof SignupRoute
-  '/_layout/admin': typeof LayoutAdminRoute
-  '/_layout/archive': typeof LayoutArchiveRoute
-  '/_layout/audio': typeof LayoutAudioRoute
-  '/_layout/authors': typeof LayoutAuthorsRoute
-  '/_layout/cosers': typeof LayoutCosersRoute
+  '/_layout/_entities': typeof LayoutEntitiesRouteWithChildren
   '/_layout/explorer': typeof LayoutExplorerRoute
   '/_layout/history': typeof LayoutHistoryRoute
-  '/_layout/read': typeof LayoutReadRoute
-  '/_layout/read-mobile': typeof LayoutReadMobileRoute
-  '/_layout/read-waterfall': typeof LayoutReadWaterfallRoute
   '/_layout/search': typeof LayoutSearchRoute
   '/_layout/settings': typeof LayoutSettingsRoute
-  '/_layout/tags': typeof LayoutTagsRoute
   '/_layout/video': typeof LayoutVideoRoute
   '/_layout/': typeof LayoutIndexRoute
+  '/_layout/_entities/authors': typeof LayoutEntitiesAuthorsRoute
+  '/_layout/_entities/cosers': typeof LayoutEntitiesCosersRoute
+  '/_layout/_entities/tags': typeof LayoutEntitiesTagsRoute
+  '/_layout/read/': typeof LayoutReadIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/login'
-    | '/recover-password'
-    | '/reset-password'
-    | '/signup'
-    | '/admin'
-    | '/archive'
-    | '/audio'
-    | '/authors'
-    | '/cosers'
     | '/explorer'
     | '/history'
-    | '/read'
-    | '/read-mobile'
-    | '/read-waterfall'
     | '/search'
     | '/settings'
-    | '/tags'
     | '/video'
+    | '/authors'
+    | '/cosers'
+    | '/tags'
+    | '/read/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/login'
-    | '/recover-password'
-    | '/reset-password'
-    | '/signup'
-    | '/admin'
-    | '/archive'
-    | '/audio'
-    | '/authors'
-    | '/cosers'
+    | '/'
     | '/explorer'
     | '/history'
-    | '/read'
-    | '/read-mobile'
-    | '/read-waterfall'
     | '/search'
     | '/settings'
-    | '/tags'
     | '/video'
-    | '/'
+    | '/authors'
+    | '/cosers'
+    | '/tags'
+    | '/read'
   id:
     | '__root__'
     | '/_layout'
-    | '/login'
-    | '/recover-password'
-    | '/reset-password'
-    | '/signup'
-    | '/_layout/admin'
-    | '/_layout/archive'
-    | '/_layout/audio'
-    | '/_layout/authors'
-    | '/_layout/cosers'
+    | '/_layout/_entities'
     | '/_layout/explorer'
     | '/_layout/history'
-    | '/_layout/read'
-    | '/_layout/read-mobile'
-    | '/_layout/read-waterfall'
     | '/_layout/search'
     | '/_layout/settings'
-    | '/_layout/tags'
     | '/_layout/video'
     | '/_layout/'
+    | '/_layout/_entities/authors'
+    | '/_layout/_entities/cosers'
+    | '/_layout/_entities/tags'
+    | '/_layout/read/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   LayoutRoute: typeof LayoutRouteWithChildren
-  LoginRoute: typeof LoginRoute
-  RecoverPasswordRoute: typeof RecoverPasswordRoute
-  ResetPasswordRoute: typeof ResetPasswordRoute
-  SignupRoute: typeof SignupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/recover-password': {
-      id: '/recover-password'
-      path: '/recover-password'
-      fullPath: '/recover-password'
-      preLoaderRoute: typeof RecoverPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_layout': {
       id: '/_layout'
       path: ''
@@ -321,13 +188,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutVideoRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/tags': {
-      id: '/_layout/tags'
-      path: '/tags'
-      fullPath: '/tags'
-      preLoaderRoute: typeof LayoutTagsRouteImport
-      parentRoute: typeof LayoutRoute
-    }
     '/_layout/settings': {
       id: '/_layout/settings'
       path: '/settings'
@@ -340,27 +200,6 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof LayoutSearchRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/read-waterfall': {
-      id: '/_layout/read-waterfall'
-      path: '/read-waterfall'
-      fullPath: '/read-waterfall'
-      preLoaderRoute: typeof LayoutReadWaterfallRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/read-mobile': {
-      id: '/_layout/read-mobile'
-      path: '/read-mobile'
-      fullPath: '/read-mobile'
-      preLoaderRoute: typeof LayoutReadMobileRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/read': {
-      id: '/_layout/read'
-      path: '/read'
-      fullPath: '/read'
-      preLoaderRoute: typeof LayoutReadRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/history': {
@@ -377,78 +216,80 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutExplorerRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/cosers': {
-      id: '/_layout/cosers'
+    '/_layout/_entities': {
+      id: '/_layout/_entities'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof LayoutEntitiesRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/read/': {
+      id: '/_layout/read/'
+      path: '/read'
+      fullPath: '/read/'
+      preLoaderRoute: typeof LayoutReadIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/_entities/tags': {
+      id: '/_layout/_entities/tags'
+      path: '/tags'
+      fullPath: '/tags'
+      preLoaderRoute: typeof LayoutEntitiesTagsRouteImport
+      parentRoute: typeof LayoutEntitiesRoute
+    }
+    '/_layout/_entities/cosers': {
+      id: '/_layout/_entities/cosers'
       path: '/cosers'
       fullPath: '/cosers'
-      preLoaderRoute: typeof LayoutCosersRouteImport
-      parentRoute: typeof LayoutRoute
+      preLoaderRoute: typeof LayoutEntitiesCosersRouteImport
+      parentRoute: typeof LayoutEntitiesRoute
     }
-    '/_layout/authors': {
-      id: '/_layout/authors'
+    '/_layout/_entities/authors': {
+      id: '/_layout/_entities/authors'
       path: '/authors'
       fullPath: '/authors'
-      preLoaderRoute: typeof LayoutAuthorsRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/audio': {
-      id: '/_layout/audio'
-      path: '/audio'
-      fullPath: '/audio'
-      preLoaderRoute: typeof LayoutAudioRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/archive': {
-      id: '/_layout/archive'
-      path: '/archive'
-      fullPath: '/archive'
-      preLoaderRoute: typeof LayoutArchiveRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/admin': {
-      id: '/_layout/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof LayoutAdminRouteImport
-      parentRoute: typeof LayoutRoute
+      preLoaderRoute: typeof LayoutEntitiesAuthorsRouteImport
+      parentRoute: typeof LayoutEntitiesRoute
     }
   }
 }
 
+interface LayoutEntitiesRouteChildren {
+  LayoutEntitiesAuthorsRoute: typeof LayoutEntitiesAuthorsRoute
+  LayoutEntitiesCosersRoute: typeof LayoutEntitiesCosersRoute
+  LayoutEntitiesTagsRoute: typeof LayoutEntitiesTagsRoute
+}
+
+const LayoutEntitiesRouteChildren: LayoutEntitiesRouteChildren = {
+  LayoutEntitiesAuthorsRoute: LayoutEntitiesAuthorsRoute,
+  LayoutEntitiesCosersRoute: LayoutEntitiesCosersRoute,
+  LayoutEntitiesTagsRoute: LayoutEntitiesTagsRoute,
+}
+
+const LayoutEntitiesRouteWithChildren = LayoutEntitiesRoute._addFileChildren(
+  LayoutEntitiesRouteChildren,
+)
+
 interface LayoutRouteChildren {
-  LayoutAdminRoute: typeof LayoutAdminRoute
-  LayoutArchiveRoute: typeof LayoutArchiveRoute
-  LayoutAudioRoute: typeof LayoutAudioRoute
-  LayoutAuthorsRoute: typeof LayoutAuthorsRoute
-  LayoutCosersRoute: typeof LayoutCosersRoute
+  LayoutEntitiesRoute: typeof LayoutEntitiesRouteWithChildren
   LayoutExplorerRoute: typeof LayoutExplorerRoute
   LayoutHistoryRoute: typeof LayoutHistoryRoute
-  LayoutReadRoute: typeof LayoutReadRoute
-  LayoutReadMobileRoute: typeof LayoutReadMobileRoute
-  LayoutReadWaterfallRoute: typeof LayoutReadWaterfallRoute
   LayoutSearchRoute: typeof LayoutSearchRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
-  LayoutTagsRoute: typeof LayoutTagsRoute
   LayoutVideoRoute: typeof LayoutVideoRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
+  LayoutReadIndexRoute: typeof LayoutReadIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
-  LayoutAdminRoute: LayoutAdminRoute,
-  LayoutArchiveRoute: LayoutArchiveRoute,
-  LayoutAudioRoute: LayoutAudioRoute,
-  LayoutAuthorsRoute: LayoutAuthorsRoute,
-  LayoutCosersRoute: LayoutCosersRoute,
+  LayoutEntitiesRoute: LayoutEntitiesRouteWithChildren,
   LayoutExplorerRoute: LayoutExplorerRoute,
   LayoutHistoryRoute: LayoutHistoryRoute,
-  LayoutReadRoute: LayoutReadRoute,
-  LayoutReadMobileRoute: LayoutReadMobileRoute,
-  LayoutReadWaterfallRoute: LayoutReadWaterfallRoute,
   LayoutSearchRoute: LayoutSearchRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
-  LayoutTagsRoute: LayoutTagsRoute,
   LayoutVideoRoute: LayoutVideoRoute,
   LayoutIndexRoute: LayoutIndexRoute,
+  LayoutReadIndexRoute: LayoutReadIndexRoute,
 }
 
 const LayoutRouteWithChildren =
@@ -456,10 +297,6 @@ const LayoutRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
-  LoginRoute: LoginRoute,
-  RecoverPasswordRoute: RecoverPasswordRoute,
-  ResetPasswordRoute: ResetPasswordRoute,
-  SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

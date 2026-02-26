@@ -1,11 +1,15 @@
 /**
  * 设置页面 - 管理文件系统根目录、特殊文件夹、语言和缓存
+ *
+ * 分两个 Tab：
+ *   - 常规：语言、缓存、路径配置
+ *   - 扫描：选择目录并触发扫描 + 查看扫描状态
  */
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@/shims/react-query"
 import { createFileRoute } from "@tanstack/react-router"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { Trash2, Plus, RotateCcw } from "lucide-react"
+import { Trash2, Plus, RotateCcw, Play, Folder, Heart, Star } from "lucide-react"
 
 import { OpenAPI } from "@/client"
 import { Button } from "@/components/ui/button"
@@ -40,14 +44,17 @@ export const Route = createFileRoute("/_layout/settings")({
   }),
 })
 
+/** GET /api/v1/settings 的响应结构 */
 interface SettingsResponse {
-  favorite_dir: string
-  fs_roots: string
+  favorite_dir: string   // 收藏目录
+  fs_roots: string       // 快捷访问目录，逗号分隔
   already_read_dir: string
   move_place_dir: string
-  env_file_path: string
+  env_file_path: string  // .env 文件路径（只读展示）
+  db_file_path: string   // DB 文件路径（只读展示）
 }
 
+/** PUT /api/v1/settings 的请求体，所有字段可选 */
 interface SettingsUpdate {
   favorite_dir?: string
   fs_roots?: string
@@ -55,20 +62,23 @@ interface SettingsUpdate {
   move_place_dir?: string
 }
 
+/** DELETE /api/v1/fs/clean-extract-cache 的响应 */
 interface ClearCacheResponse {
   deleted_files: number
   freed_size_readable: string
 }
 
+/** GET /api/v1/fs/scan-status 返回的单条扫描状态 */
 interface ScanStatusItem {
   path: string
   status: "running" | "completed" | "error"
   scanned_folders: number
   scanned_files: number
   parsed_files: number
-  watcher_active: boolean
+  watcher_active: boolean  // 是否有 fs.watch 监听器在运行
 }
 
+/** 将逗号分隔的 fs_roots 字符串解析为数组，至少保留一个空项 */
 const parseFsRoots = (value: string): string[] => {
   const paths = (value || "")
     .split(",")
@@ -77,6 +87,10 @@ const parseFsRoots = (value: string): string[] => {
   return paths.length > 0 ? paths : [""]
 }
 
+/**
+ * 单路径配置区块 - 用于收藏目录、已读目录、Move To 目录等单个路径的输入
+ * onBlur 时自动保存（只有值变化才发请求）
+ */
 interface SinglePathSectionProps {
   title: string
   description: string
@@ -87,7 +101,7 @@ interface SinglePathSectionProps {
   onChange: (value: string) => void
   onSave: () => void
   onReset: () => void
-  t: (key: string, options?: any) => string
+  t: (key: string, options?: Record<string, unknown>) => string
 }
 
 function SinglePathSection({
@@ -137,6 +151,7 @@ function SinglePathSection({
   )
 }
 
+/** fs_roots 列表中的单行路径输入 + 删除按钮 */
 type PathRowProps = {
   index: number
   value: string
@@ -173,20 +188,203 @@ function PathRow({ index, value, placeholder, onChange, onRemove, onBlur }: Path
   )
 }
 
+type ScanPathEntry = {
+  path: string
+  label: string
+  icon: "folder" | "heart" | "star"
+  checked: boolean
+}
+
+/**
+ * 扫描 Tab — 上半部分：带 checkbox 的目录列表 + 全选/取消全选 + 开始扫描按钮
+ *            下半部分：实时刷新的扫描状态表（每 3 秒轮询一次）
+ *
+ * allPaths 由 settings 中的三类路径聚合而来：
+ *   favorite_dir → heart 图标
+ *   already_read_dir → star 图标
+ *   fs_roots（逗号分隔）→ folder 图标
+ */
+type ScanTabProps = {
+  settings: SettingsResponse | undefined
+  scanStatus: ScanStatusItem[] | undefined
+  t: (key: string, options?: Record<string, unknown>) => string
+  showSuccessToast: (msg: string) => void
+  showErrorToast: (msg: string) => void
+}
+
+function ScanTab({ settings, scanStatus, t, showSuccessToast, showErrorToast }: ScanTabProps) {
+  const allPaths = useMemo<ScanPathEntry[]>(() => {
+    const entries: ScanPathEntry[] = []
+    if (settings?.favorite_dir?.trim()) {
+      entries.push({ path: settings.favorite_dir.trim(), label: t("settings.favoriteDir"), icon: "heart", checked: true })
+    }
+    if (settings?.already_read_dir?.trim()) {
+      entries.push({ path: settings.already_read_dir.trim(), label: t("settings.alreadyReadDir"), icon: "star", checked: true })
+    }
+    const roots = (settings?.fs_roots || "").split(",").map(r => r.trim()).filter(Boolean)
+    for (const r of roots) {
+      entries.push({ path: r, label: t("settings.fsRoots"), icon: "folder", checked: true })
+    }
+    return entries
+  }, [settings, t])
+
+  const [checked, setChecked] = useState<Record<string, boolean>>({})
+
+  useEffect(() => {
+    const init: Record<string, boolean> = {}
+    for (const e of allPaths) init[e.path] = true
+    setChecked(init)
+  }, [allPaths])
+
+  const selectedPaths = allPaths.filter(e => checked[e.path])
+
+  const scanMutation = useMutation({
+    mutationFn: async (paths: string[]) => {
+      await Promise.all(
+        paths.map(p =>
+          fetch(`${OpenAPI.BASE}/api/v1/fs/scan`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ path: p, recursive: true }),
+          })
+        )
+      )
+    },
+    onSuccess: () => showSuccessToast(t("settings.scanStarted")),
+    onError: () => showErrorToast(t("settings.scanFailed")),
+  })
+
+  const toggleAll = (val: boolean) => {
+    const next: Record<string, boolean> = {}
+    for (const e of allPaths) next[e.path] = val
+    setChecked(next)
+  }
+
+  const isAllChecked = allPaths.length > 0 && allPaths.every(e => checked[e.path])
+  const isNoneChecked = allPaths.every(e => !checked[e.path])
+
+  return (
+    <div className="scan-tab">
+      {/* 路径选择区 — 蓝色边框 section 风格 */}
+      <div className="scan-select-panel settings-section--blue">
+        <div className="scan-select-panel__header">
+          <span className="scan-select-panel__title">{t("settings.selectDirsToScan")}</span>
+          <div className="scan-select-panel__header-actions">
+            <Button type="button" variant="outline" size="sm" onClick={() => toggleAll(true)} disabled={isAllChecked}>
+              {t("settings.selectAll")}
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => toggleAll(false)} disabled={isNoneChecked}>
+              {t("settings.selectNone")}
+            </Button>
+          </div>
+        </div>
+
+        {allPaths.length === 0 ? (
+          <div className="scan-select-panel__empty">{t("settings.noConfiguredDirs")}</div>
+        ) : (
+          <ul className="scan-select-panel__list">
+            {allPaths.map(entry => (
+              <li key={entry.path} className="scan-select-panel__item">
+                <label className="scan-select-panel__label">
+                  <input
+                    type="checkbox"
+                    className="scan-select-panel__checkbox"
+                    checked={!!checked[entry.path]}
+                    onChange={e => setChecked(prev => ({ ...prev, [entry.path]: e.target.checked }))}
+                  />
+                  <span className="scan-select-panel__icon">
+                    {entry.icon === "heart" ? <Heart className="size-4 text-rose-400" /> : entry.icon === "star" ? <Star className="size-4 text-yellow-400" /> : <Folder className="size-4 text-blue-400" />}
+                  </span>
+                  <span className="scan-select-panel__path-label">{entry.label}</span>
+                  <span className="scan-select-panel__path">{entry.path}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="scan-select-panel__footer">
+          <Button
+            onClick={() => scanMutation.mutate(selectedPaths.map(e => e.path))}
+            disabled={scanMutation.isPending || selectedPaths.length === 0}
+          >
+            <Play className="mr-2 size-4" />
+            {scanMutation.isPending
+              ? t("settings.scanning")
+              : t("settings.startScan", { count: selectedPaths.length })}
+          </Button>
+        </div>
+      </div>
+
+      {/* 扫描状态表 */}
+      <div className="scan-status-panel">
+        <h2>{t("settings.scanStatus")}</h2>
+        {scanStatus && scanStatus.length > 0 ? (
+          <div className="scan-status-panel__table-wrap">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("settings.path")}</TableHead>
+                  <TableHead>{t("settings.status")}</TableHead>
+                  <TableHead className="settings-table-right">{t("settings.scannedFolders")}</TableHead>
+                  <TableHead className="settings-table-right">{t("settings.scannedFiles")}</TableHead>
+                  <TableHead>{t("settings.watcher")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {scanStatus.map((item) => (
+                  <TableRow key={item.path}>
+                    <TableCell className="settings-table-path">{item.path}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          item.status === "running"
+                            ? "default"
+                            : item.status === "error"
+                              ? "destructive"
+                              : "secondary"
+                        }
+                      >
+                        {t(`settings.${item.status}`)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="settings-table-right">{item.scanned_folders}</TableCell>
+                    <TableCell className="settings-table-right">{item.scanned_files}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {item.watcher_active ? t("settings.active") : t("settings.inactive")}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <div className="scan-status-panel__empty">{t("common.noData")}</div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** 设置页面主组件，管理所有本地状态和 API 调用 */
 function SettingsPage() {
   const { t, i18n } = useTranslation()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const queryClient = useQueryClient()
-  const { tab } = Route.useSearch()
+  const { tab } = Route.useSearch()  // 当前激活的 tab，通过 URL search 参数同步
   const navigate = Route.useNavigate()
 
+  // 本地编辑状态（从 settings 初始化，onBlur 时同步到后端）
   const [fsRootList, setFsRootList] = useState<string[]>([""])
   const [favoriteDir, setFavoriteDir] = useState("")
   const [alreadyReadDir, setAlreadyReadDir] = useState("")
   const [movePlaceDir, setMovePlaceDir] = useState("")
 
+  // 切换 tab 时更新 URL，保持页面刷新后 tab 状态不丢失
   const handleTabChange = (value: string) => {
-    navigate({ search: (prev) => ({ ...prev, tab: value as any }) })
+    navigate({ search: (prev) => ({ ...prev, tab: value as "general" | "scan" }) })
   }
 
   const { data: settings, isLoading } = useQuery<SettingsResponse>({
@@ -225,8 +423,6 @@ function SettingsPage() {
       showSuccessToast(t("settings.saved"))
       queryClient.invalidateQueries({ queryKey: ["settings"] })
       queryClient.invalidateQueries({ queryKey: ["fs-roots"] })
-      queryClient.invalidateQueries({ queryKey: ["fs-favorite"] })
-      queryClient.invalidateQueries({ queryKey: ["fs-already-read"] })
     },
     onError: (error: Error) => {
       showErrorToast(error.message || t("settings.saveFailed"))
@@ -291,7 +487,7 @@ function SettingsPage() {
 
   const clearCacheMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/extract-cache`, {
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/clean-extract-cache`, {
         method: "DELETE",
       })
       if (!response.ok) {
@@ -347,11 +543,10 @@ function SettingsPage() {
         </TabsList>
 
         <TabsContent value="general" className="settings-main">
-          <section className="settings-section settings-section--white settings-section--compact">
+          <section className="settings-section settings-section--blue settings-section--compact">
             <div className="section-group">
               <div className="settings-section__heading">
                 <h2>{t("settings.language")}</h2>
-                <p>{t("settings.languageDesc")}</p>
               </div>
               <Select value={i18n.language} onValueChange={handleLanguageChange}>
                 <SelectTrigger id="language" className="settings-language-select">
@@ -371,7 +566,6 @@ function SettingsPage() {
             <div className="section-group">
               <div className="settings-section__heading">
                 <h2>{t("settings.cacheManagement")}</h2>
-                <p>{t("settings.cacheManagementDesc")}</p>
               </div>
               <Button
                 onClick={() => clearCacheMutation.mutate()}
@@ -431,7 +625,7 @@ function SettingsPage() {
             value={alreadyReadDir}
             placeholder={t("settings.alreadyReadDirPlaceholder")}
             id="alreadyReadDir"
-            colorClass="settings-section--green"
+            colorClass="settings-section--blue"
             onChange={setAlreadyReadDir}
             onSave={saveAlreadyReadDirIfChanged}
             onReset={() => {
@@ -457,10 +651,14 @@ function SettingsPage() {
             t={t}
           />
 
-          <section className="settings-section settings-section--white">
+          <section className="settings-section settings-section--blue">
             <div className="settings-section__heading">
+              <h2>{t("settings.dbFilePath")}</h2>
+            </div>
+            <Input value={settings?.db_file_path || ""} readOnly />
+
+            <div className="settings-section__heading  mt-4" >
               <h2>{t("settings.envFilePath")}</h2>
-              <p>{t("settings.envFilePathDesc")}</p>
             </div>
             <Input value={settings?.env_file_path || ""} readOnly />
           </section>
@@ -471,7 +669,7 @@ function SettingsPage() {
             value={favoriteDir}
             placeholder={t("settings.favoriteDirPlaceholder")}
             id="favoriteDir"
-            colorClass="settings-section--gold"
+            colorClass="settings-section--blue"
             onChange={setFavoriteDir}
             onSave={saveFavoriteDirIfChanged}
             onReset={() => {
@@ -485,55 +683,7 @@ function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="scan">
-          <div className="scan-status-panel">
-            <h2>{t("settings.scanStatus")}</h2>
-            {scanStatus && scanStatus.length > 0 ? (
-              <div className="scan-status-panel__table-wrap">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("settings.path")}</TableHead>
-                      <TableHead>{t("settings.status")}</TableHead>
-                      <TableHead className="settings-table-right">{t("settings.scannedFolders")}</TableHead>
-                      <TableHead className="settings-table-right">{t("settings.scannedFiles")}</TableHead>
-                      <TableHead className="settings-table-right">{t("settings.parsedFiles")}</TableHead>
-                      <TableHead>{t("settings.watcher")}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {scanStatus.map((item) => (
-                      <TableRow key={item.path}>
-                        <TableCell className="settings-table-path">{item.path}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              item.status === "running"
-                                ? "default"
-                                : item.status === "error"
-                                  ? "destructive"
-                                  : "secondary"
-                            }
-                          >
-                            {t(`settings.${item.status}`)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="settings-table-right">{item.scanned_folders}</TableCell>
-                        <TableCell className="settings-table-right">{item.scanned_files}</TableCell>
-                        <TableCell className="settings-table-right">{item.parsed_files}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {item.watcher_active ? t("settings.active") : t("settings.inactive")}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : (
-              <div className="scan-status-panel__empty">{t("common.noData")}</div>
-            )}
-          </div>
+          <ScanTab settings={settings} scanStatus={scanStatus} t={t} showSuccessToast={showSuccessToast} showErrorToast={showErrorToast} />
         </TabsContent>
       </Tabs>
     </div>

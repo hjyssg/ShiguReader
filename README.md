@@ -3,9 +3,7 @@
   <h1>ShiguReader</h1>
   <div>
     <a href="#ShiguReader">中文</a> |
-    <a href="docs/README.en.md">English</a> |
-    <a href="docs/README.ja.md">日本語</a> |
-    <a href="docs/README.ko.md">한국어</a>
+    <a href="docs/README.en.md">English</a>
   </div>
   <p>面向本地 / 局域网的内容整理与浏览工具</p>
   <p>「开箱即用、部署简单、适合个人收藏管理」</p>
@@ -40,12 +38,12 @@ ShiguReader 是一个面向本地 / 局域网的内容整理与浏览工具，�
 
 ## 开发环境搭建
 
-**前置要求**：安装 [uv](https://docs.astral.sh/uv/getting-started/installation/) 和 [Node.js](https://nodejs.org/)
+**前置要求**：安装 [Node.js](https://nodejs.org/)（v22+）
 
 ```bash
 # 安装后端依赖
-cd backend
-uv sync
+cd backendnode
+npm install
 
 # 安装前端依赖
 cd ../frontend
@@ -58,9 +56,8 @@ npm install
 
 ```bash
 # 终端 1 - 后端
-source ./.venv/Scripts/activate
-cd backend
-uv run fastapi dev app/main.py --host 0.0.0.0 --port 8000
+cd backendnode
+npm run dev
 
 # 终端 2 - 前端
 cd frontend
@@ -71,15 +68,11 @@ npm run dev
 
 使用 **Full Stack: Frontend + Backend** 启动配置一键启动。
 
-> **Windows 用户**：建议将项目根目录下的 `.venv` 文件夹加入 Windows Defender 排除列表，避免环境被误删。
-> 设置路径：Windows 安全中心 → 病毒和威胁防护 → 管理设置 → 排除项
-
 ---
 
 ### 相关文档
 
 - [技术文档（环境与实现细节）](docs/TECHNICAL.md)
-- [EXE 打包说明](build_tools/BUILD.md)
 
 ### 界面预览
 

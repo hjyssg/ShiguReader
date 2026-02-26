@@ -39,7 +39,7 @@
     }
   },
   "formatter": {
-    "indentStyle": "space"
+    "enabled": false
   },
   "javascript": {
     "formatter": {

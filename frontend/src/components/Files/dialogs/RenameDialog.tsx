@@ -1,5 +1,6 @@
 // 重命名对话框
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -29,6 +30,7 @@ export function RenameDialog({
   isPending,
 }: RenameDialogProps) {
   const currentName = getBaseName(filePath)
+  const { t } = useTranslation()
   const [newName, setNewName] = useState(currentName)
 
   useEffect(() => {
@@ -49,12 +51,12 @@ export function RenameDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Rename</DialogTitle>
+          <DialogTitle>{t("fileOps.rename")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="rename-input">New name</Label>
+              <Label htmlFor="rename-input">{t("fileOps.newName")}</Label>
               <Input
                 id="rename-input"
                 value={newName}
@@ -78,7 +80,7 @@ export function RenameDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"
@@ -86,7 +88,7 @@ export function RenameDialog({
                 isPending || !newName.trim() || newName.trim() === currentName
               }
             >
-              {isPending ? "Renaming..." : "Rename"}
+              {isPending ? t("fileOps.renaming") : t("fileOps.rename")}
             </Button>
           </DialogFooter>
         </form>

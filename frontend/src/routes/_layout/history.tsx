@@ -1,7 +1,7 @@
 /**
  * 历史记录页面 - 显示最近浏览的文件，支持网格和列表视图
  */
-import { useQuery } from "@tanstack/react-query"
+import { useQuery } from "@/shims/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import {
   ArrowDown,
@@ -11,8 +11,6 @@ import {
   List,
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
-
-import { toastInfo } from "@/lib/toast"
 
 import { OpenAPI } from "@/client"
 import type { FileSystemItem } from "@/client/types.gen"
@@ -39,10 +37,10 @@ type HistoryItem = {
   filesize: number | null
   mtime: number | null
   thumbnail_url: string | null
-  read_at: number
+  read_at?: number
+  opened_at?: number
   page_current: number | null
   page_total: number | null
-  file_exists: boolean
 }
 
 type HistoryResponse = {
@@ -99,16 +97,6 @@ function HistoryPage() {
     }
   }
 
-  const openHistoryItem = (item: HistoryItem) => {
-    const target = buildNavigationTarget(toFileSystemItem(item), isMobile)
-    if (!target) {
-      toastInfo(t("history.unsupportedType"))
-      return
-    }
-
-    navigate(target)
-  }
-
   const tableColumns: ListTableColumn[] = [
     { key: "name", header: t("history.name") },
     {
@@ -133,6 +121,9 @@ function HistoryPage() {
     mtime: item.mtime,
     thumbnail_url: item.thumbnail_url,
   })
+
+  const getHistoryTimestamp = (item: HistoryItem): number =>
+    item.read_at ?? item.opened_at ?? 0
 
   return (
     <div className="space-y-4">
@@ -222,17 +213,13 @@ function HistoryPage() {
       ) : view === "grid" ? (
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7">
           {data?.items.map((item) => (
-            <div
-              key={`${item.filepath}-${item.read_at}`}
-              onClick={() => openHistoryItem(item)}
-              className="cursor-pointer"
-            >
               <FileItem
                 item={toFileSystemItem(item)}
                 className="file-item-root--compact"
-                metaText={`${t("history.readAt")}：${formatDateTime(item.read_at)}`}
+                metaText={`${formatDateTime(getHistoryTimestamp(item))}`}
+                metaTitle={t("history.readAt")}
+                thumbnailTooltip={`${t("history.readAt")}: ${formatDateTime(getHistoryTimestamp(item))}`}
               />
-            </div>
           ))}
         </div>
       ) : (
@@ -247,7 +234,7 @@ function HistoryPage() {
 
             return (
               <tr
-                key={`${item.filepath}-${item.read_at}`}
+                key={`${item.filepath}-${getHistoryTimestamp(item)}`}
                 className="border-b last:border-b-0 text-sm hover:bg-muted/50"
               >
                 <td className="p-2">
@@ -260,7 +247,7 @@ function HistoryPage() {
                   />
                 </td>
                 <td className="p-2 text-muted-foreground">
-                  {formatDateTime(item.read_at)}
+                  {formatDateTime(getHistoryTimestamp(item))}
                 </td>
                 <td className="p-2 text-muted-foreground">
                   {formatFileType(item.file_type)}

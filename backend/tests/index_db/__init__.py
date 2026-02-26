@@ -1,1 +1,0 @@
-# Index DB tests package

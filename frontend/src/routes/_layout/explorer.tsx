@@ -1,9 +1,9 @@
 /**
  * 文件浏览器 - 浏览文件系统目录，支持排序、过滤和扫描功能
  */
-import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
-import { ChevronRight, Home, ScanLine } from "lucide-react"
+import { useQuery } from "@/shims/react-query"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { ScanLine } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -11,6 +11,7 @@ import { toastError, toastSuccess } from "@/lib/toast"
 
 import { FilesystemService } from "@/client"
 import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
+import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import { FileViewContainer } from "@/components/Files/FileViewContainer"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -25,11 +26,11 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { useFileOperations } from "@/hooks/useFileOperations"
 import { useResolveMovedFile } from "@/hooks/useResolveMovedFile"
 import {
-  buildPathBreadcrumbs,
   getBaseName,
   getParentPath,
 } from "@/lib/path-utils"
 import type { SortField, SortOrder } from "@/components/Files/FileTableView"
+import type { ViewMode } from "@/components/Files/FileViewContainer"
 import "./explorer.css"
 
 export const Route = createFileRoute("/_layout/explorer")({
@@ -51,8 +52,14 @@ export const Route = createFileRoute("/_layout/explorer")({
       "last_read_at",
     ]
     const sortOrderCandidates: SortOrder[] = ["asc", "desc"]
+    const viewModeCandidates: ViewMode[] = ["grid", "table", "mixed"]
     const rawSortField = String(search.sortField || "")
     const rawSortOrder = String(search.sortOrder || "")
+    const rawViewMode = String(search.viewMode || "")
+
+    const resolvedViewMode = viewModeCandidates.includes(rawViewMode as ViewMode)
+      ? (rawViewMode as ViewMode)
+      : undefined
 
     return {
       path: (search.path as string) || "",
@@ -64,6 +71,7 @@ export const Route = createFileRoute("/_layout/explorer")({
       sortOrder: sortOrderCandidates.includes(rawSortOrder as SortOrder)
         ? (rawSortOrder as SortOrder)
         : "desc",
+      ...(resolvedViewMode !== undefined ? { viewMode: resolvedViewMode } : {}),
     }
   },
   head: () => ({
@@ -98,7 +106,7 @@ function FilterCheckbox({ id, label, checked, onChange }: FilterCheckboxProps) {
 function Explorer() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { path, page, pageSize, sortField, sortOrder } = Route.useSearch()
+  const { path, page, pageSize, sortField, sortOrder, viewMode } = Route.useSearch()
   const folderName = path
     ? getBaseName(path, t("nav.explorer"))
     : t("nav.explorer")
@@ -114,7 +122,7 @@ function Explorer() {
   }, [path, navigate])
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["fs-list", path],
+    queryKey: [path],
     queryFn: () => FilesystemService.listDirectory({ path }),
     enabled: !!path,
     retry: false,
@@ -126,7 +134,6 @@ function Explorer() {
     enabled: false,
   })
 
-  const breadcrumbs = buildPathBreadcrumbs(path)
   const parentPath = getParentPath(path)
   const operations = useFileOperations(path)
 
@@ -142,14 +149,6 @@ function Explorer() {
       })
     },
   )
-
-  const buildSearchForPath = (nextPath: string) => ({
-    path: nextPath,
-    page: 1,
-    pageSize,
-    sortField,
-    sortOrder,
-  })
 
   const filteredItems = useMemo(() => {
     const items = data?.items || []
@@ -219,34 +218,13 @@ function Explorer() {
 
   return (
     <div className="explorer-page">
-      <nav className="explorer-breadcrumb" aria-label="Explorer breadcrumb">
-        <Link to="/" className="explorer-breadcrumb__home-link">
-          <Home className="explorer-breadcrumb__home-icon" />
-          <span>Home</span>
-        </Link>
-        {breadcrumbs.map((crumb, index) => (
-          <div key={crumb.path} className="explorer-breadcrumb__item">
-            <ChevronRight className="explorer-breadcrumb__separator" />
-            {index === breadcrumbs.length - 1 ? (
-              <span className="explorer-breadcrumb__current">{crumb.name}</span>
-            ) : (
-              <Link
-                to="/explorer"
-                search={buildSearchForPath(crumb.path)}
-                className="explorer-breadcrumb__link"
-              >
-                {crumb.name}
-              </Link>
-            )}
-          </div>
-        ))}
-      </nav>
+      {/* 面包屑导航 */}
+      <PathBreadcrumb sourcePath={path} className="explorer-breadcrumb" />
 
       <FileViewContainer
         items={filteredItems}
         isLoading={isLoading}
-        currentPath={path}
-        initialViewMode="mixed"
+        initialViewMode={viewMode ?? "mixed"}
         sortField={sortField}
         sortOrder={sortOrder}
         onSortFieldChange={(nextSortField) =>
@@ -273,9 +251,9 @@ function Explorer() {
               replace: true,
             }),
         }}
-        storageKeyPrefix="explorer"
         toolbarExtra={
           <>
+            {/* 压缩包内容过滤：只显示含视频/音频的 zip */}
             <div className="explorer-zip-filter-group">
               <FilterCheckbox
                 id="zip-has-video"

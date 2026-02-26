@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { RefreshCw } from "lucide-react"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@/shims/react-query"
 import { useTranslation } from "react-i18next"
 
 import { OpenAPI } from "@/client"
@@ -49,13 +49,10 @@ export function RecentActivityPanel({ items }: Props) {
       }
 
       if (item.activity_type === "cache_cleanup") {
-        await fetch(`${OpenAPI.BASE}/api/v1/fs/extract-cache`, { method: "DELETE" })
+        await fetch(`${OpenAPI.BASE}/api/v1/fs/clean-extract-cache`, { method: "DELETE" })
         return
       }
 
-      if (item.activity_type === "db_sync") {
-        await fetch(`${OpenAPI.BASE}/api/v1/fs/sync-file-table`, { method: "POST" })
-      }
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["home-recent-activity"] })
@@ -83,9 +80,9 @@ export function RecentActivityPanel({ items }: Props) {
             <div className="home-activity-item__content">
               <div className="home-activity-item__message">{item.message}</div>
               <div className="home-activity-item__meta">{new Date(item.created_at * 1000).toLocaleString()}</div>
-              {typeof item.context?.["scanned_files"] === "number" ? (
+              {typeof item.context?.scanned_files === "number" ? (
                 <div className="home-activity-item__meta">
-                  {t("home.scannedFiles")}: {String(item.context?.["scanned_files"])}
+                  {t("home.scannedFiles")}: {String(item.context?.scanned_files)}
                 </div>
               ) : null}
             </div>

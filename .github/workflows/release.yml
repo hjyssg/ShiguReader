@@ -1,0 +1,162 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build backend (TypeScript → JS)
+        working-directory: backendnode
+        run: |
+          npm ci
+          npx tsc
+
+      - name: Install backend production dependencies only
+        working-directory: backendnode
+        run: npm ci --omit=dev
+
+      - name: Download Node.js portable (for bundling)
+        shell: pwsh
+        run: |
+          $NODE_VERSION = "22.14.0"
+          $url = "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-win-x64.zip"
+          Write-Host "Downloading Node.js portable from $url"
+          Invoke-WebRequest -Uri $url -OutFile "node-portable.zip"
+          Expand-Archive -Path "node-portable.zip" -DestinationPath "node-portable-extracted"
+          # Copy just node.exe to a staging location
+          Copy-Item "node-portable-extracted\node-v${NODE_VERSION}-win-x64\node.exe" -Destination "node.exe"
+
+      - name: Assemble release package
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}"
+          $pkgName = "ShiguReader-${version}-windows-x64"
+          $pkg = "release_pkg\$pkgName"
+
+          # Create directory structure
+          New-Item -ItemType Directory -Force -Path "$pkg\backendnode\dist"
+          New-Item -ItemType Directory -Force -Path "$pkg\backendnode\node_modules"
+          New-Item -ItemType Directory -Force -Path "$pkg\backendnode\tools"
+          New-Item -ItemType Directory -Force -Path "$pkg\frontend\dist"
+          New-Item -ItemType Directory -Force -Path "$pkg\data\extract_cache"
+          New-Item -ItemType Directory -Force -Path "$pkg\data\thumb_cache"
+
+          # Copy node.exe
+          Copy-Item "node.exe" -Destination "$pkg\node.exe"
+
+          # Copy compiled backend
+          Copy-Item -Recurse "backendnode\dist\*" -Destination "$pkg\backendnode\dist\"
+
+          # Copy backend production node_modules
+          Copy-Item -Recurse "backendnode\node_modules\*" -Destination "$pkg\backendnode\node_modules\"
+
+          # Copy tools (7zip, imagemagick, ffmpeg)
+          Copy-Item -Recurse "backendnode\tools\*" -Destination "$pkg\backendnode\tools\"
+
+          # Copy built frontend
+          Copy-Item -Recurse "frontend\dist\*" -Destination "$pkg\frontend\dist\"
+
+          # Create .env with user-friendly defaults
+          # Note: INDEX_SQLITE_PATH is resolved as path.resolve(__dirname, "../../", value)
+          # where __dirname = package-root/backendnode/dist/, so "../../" = package-root/
+          # Therefore "data/index_node.db" correctly resolves to package-root/data/index_node.db
+          @"
+# =============================================
+# ShiguReader 配置文件
+# =============================================
+
+# 【必填】漫画/图片根目录，多个目录用逗号分隔
+# 例如: FS_ROOTS=D:\manga,E:\comics
+FS_ROOTS=
+
+# 【可选】收藏夹目录
+FAVORITE_DIR=
+
+# 【可选】已读目录
+ALREADY_READ_DIR=
+
+# 【可选】移动目标目录
+MOVE_PLACE_DIR=
+
+# 端口（默认 8000，如有冲突可修改）
+PORT=8000
+
+# 数据库路径（相对于 backendnode/dist/ 上两级，即程序根目录）
+INDEX_SQLITE_PATH=data/index_node.db
+
+# 缩略图缓存目录（相对于程序根目录）
+THUMB_CACHE_DIR=./data/thumb_cache
+EXTRACT_CACHE_DIR=./data/extract_cache
+
+# 缩略图并发数（根据电脑性能调整，默认 3）
+THUMB_CONCURRENCY=3
+"@ | Set-Content "$pkg\.env" -Encoding UTF8
+
+          # Create launcher bat
+          @"
+@echo off
+chcp 65001 >nul
+title ShiguReader
+
+cd /d "%~dp0"
+
+:: Check if FS_ROOTS is configured (look for empty FS_ROOTS= line)
+for /f "tokens=2 delims==" %%a in ('findstr /i "^FS_ROOTS=" .env') do set ROOTS_VAL=%%a
+if not defined ROOTS_VAL (
+    echo [!] 请先编辑 .env 文件，填写您的漫画目录路径
+    echo     找到 FS_ROOTS= 这一行，填上您的目录，例如:
+    echo     FS_ROOTS=D:\manga
+    echo.
+    notepad .env
+    pause
+    exit /b 1
+)
+
+echo Starting ShiguReader...
+start "" "http://localhost:8000"
+node.exe --experimental-sqlite backendnode\dist\server.js
+pause
+"@ | Set-Content "$pkg\ShiguReader.bat" -Encoding UTF8
+
+          # Copy README
+          Copy-Item "README.md" -Destination "$pkg\README.md"
+
+          # Create zip
+          Compress-Archive -Path "$pkg" -DestinationPath "release_pkg\${pkgName}.zip" -Force
+          Write-Host "Package created: release_pkg\${pkgName}.zip"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release_pkg/*.zip
+          generate_release_notes: true
+          body: |
+            ## 安装说明
+
+            1. 下载下方的 `ShiguReader-*-windows-x64.zip`
+            2. 解压到任意目录（路径不要含中文）
+            3. 编辑 `.env` 文件，填写您的漫画目录：`FS_ROOTS=D:\你的漫画目录`
+            4. 双击 `ShiguReader.bat` 启动，浏览器会自动打开
+
+            **无需安装 Node.js 或任何其他软件。**

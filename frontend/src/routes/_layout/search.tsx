@@ -1,7 +1,7 @@
 /**
  * 搜索页面 - 支持文件、作者、Coser、标签的多维度搜索
  */
-import { useQuery } from "@tanstack/react-query"
+import { useQuery } from "@/shims/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { ExternalLink, Search } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
@@ -38,22 +38,28 @@ export const Route = createFileRoute("/_layout/search")({
         : "all"
 
     const rawScopes = search.scopes
-    const scopes = Array.isArray(rawScopes)
-      ? rawScopes.filter(
-          (s): s is Scope =>
-            s === "file" || s === "author" || s === "coser" || s === "tag",
-        )
-      : []
+    const validScope = (s: unknown): s is Scope =>
+      s === "file" || s === "author" || s === "coser" || s === "tag"
+
+    let scopes: Scope[]
+    if (Array.isArray(rawScopes)) {
+      scopes = rawScopes.filter(validScope)
+    } else if (validScope(rawScopes)) {
+      scopes = [rawScopes]
+    } else {
+      scopes = []
+    }
+
+    if (scopes.length === 0) {
+      scopes = ["file", "author", "coser", "tag"]
+    }
 
     return {
       q,
       mode,
       page,
       presenceFilter,
-      scopes:
-        scopes.length > 0
-          ? scopes
-          : (["file", "author", "coser", "tag"] as Scope[]),
+      scopes,
     } as {
       q: string
       mode: Mode
@@ -212,6 +218,7 @@ function SearchPage() {
 
   return (
     <div className="space-y-6">
+      {/* ── 页面标题 ── */}
       <div className="space-y-2">
         <h1 className="text-2xl font-bold tracking-tight">
           {t("search.title")}
@@ -219,7 +226,9 @@ function SearchPage() {
         <p className="text-muted-foreground">{t("search.description")}</p>
       </div>
 
+      {/* ── 搜索框 + 范围/模式/presence 过滤器 + 外部搜索链接 ── */}
       <div className="border rounded-lg p-4 space-y-4">
+        {/* 搜索输入框 */}
         <div className="flex items-center gap-2">
           <Input
             value={q}
@@ -260,14 +269,14 @@ function SearchPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="exact">Exact</SelectItem>
-                <SelectItem value="hybrid">Hybrid</SelectItem>
+                <SelectItem value="exact">{t("search.modeExact")}</SelectItem>
+                <SelectItem value="hybrid">{t("search.modeHybrid")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="flex items-center gap-2">
-            <Label className="text-sm">Presence</Label>
+            <Label className="text-sm">{t("search.presence")}</Label>
             <Select
               value={presenceFilter}
               onValueChange={(v) => setPresenceFilter(v as PresenceFilter)}
@@ -276,10 +285,10 @@ function SearchPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="watched">Watched only</SelectItem>
+                <SelectItem value="all">{t("search.presenceAll")}</SelectItem>
+                <SelectItem value="watched">{t("search.presenceWatched")}</SelectItem>
                 <SelectItem value="scanned_recent">
-                  Scanned &lt; 10min
+                  {t("search.presenceScannedRecent")}
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -298,6 +307,7 @@ function SearchPage() {
         </div>
       </div>
 
+      {/* ── 搜索结果列表（仅在提交过查询后显示）── */}
       {submittedQ ? (
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">{totalText}</p>
@@ -317,7 +327,6 @@ function SearchPage() {
               pageSizeOptions: PAGE_SIZE_OPTIONS,
               pageSizeLabel: "Page size",
             }}
-            storageKeyPrefix="search"
             emptyText={t("search.noResults")}
           />
         </div>

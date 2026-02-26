@@ -1,1 +1,0 @@
-# name_parser tests

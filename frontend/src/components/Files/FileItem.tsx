@@ -1,9 +1,10 @@
-// 文件系统项卡片组件 — 支持选择、右键菜单
+// 文件系统项卡片组件
 
 import { useTranslation } from "react-i18next"
 import type { FileSystemItem } from "@/client"
 import { OpenAPI } from "@/client"
 import { ThumbnailImage } from "@/components/Common/ThumbnailImage"
+import { THUMBNAIL_TOOLTIP_SIDE } from "@/constants/ui"
 import {
   Tooltip,
   TooltipContent,
@@ -16,8 +17,9 @@ import {
   ItemCard,
 } from "@/components/semantic/layout"
 import { useIsMobile } from "@/hooks/useMobile"
-import { getParentPath } from "@/lib/path-utils"
 import { cn } from "@/lib/utils"
+
+import { getLinkTarget } from "@/constants/openBehavior"
 
 import { FileIcon } from "./FileIcon"
 import { formatDateTime, formatFileSize } from "./utils"
@@ -26,26 +28,21 @@ import "./FileItem.css"
 interface FileItemProps {
   className?: string
   metaText?: string
+  metaTitle?: string
+  thumbnailTooltip?: string
 
   item: FileSystemItem
-  /** 是否选中 */
-  isSelected?: boolean
   /** 卡片底部右侧操作区（如 ... dropdown） */
   actionSlot?: React.ReactNode
-  /** 单击回调（处理选择） */
-  onClick?: (e: React.MouseEvent) => void
-  /** 右键回调 */
-  onContextMenu?: (e: React.MouseEvent) => void
 }
 
 export function FileItem({
   item,
-  isSelected,
   actionSlot,
-  onClick,
-  onContextMenu,
   className,
   metaText,
+  metaTitle,
+  thumbnailTooltip,
 }: FileItemProps) {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
@@ -76,8 +73,11 @@ export function FileItem({
         ]
       : []
 
+
+  const linkTarget = getLinkTarget(item.path)
+
   const fileNameNode = href ? (
-    <a href={href} className="file-item-name-link" draggable={false}>
+    <a href={href} className="file-item-name-link" draggable={false} target={linkTarget}>
       <FileName title={item.name} className="file-item-name-text">
         {item.name}
       </FileName>
@@ -88,75 +88,67 @@ export function FileItem({
     </FileName>
   )
 
-  const likeScore = (item as any).likeScore ?? (item as any).recommendation_score
-  const lastReadAt = (item as any).last_read_at
-  const thumbnailTooltip = [
+  const likeScore = item.likeScore ?? item.recommendation_score
+  const lastReadAt = item.last_read_at
+  const defaultThumbnailTooltip = [
     `${t("explorer.table.dateModified")}: ${item.mtime ? formatDateTime(item.mtime) : "-"}`,
     `${t("explorer.table.likeScore")}: ${likeScore != null ? Number(likeScore).toFixed(3) : "-"}`,
     `${t("explorer.table.lastReadAt")}: ${lastReadAt ? formatDateTime(lastReadAt) : "-"}`,
   ].join("\n")
 
-  const thumbcard = (<CardThumbnail className="file-card-thumbnail">
-            {item.thumbnail_url ? (
-              <ThumbnailImage
-                src={`${OpenAPI.BASE}${item.thumbnail_url}`}
-                alt={item.name}
-                fallback={
-                  <FileIcon fileType={item.file_type} isFolder={isFolder} />
-                }
-              />
-            ) : (
-              <FileIcon fileType={item.file_type} isFolder={isFolder} />
-            )}
-          </CardThumbnail>)
+  const thumbcard = (
+    <CardThumbnail className="file-card-thumbnail">
+      {item.thumbnail_url ? (
+        <ThumbnailImage
+          src={`${OpenAPI.BASE}${item.thumbnail_url}`}
+          alt={item.name}
+          fallback={
+            <FileIcon fileType={item.file_type} isFolder={isFolder} />
+          }
+        />
+      ) : (
+        <FileIcon fileType={item.file_type} isFolder={isFolder} />
+      )}
+    </CardThumbnail>
+  )
+
+  const thumbLink = href ? (
+    item.thumbnail_url ? (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <a href={href} className="file-item-thumbnail-link" draggable={false} target={linkTarget}>
+            {thumbcard}
+          </a>
+        </TooltipTrigger>
+        <TooltipContent side={THUMBNAIL_TOOLTIP_SIDE} className="whitespace-pre-line">
+          {thumbnailTooltip ?? defaultThumbnailTooltip}
+        </TooltipContent>
+      </Tooltip>
+    ) : (
+      <a href={href} className="file-item-thumbnail-link" draggable={false} target={linkTarget}>
+        {thumbcard}
+      </a>
+    )
+  ) : (
+    thumbcard
+  )
 
   return (
-    <div
-      className={cn("file-item-root", isSelected && "file-item-root--selected", className)}
-      onClick={(e) => {
-        const target = e.target as HTMLElement
-        if (target.closest("a")) return
-        onClick?.(e)
-      }}
-      onContextMenu={onContextMenu}
-    >
+    <div className={cn("file-item-root", className)}>
       <ItemCard className="file-item-card">
         {fileNameNode}
 
-        {href ? (
-          item.thumbnail_url ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <a
-                  href={href}
-                  className="file-item-thumbnail-link"
-                  draggable={false}
-                >
-                  {thumbcard}
-                </a>
-              </TooltipTrigger>
-              <TooltipContent className="whitespace-pre-line">
-                {thumbnailTooltip}
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <a
-              href={href}
-              className="file-item-thumbnail-link"
-              draggable={false}
-            >
-              {thumbcard}
-            </a>
-          )
-        ) : (
-          thumbcard
-        )}
+        {thumbLink}
 
         <CardInfo className="file-item-info">
           {actionSlot && (
             <div className="file-item-action-slot">{actionSlot}</div>
           )}
-          {metaText && <p className="file-item-meta-text">{metaText}</p>}
+          {metaText && (
+            <p className="file-item-meta-text" title={metaTitle}>
+              {metaText}
+            </p>
+          )}
           {infoMetrics.length > 0 && (
             <div className="file-item-info-metrics">
               {infoMetrics.map((metric) => (
@@ -186,11 +178,9 @@ function buildItemHref(item: FileSystemItem, isMobile: boolean): string | null {
 
   if (item.file_type === "archive") {
     params.set("path", item.path)
-    params.set("source", "archive")
     params.set("page", "0")
-    params.set("filePath", "")
-    const route = isMobile ? "/read-mobile" : "/read"
-    return `${route}?${params.toString()}`
+    if (isMobile) params.set("mode", "mobile")
+    return `/read?${params.toString()}`
   }
 
   if (item.file_type === "video") {
@@ -201,16 +191,16 @@ function buildItemHref(item: FileSystemItem, isMobile: boolean): string | null {
 
   if (item.file_type === "audio") {
     params.set("path", item.path)
-    return `/audio?${params.toString()}`
+    params.set("page", "0")
+    params.set("mode", "audio")
+    return `/read?${params.toString()}`
   }
 
   if (item.file_type === "image") {
-    params.set("path", getParentPath(item.path))
-    params.set("source", "folder")
+    params.set("path", item.path)
     params.set("page", "0")
-    params.set("filePath", item.path)
-    const route = isMobile ? "/read-mobile" : "/read"
-    return `${route}?${params.toString()}`
+    if (isMobile) params.set("mode", "mobile")
+    return `/read?${params.toString()}`
   }
 
   return null

@@ -36,3 +36,20 @@ export function wrapPageIndex(index: number, total: number): number {
   if (total <= 0) return 0
   return ((index % total) + total) % total
 }
+
+export function buildDestPath(destDir: string, sourcePath: string): string {
+  const fileName = getBaseName(sourcePath)
+  const separator = detectPathSeparator(destDir || sourcePath)
+  const normalizedDestDir = destDir.replace(/[\\/]+$/, "")
+  return `${normalizedDestDir}${separator}${fileName}`
+}
+
+
+export function buildReadUrl(
+  path: string,
+  options: { page?: number } = {},
+): string {
+  const { page = 0 } = options
+  const params = new URLSearchParams({ path, page: String(page) })
+  return `/read?${params.toString()}`
+}

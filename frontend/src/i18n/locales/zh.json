@@ -15,7 +15,9 @@
     "refresh": "刷新",
     "extracting": "解压中...",
     "noData": "暂无数据",
-    "reset": "重置"
+    "reset": "重置",
+    "copied": "已复制",
+    "close": "关闭"
   },
   "nav": {
     "home": "首页",
@@ -147,6 +149,12 @@
     "coser": "Coser",
     "tag": "标签",
     "mode": "模式",
+    "modeExact": "精确",
+    "modeHybrid": "混合",
+    "presence": "存在状态",
+    "presenceAll": "全部",
+    "presenceWatched": "处于文件监听",
+    "presenceScannedRecent": "10 分钟内扫描",
     "noResults": "没有找到匹配结果",
     "goTo": "跳转到",
     "confirm": "确定"
@@ -176,7 +184,9 @@
     "jumpPage": "跳页",
     "reset": "重置",
     "page": "第",
-    "of": "页，共"
+    "of": "页，共",
+    "waterfall": "瀑布流",
+    "mobileView": "移动端视图"
   },
   "settings": {
     "title": "设置",
@@ -214,7 +224,7 @@
     "updateFailed": "更新设置失败",
     "clearCacheFailed": "清理缓存失败",
     "general": "常规",
-    "scanProgress": "扫描进度",
+    "scanProgress": "扫描",
     "scanStatus": "文件监听/扫描",
     "path": "路径",
     "status": "状态",
@@ -236,12 +246,56 @@
     "movePlaceDirDesc": "点击“Move to...”时默认填充的目标目录",
     "movePlaceDirPlaceholder": "输入目录路径，例如：E:\\_To_Sort",
     "envFilePath": ".env 文件路径",
-    "envFilePathDesc": "当前正在使用的 .env 文件位置，方便手动编辑"
+    "dbFilePath": "DB 文件路径",
+    "envFilePathDesc": "当前正在使用的 .env 文件位置，方便手动编辑",
+    "selectDirsToScan": "选择要扫描的目录",
+    "selectAll": "全选",
+    "selectNone": "取消全选",
+    "noConfiguredDirs": "尚未配置任何目录，请先在常规设置中添加路径",
+    "startScan": "开始扫描 ({{count}})",
+    "scanning": "扫描中...",
+    "scanStarted": "扫描任务已启动",
+    "scanFailed": "扫描启动失败"
   },
   "archive": {
     "unknownError": "未知错误"
   },
   "audio": {
     "noAudioFiles": "未找到音频文件"
+  },
+  "fileOps": {
+    "title": "文件操作",
+    "rename": "重命名",
+    "renaming": "重命名中...",
+    "newName": "新名称",
+    "move": "移动",
+    "moveTo": "移动到...",
+    "moveItems": "移动 {{count}} 项",
+    "moving": "正在移动",
+    "movingAction": "移动中...",
+    "itemsCount": "{{count}} 项",
+    "destinationDirectory": "目标目录",
+    "enterDestinationPath": "输入目标路径...",
+    "andMore": " 以及另外 {{count}} 项",
+    "deleteItems": "删除 {{count}} 项",
+    "deleting": "删除中...",
+    "moveToRecycleBin": "移到回收站",
+    "permanentlyDelete": "永久删除",
+    "moveToFavorites": "移动到收藏",
+    "moveToAlreadyRead": "移动到已读",
+    "moveToDestination": "将 {{item}} 移动到 “{{destination}}” 吗？",
+    "moveToSubfolder": "移动到子文件夹",
+    "subfolderName": "子文件夹名称",
+    "compressToZip": "压缩为 Zip",
+    "compressToZipDescription": "将此文件夹压缩为 Zip 压缩包。",
+    "compress": "压缩",
+    "compressing": "压缩中...",
+    "minifyZipImages": "压缩 Zip 图片",
+    "minifyZipImagesDescription": "压缩压缩包中的大图并重新打包，原压缩包会被替换。",
+    "minify": "压缩",
+    "minifying": "压缩处理中...",
+    "target": "目标",
+    "download": "下载",
+    "fileActions": "文件操作"
   }
 }

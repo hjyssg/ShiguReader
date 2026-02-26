@@ -1,5 +1,7 @@
-import { Link } from "@tanstack/react-router"
+// table里面里面的name cell
 
+import { Link } from "@tanstack/react-router"
+import { getLinkTarget } from "@/constants/openBehavior"
 import { FileIcon } from "./FileIcon"
 import { FileNameWithPreview } from "./FileNameWithPreview"
 
@@ -7,6 +9,7 @@ type LinkTarget = {
   to: string
   search: Record<string, unknown>
 }
+
 
 interface FileNameLinkCellProps {
   filename: string
@@ -46,6 +49,7 @@ export function FileNameLinkCell({
       to={target.to as any}
       search={target.search as any}
       className="flex min-w-0 items-center gap-2"
+      target={getLinkTarget(filepath)}
     >
       {content}
     </Link>

@@ -15,7 +15,9 @@
     "refresh": "更新",
     "extracting": "展開中...",
     "noData": "データなし",
-    "reset": "リセット"
+    "reset": "リセット",
+    "copied": "コピーしました",
+    "close": "閉じる"
   },
   "nav": {
     "home": "ホーム",
@@ -147,6 +149,12 @@
     "coser": "Coser",
     "tag": "タグ",
     "mode": "モード",
+    "modeExact": "完全一致",
+    "modeHybrid": "ハイブリッド",
+    "presence": "存在状態",
+    "presenceAll": "すべて",
+    "presenceWatched": "閲覧済みのみ",
+    "presenceScannedRecent": "10分以内にスキャン",
     "noResults": "一致する結果がありません",
     "goTo": "移動",
     "confirm": "確認"
@@ -176,7 +184,9 @@
     "jumpPage": "移動",
     "reset": "リセット",
     "page": "ページ",
-    "of": "/"
+    "of": "/",
+    "waterfall": "ウォーターフォール",
+    "mobileView": "モバイルビュー"
   },
   "settings": {
     "title": "設定",
@@ -215,7 +225,7 @@
     "updateFailed": "設定の更新に失敗しました",
     "clearCacheFailed": "キャッシュ削除に失敗しました",
     "general": "一般",
-    "scanProgress": "スキャン進行状況",
+    "scanProgress": "スキャン",
     "scanStatus": "ファイル監視/スキャン",
     "path": "パス",
     "status": "状態",
@@ -236,12 +246,56 @@
     "movePlaceDirDesc": "「Move to...」を開いたときに事前入力する移動先ディレクトリ",
     "movePlaceDirPlaceholder": "ディレクトリパスを入力（例：E:\\_To_Sort）",
     "envFilePath": ".env ファイルパス",
-    "envFilePathDesc": "現在使用中の .env ファイルの場所（手動編集用）"
+    "dbFilePath": "DB ファイルパス",
+    "envFilePathDesc": "現在使用中の .env ファイルの場所（手動編集用）",
+    "selectDirsToScan": "スキャンするディレクトリを選択",
+    "selectAll": "すべて選択",
+    "selectNone": "すべて解除",
+    "noConfiguredDirs": "ディレクトリが設定されていません。まず一般設定でパスを追加してください。",
+    "startScan": "スキャン開始 ({{count}})",
+    "scanning": "スキャン中...",
+    "scanStarted": "スキャンタスクを開始しました",
+    "scanFailed": "スキャンの開始に失敗しました"
   },
   "archive": {
     "unknownError": "不明なエラー"
   },
   "audio": {
     "noAudioFiles": "音声ファイルが見つかりません"
+  },
+  "fileOps": {
+    "title": "ファイル操作",
+    "rename": "名前変更",
+    "renaming": "名前変更中...",
+    "newName": "新しい名前",
+    "move": "移動",
+    "moveTo": "移動先...",
+    "moveItems": "{{count}} 件を移動",
+    "moving": "移動中",
+    "movingAction": "移動中...",
+    "itemsCount": "{{count}} 件",
+    "destinationDirectory": "移動先フォルダー",
+    "enterDestinationPath": "移動先パスを入力...",
+    "andMore": " ほか {{count}} 件",
+    "deleteItems": "{{count}} 件を削除",
+    "deleting": "削除中...",
+    "moveToRecycleBin": "ごみ箱に移動",
+    "permanentlyDelete": "完全に削除",
+    "moveToFavorites": "お気に入りに移動",
+    "moveToAlreadyRead": "既読に移動",
+    "moveToDestination": "{{item}} を「{{destination}}」へ移動しますか？",
+    "moveToSubfolder": "サブフォルダーに移動",
+    "subfolderName": "サブフォルダー名",
+    "compressToZip": "Zip に圧縮",
+    "compressToZipDescription": "このフォルダーを Zip アーカイブに圧縮します。",
+    "compress": "圧縮",
+    "compressing": "圧縮中...",
+    "minifyZipImages": "Zip 画像を最適化",
+    "minifyZipImagesDescription": "アーカイブ内の大きな画像を圧縮して再パックします。元のアーカイブは置き換えられます。",
+    "minify": "最適化",
+    "minifying": "最適化中...",
+    "target": "対象",
+    "download": "ダウンロード",
+    "fileActions": "ファイル操作"
   }
 }

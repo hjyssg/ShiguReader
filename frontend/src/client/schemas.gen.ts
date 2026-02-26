@@ -679,17 +679,6 @@ export const HistoryItemSchema = {
                 }
             ],
             title: 'Page Total'
-        },
-        file_exists: {
-            anyOf: [
-                {
-                    type: 'boolean'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'File Exists'
         }
     },
     type: 'object',

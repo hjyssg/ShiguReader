@@ -1,13 +1,7 @@
-import {
-  MutationCache,
-  QueryCache,
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query"
 import { createRouter, RouterProvider } from "@tanstack/react-router"
-import { StrictMode } from "react"
+import qs from "qs"
 import ReactDOM from "react-dom/client"
-import { ApiError, OpenAPI } from "./client"
+import { OpenAPI } from "./client"
 import { ThemeProvider } from "./components/theme-provider"
 import { Toaster } from "./components/ui/sonner"
 import "./i18n"
@@ -58,22 +52,25 @@ const resolveApiBase = () => {
 
 OpenAPI.BASE = resolveApiBase()
 
-const handleApiError = (error: Error) => {
-  // 仅对未认证场景做全局跳转，403 保留给业务层展示具体错误原因
-  if (error instanceof ApiError && error.status === 401) {
-    window.location.href = "/"
-  }
-}
-const queryClient = new QueryClient({
-  queryCache: new QueryCache({
-    onError: handleApiError,
-  }),
-  mutationCache: new MutationCache({
-    onError: handleApiError,
-  }),
+/**
+ * 为什么要自定义 parseSearch？
+ *
+ * 问题背景：
+ *   文件名里可能包含字面 `+` 号，比如 "aqua+Summer+Dress.zip"。
+ *   旧版（query-string）会把 query 中的 `+` 按传统 form 语义当空格处理。
+ *   我们需要与旧版行为保持一致，避免把空格路径误判成字面 `+` 路径。
+ *
+ * 修法：
+ *   只覆盖 parseSearch，使用 qs 默认解析行为（`+` -> 空格）。
+ *   stringifySearch 不覆盖，避免出现 `??` 风险。
+ */
+const router = createRouter({
+  routeTree,
+  // 只覆盖 parseSearch：与旧版 query-string 语义一致（+ 按空格解析）
+  parseSearch: (str) => qs.parse(str, {
+    ignoreQueryPrefix: true,
+  }) as Record<string, unknown>,
 })
-
-const router = createRouter({ routeTree })
 declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router
@@ -81,12 +78,8 @@ declare module "@tanstack/react-router" {
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-        <Toaster richColors closeButton />
-      </QueryClientProvider>
-    </ThemeProvider>
-  </StrictMode>,
+  <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <RouterProvider router={router} />
+      <Toaster richColors closeButton />
+  </ThemeProvider>,
 )

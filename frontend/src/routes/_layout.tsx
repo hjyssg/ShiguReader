@@ -12,11 +12,7 @@ function Layout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const isReaderRoute =
     pathname === "/read" ||
-    pathname === "/read-mobile" ||
-    pathname === "/read-overview" ||
-    pathname === "/read-waterfall" ||
-    pathname === "/video" ||
-    pathname === "/audio"
+    pathname === "/video"
 
   if (isReaderRoute) {
     return <Outlet />

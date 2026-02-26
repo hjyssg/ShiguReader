@@ -1,6 +1,7 @@
 // 移动对话框 — 输入目标路径
 import { useEffect, useState } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useTranslation } from "react-i18next"
+import { useFetch } from "@/utils/query"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -33,17 +34,16 @@ export function MoveDialog({
   isPending,
 }: MoveDialogProps) {
   const count = filePaths.length
+  const { t } = useTranslation()
   const defaultDest = filePaths.length > 0 ? getParentPath(filePaths[0]) : ""
 
-  const { data: settingsData } = useQuery<{ move_place_dir?: string }>({
-    queryKey: ["settings", "move-dialog-default-dest"],
-    queryFn: async () => {
+  const { data: settingsData } = useFetch<{ move_place_dir?: string }>(
+    async () => {
       const response = await fetch(`${OpenAPI.BASE}/api/v1/settings`)
       if (!response.ok) return {}
       return response.json()
     },
-    retry: false,
-  })
+  )
 
   const preferredDest = settingsData?.move_place_dir?.trim() || defaultDest
   const [destDir, setDestDir] = useState(preferredDest)
@@ -69,22 +69,22 @@ export function MoveDialog({
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>
-            Move {count > 1 ? `${count} items` : "item"}
+            {t("fileOps.moveItems", { count })}
           </DialogTitle>
           <DialogDescription className="break-all whitespace-normal">
-            Moving: {displayNames.join(", ")}
-            {count > 3 ? ` and ${count - 3} more` : ""}
+            {t("fileOps.moving")}: {displayNames.join(", ")}
+            {count > 3 ? t("fileOps.andMore", { count: count - 3 }) : ""}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="move-dest-input">Destination directory</Label>
+              <Label htmlFor="move-dest-input">{t("fileOps.destinationDirectory")}</Label>
               <Input
                 id="move-dest-input"
                 value={destDir}
                 onChange={(e) => setDestDir(e.target.value)}
-                placeholder="Enter destination path..."
+                placeholder={t("fileOps.enterDestinationPath")}
                 autoFocus
               />
             </div>
@@ -95,10 +95,10 @@ export function MoveDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={isPending || !destDir.trim()}>
-              {isPending ? "Moving..." : "Move"}
+              {isPending ? t("fileOps.movingAction") : t("fileOps.move")}
             </Button>
           </DialogFooter>
         </form>

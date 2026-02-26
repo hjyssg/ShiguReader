@@ -106,10 +106,14 @@ export type DeletePathRequest = {
 };
 
 export type ExtractStatus = {
-    status: 'extracting' | 'completed' | 'error';
+    status: 'extracting' | 'completed' | 'error' | 'started' | 'already_running';
     extracted_count: number;
     total_count: number;
     cache_dir: string;
+    avg_image_size?: (number | null);
+    entries?: Array<ArchiveEntry>;
+    mtime?: number;
+    filesize?: number;
 };
 
 export type status = 'extracting' | 'completed' | 'error';
@@ -131,6 +135,8 @@ export type FileSystemItem = {
     video_count?: (number | null);
     audio_count?: (number | null);
     avg_image_size?: (number | null);
+    last_read_at?: (number | null);
+    likeScore?: (number | null);
 };
 
 export type item_type = 'folder' | 'file';
@@ -147,7 +153,6 @@ export type HistoryItem = {
     read_at: number;
     page_current?: (number | null);
     page_total?: (number | null);
-    file_exists?: (boolean | null);
 };
 
 export type file_type2 = 'image' | 'video' | 'archive' | 'audio' | 'unknown';

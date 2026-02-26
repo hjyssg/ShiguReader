@@ -3,10 +3,7 @@ import {
   BookCheck,
   Check,
   CheckSquare,
-  Download,
-  ExternalLink,
   FolderInput,
-  FolderOpen,
   ImageDown,
   MoreVertical,
   Package,
@@ -25,6 +22,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { DownloadMenuItem } from "@/components/Files/DownloadMenuItem"
 import "./FileContextMenu.css"
 
 export interface FileContextMenuActions {
@@ -63,7 +61,7 @@ export function FileContextMenu({
 
 export function FileActionsDropdown({
   item,
-  isOpenable,
+  isOpenable: _isOpenable,
   actions,
 }: Omit<FileContextMenuProps, "children" | "onContextMenuOpen">) {
   const { t } = useTranslation()
@@ -75,8 +73,8 @@ export function FileActionsDropdown({
       <button
         type="button"
         className="file-actions-dropdown__icon-button"
-        aria-label="Move to Favorites"
-        title="Move to Favorites"
+        aria-label={t("fileOps.moveToFavorites")}
+        title={t("fileOps.moveToFavorites")}
         onClick={(e) => {
           e.stopPropagation()
           actions.onMoveToFavorite()
@@ -88,8 +86,8 @@ export function FileActionsDropdown({
       <button
         type="button"
         className="file-actions-dropdown__icon-button"
-        aria-label="Move to Already Read"
-        title="Move to Already Read"
+        aria-label={t("fileOps.moveToAlreadyRead")}
+        title={t("fileOps.moveToAlreadyRead")}
         onClick={(e) => {
           e.stopPropagation()
           actions.onMoveToAlreadyRead()
@@ -101,8 +99,8 @@ export function FileActionsDropdown({
       <button
         type="button"
         className="file-actions-dropdown__icon-button file-actions-dropdown__icon-button--danger"
-        aria-label="Delete"
-        title="Delete"
+        aria-label={t("common.delete")}
+        title={t("common.delete")}
         onClick={(e) => {
           e.stopPropagation()
           actions.onDelete()
@@ -116,53 +114,40 @@ export function FileActionsDropdown({
           <button
             type="button"
             className="file-actions-dropdown__trigger"
-            aria-label="File actions"
+            aria-label={t("fileOps.fileActions")}
             onClick={(e) => e.stopPropagation()}
           >
             <MoreVertical className="size-4" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-64" align="end" sideOffset={6}>
-          {isOpenable && (
-            <>
-              <DropdownMenuItem onClick={actions.onOpen}>
-                <FolderOpen className="mr-2 size-4" />
-                Open
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={actions.onOpenInNewTab}>
-                <ExternalLink className="mr-2 size-4" />
-                Open in New Tab
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-            </>
-          )}
-
           {!isFolder && (
-            <DropdownMenuItem onClick={actions.onDownload}>
-              <Download className="mr-2 size-4" />
-              Download File
-            </DropdownMenuItem>
+            <DownloadMenuItem
+              path={item.path}
+              name={item.name}
+              label={t("fileOps.download")}
+            />
           )}
 
           <DropdownMenuItem onClick={actions.onRename}>
             <Pencil className="mr-2 size-4" />
-            Rename
+            {t("fileOps.rename")}
             <DropdownMenuShortcut>F2</DropdownMenuShortcut>
           </DropdownMenuItem>
 
           <DropdownMenuItem onClick={actions.onMove}>
             <FolderInput className="mr-2 size-4" />
-            Move to...
+            {t("fileOps.moveTo")}
           </DropdownMenuItem>
 
           <DropdownMenuItem onClick={actions.onMoveToFavorite}>
             <Star className="mr-2 size-4" />
-            Move to Favorites
+            {t("fileOps.moveToFavorites")}
           </DropdownMenuItem>
 
           <DropdownMenuItem onClick={actions.onMoveToAlreadyRead}>
             <BookCheck className="mr-2 size-4" />
-            Move to Already Read
+            {t("fileOps.moveToAlreadyRead")}
           </DropdownMenuItem>
 
           {isFolder && (
@@ -177,7 +162,7 @@ export function FileActionsDropdown({
             className="text-destructive focus:text-destructive"
           >
             <Trash2 className="mr-2 size-4" />
-            Delete
+            {t("common.delete")}
             <DropdownMenuShortcut>Del</DropdownMenuShortcut>
           </DropdownMenuItem>
 
@@ -187,13 +172,13 @@ export function FileActionsDropdown({
               {isFolder && (
                 <DropdownMenuItem onClick={actions.onZipFolder}>
                   <Package className="mr-2 size-4" />
-                  Compress to ZIP
+                  {t("fileOps.compressToZip")}
                 </DropdownMenuItem>
               )}
               {isArchive && (
                 <DropdownMenuItem onClick={actions.onMinifyZipImages}>
                   <ImageDown className="mr-2 size-4" />
-                  Minify ZIP Images
+                  {t("fileOps.minifyZipImages")}
                 </DropdownMenuItem>
               )}
             </>
