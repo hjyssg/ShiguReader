@@ -160,7 +160,7 @@
     "confirm": "确定"
   },
   "reader": {
-    "openReader": "打开阅读器",
+    "openReader": "单页模式",
     "noImages": "未找到可阅读的图片",
     "noImagesFound": "未找到可阅读图片",
     "mtime": "修改时间",

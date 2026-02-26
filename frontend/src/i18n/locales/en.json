@@ -160,7 +160,7 @@
     "confirm": "Confirm"
   },
   "reader": {
-    "openReader": "Open Reader",
+    "openReader": "Single Page Mode",
     "noImages": "No readable images found",
     "noImagesFound": "No readable images found",
     "mtime": "Modified",

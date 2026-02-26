@@ -160,7 +160,7 @@
     "confirm": "確認"
   },
   "reader": {
-    "openReader": "リーダーを開く",
+    "openReader": "単ページモード",
     "noImages": "閲覧可能な画像が見つかりません",
     "noImagesFound": "閲覧可能な画像が見つかりません",
     "mtime": "更新日時",

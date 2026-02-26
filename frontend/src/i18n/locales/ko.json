@@ -160,7 +160,7 @@
     "confirm": "확인"
   },
   "reader": {
-    "openReader": "리더 열기",
+    "openReader": "단일 페이지 모드",
     "noImages": "표시 가능한 이미지가 없습니다",
     "noImagesFound": "표시 가능한 이미지가 없습니다",
     "mtime": "수정 시간",
