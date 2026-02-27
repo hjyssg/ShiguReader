@@ -1,0 +1,2457 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "ShiguReader API", "version": "1.0.0" },
+  "paths": {
+    "/api/v1/utils/health-check/": {
+      "get": {
+        "tags": ["utils"],
+        "summary": "Health Check",
+        "operationId": "utils-health_check",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean",
+                  "title": "Response Utils-Health Check"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/roots": {
+      "get": {
+        "tags": ["filesystem"],
+        "summary": "Get Roots",
+        "description": "Get configured root directories.",
+        "operationId": "filesystem-get_roots",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": { "$ref": "#/components/schemas/RootItem" },
+                  "type": "array",
+                  "title": "Response Filesystem-Get Roots"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/drives": {
+      "get": {
+        "tags": ["filesystem"],
+        "summary": "Get Drives",
+        "description": "Get available drive letters (Windows only).",
+        "operationId": "filesystem-get_drives",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": { "$ref": "#/components/schemas/RootItem" },
+                  "type": "array",
+                  "title": "Response Filesystem-Get Drives"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/listdir": {
+      "get": {
+        "tags": ["filesystem"],
+        "summary": "List Directory",
+        "description": "List contents of a directory.",
+        "operationId": "filesystem-list_directory",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Directory path to list",
+              "title": "Path"
+            },
+            "description": "Directory path to list"
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "name",
+                "mtime",
+                "type",
+                "recommendation",
+                "image_count"
+              ],
+              "type": "string",
+              "description": "Sort by field",
+              "default": "name",
+              "title": "Sort By"
+            },
+            "description": "Sort by field"
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string",
+              "description": "Sort order",
+              "default": "asc",
+              "title": "Sort Order"
+            },
+            "description": "Sort order"
+          },
+          {
+            "name": "has_video",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+              "description": "\u7b5b\u9009\u5305\u542b\u89c6\u9891\u7684\u538b\u7f29\u5305",
+              "title": "Has Video"
+            },
+            "description": "\u7b5b\u9009\u5305\u542b\u89c6\u9891\u7684\u538b\u7f29\u5305"
+          },
+          {
+            "name": "has_audio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+              "description": "\u7b5b\u9009\u5305\u542b\u97f3\u9891\u7684\u538b\u7f29\u5305",
+              "title": "Has Audio"
+            },
+            "description": "\u7b5b\u9009\u5305\u542b\u97f3\u9891\u7684\u538b\u7f29\u5305"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ListResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/move-file": {
+      "post": {
+        "tags": ["filesystem"],
+        "summary": "Move File",
+        "operationId": "filesystem-move_file",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MovePathRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PathOperationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/move-folder": {
+      "post": {
+        "tags": ["filesystem"],
+        "summary": "Move Folder",
+        "operationId": "filesystem-move_folder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MovePathRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PathOperationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/delete": {
+      "delete": {
+        "tags": ["filesystem"],
+        "summary": "Delete Path",
+        "operationId": "filesystem-delete_path",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DeletePathRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PathOperationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/zip-folder": {
+      "post": {
+        "tags": ["filesystem"],
+        "summary": "Zip Folder",
+        "operationId": "filesystem-zip_folder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ZipFolderRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PathOperationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/rename": {
+      "post": {
+        "tags": ["filesystem"],
+        "summary": "Rename Path",
+        "description": "\u91cd\u547d\u540d\u6587\u4ef6\u6216\u6587\u4ef6\u5939\u3002",
+        "operationId": "filesystem-rename_path",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RenameRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PathOperationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/download": {
+      "get": {
+        "tags": ["filesystem"],
+        "summary": "Download File",
+        "description": "\u4e0b\u8f7d\u5355\u4e2a\u6587\u4ef6\u3002",
+        "operationId": "filesystem-download_file",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "File path to download",
+              "title": "Path"
+            },
+            "description": "File path to download"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/unzip": {
+      "post": {
+        "tags": ["filesystem"],
+        "summary": "Unzip Archive",
+        "description": "\u89e3\u538b\u538b\u7f29\u5305\u5230\u6307\u5b9a\u76ee\u5f55\uff0c\u4fdd\u6301\u539f\u59cb\u76ee\u5f55\u7ed3\u6784\u3002",
+        "operationId": "filesystem-unzip_archive",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UnzipRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PathOperationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/scan-favorite": {
+      "post": {
+        "tags": ["filesystem"],
+        "summary": "Scan Favorite",
+        "operationId": "filesystem-scan_favorite",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ScanStartResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/scan": {
+      "post": {
+        "tags": ["filesystem"],
+        "summary": "Scan Directory",
+        "description": "Scan a directory and optionally recurse into subfolders.",
+        "operationId": "filesystem-scan_directory",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ScanRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ScanStartResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/generate": {
+      "post": {
+        "tags": ["filesystem"],
+        "summary": "Generate Metadata",
+        "description": "Backfill missing thumbnail/meta for files under a folder.",
+        "operationId": "filesystem-generate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BackfillRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BackfillResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/scan-and-watch": {
+      "post": {
+        "tags": ["filesystem"],
+        "summary": "Scan And Watch",
+        "description": "Scan a directory recursively and start watchdog listener.",
+        "operationId": "filesystem-scan_and_watch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ScanRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ScanStartResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/scan-status": {
+      "get": {
+        "tags": ["filesystem"],
+        "summary": "Get Scan Status",
+        "description": "Get background scan status for all paths or one path.",
+        "operationId": "filesystem-get_scan_status",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string" }, { "type": "null" }],
+              "description": "Optional path filter",
+              "title": "Path"
+            },
+            "description": "Optional path filter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ScanStatusItem" },
+                  "title": "Response Filesystem-Get Scan Status"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/thumb": {
+      "get": {
+        "tags": ["filesystem"],
+        "summary": "Get Thumbnail",
+        "description": "Get or generate thumbnail for a file.",
+        "operationId": "filesystem-get_thumbnail",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "File path for thumbnail",
+              "title": "Path"
+            },
+            "description": "File path for thumbnail"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/archive/list": {
+      "get": {
+        "tags": ["filesystem"],
+        "summary": "List Archive",
+        "description": "List contents of an archive file.",
+        "operationId": "filesystem-list_archive",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Archive file path",
+              "title": "Path"
+            },
+            "description": "Archive file path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ArchiveListResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/clean-extract-cache": {
+      "delete": {
+        "tags": ["filesystem"],
+        "summary": "Clear Extract Cache",
+        "description": "\u6e05\u7406\u6240\u6709\u89e3\u538b\u7f13\u5b58\uff08\u8df3\u8fc7\u6b63\u5728\u89e3\u538b\u7684\u76ee\u5f55\uff09\u3002",
+        "operationId": "filesystem-clear_extract_cache_endpoint",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ClearCacheResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/archive/extract": {
+      "post": {
+        "tags": ["filesystem"],
+        "summary": "Extract Archive",
+        "description": "\u4e09\u9636\u6bb5\u4f18\u5148\u7ea7\u89e3\u538b\u538b\u7f29\u5305\u3002\n\n\u9636\u6bb5 1\uff1a\u5f53\u524d\u9875\uff08\u7acb\u5373\u53ef\u7528\uff09\n\u9636\u6bb5 2\uff1a\u524d\u540e \u00b15 \u9875\uff08\u5feb\u901f\u53ef\u7528\uff09\n\u9636\u6bb5 3\uff1a\u5269\u4f59\u6587\u4ef6\uff08\u540e\u53f0\u89e3\u538b\uff0c\u56fe\u7247\u4f18\u5148\uff09\n\n\u6b64\u7aef\u70b9\u662f\u5e42\u7b49\u7684 \u2014 \u91cd\u590d\u8c03\u7528\u4e0d\u4f1a\u89e6\u53d1\u91cd\u590d\u89e3\u538b\u3002\n\u524d\u7aef\u6bcf\u6b21\u7ffb\u9875\u90fd\u4f1a\u8c03\u7528\u6b64\u63a5\u53e3\uff0c\u540e\u7aef\u901a\u8fc7 _active_extractions \u9501\u907f\u514d\u91cd\u590d\u5de5\u4f5c\u3002",
+        "operationId": "filesystem-extract_archive",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "\u538b\u7f29\u5305\u6587\u4ef6\u8def\u5f84",
+              "title": "Path"
+            },
+            "description": "\u538b\u7f29\u5305\u6587\u4ef6\u8def\u5f84"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "\u5f53\u524d\u9875\u7801\uff08\u57fa\u4e8e\u8fc7\u6ee4\u540e\u7684\u5a92\u4f53\u6587\u4ef6\u5217\u8868\uff09",
+              "default": 0,
+              "title": "Page"
+            },
+            "description": "\u5f53\u524d\u9875\u7801\uff08\u57fa\u4e8e\u8fc7\u6ee4\u540e\u7684\u5a92\u4f53\u6587\u4ef6\u5217\u8868\uff09"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ExtractStatus" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/archive/file": {
+      "get": {
+        "tags": ["filesystem"],
+        "summary": "Get Archive File",
+        "description": "Get a file from extracted archive cache.",
+        "operationId": "filesystem-get_archive_file",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Archive file path",
+              "title": "Path"
+            },
+            "description": "Archive file path"
+          },
+          {
+            "name": "entry",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Entry path within archive",
+              "title": "Entry"
+            },
+            "description": "Entry path within archive"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/file": {
+      "get": {
+        "tags": ["filesystem"],
+        "summary": "Get File",
+        "description": "Serve a file directly from disk.",
+        "operationId": "filesystem-get_file",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "File path",
+              "title": "Path"
+            },
+            "description": "File path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/archive/compress-images": {
+      "post": {
+        "tags": ["filesystem"],
+        "summary": "Compress Archive Images Endpoint",
+        "description": "\u538b\u7f29\u538b\u7f29\u5305\u5185\u7684\u5927\u56fe\u7247\u5e76\u91cd\u65b0\u6253\u5305\u3002\n\n\u529f\u80fd\uff1a\n- \u626b\u63cf zip \u5185\u6240\u6709\u56fe\u7247\n- \u538b\u7f29\u5927\u4e8e\u9608\u503c\u7684\u56fe\u7247\uff08\u9ed8\u8ba4 1MB\uff0c\u5206\u8fa8\u7387 > 2000x2000\uff09\n- \u8f6c\u6362\u4e3a JPEG \u683c\u5f0f\uff0c\u8d28\u91cf 85\n- \u4fdd\u6301\u539f\u59cb\u76ee\u5f55\u7ed3\u6784\n- \u9a8c\u8bc1\u538b\u7f29\u5305\u5b8c\u6574\u6027\n- \u9a8c\u8bc1\u5931\u8d25\u65f6\u8f93\u51fa\u6587\u4ef6\u6dfb\u52a0 .error \u540e\u7f00",
+        "operationId": "filesystem-compress_archive_images_endpoint",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CompressImagesRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompressImagesResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/parse/batch": {
+      "post": {
+        "tags": ["parse"],
+        "summary": "Batch Parse",
+        "description": "Parse a list of filenames and persist results to the index DB.",
+        "operationId": "parse-batch_parse",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BatchParseRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BatchParseResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/parse": {
+      "get": {
+        "tags": ["parse"],
+        "summary": "Get Parse Result",
+        "description": "Retrieve stored parse result for a single file.",
+        "operationId": "parse-get_parse_result",
+        "parameters": [
+          {
+            "name": "filepath",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "File path to look up",
+              "title": "Filepath"
+            },
+            "description": "File path to look up"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/StoredParseResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/search": {
+      "post": {
+        "tags": ["search"],
+        "summary": "Search Files",
+        "operationId": "search-search_files",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SearchRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SearchResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tags": {
+      "get": {
+        "tags": ["tags"],
+        "summary": "Read Tags",
+        "operationId": "tags-read_tags",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 24,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": ["count", "name"],
+              "type": "string",
+              "default": "count",
+              "title": "Sort By"
+            }
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string",
+              "default": "desc",
+              "title": "Sort Order"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TagsResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/authors": {
+      "get": {
+        "tags": ["authors"],
+        "summary": "Read Authors",
+        "operationId": "authors-read_authors",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 24,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": ["count", "name"],
+              "type": "string",
+              "default": "count",
+              "title": "Sort By"
+            }
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string",
+              "default": "desc",
+              "title": "Sort Order"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthorsResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cosers": {
+      "get": {
+        "tags": ["cosers"],
+        "summary": "Read Cosers",
+        "operationId": "cosers-read_cosers",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 24,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": ["count", "name"],
+              "type": "string",
+              "default": "count",
+              "title": "Sort By"
+            }
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string",
+              "default": "desc",
+              "title": "Sort Order"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CosersResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/history/record": {
+      "post": {
+        "tags": ["history"],
+        "summary": "Record History",
+        "operationId": "history-record_history",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/HistoryRecordRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoryRecordResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/history/list": {
+      "get": {
+        "tags": ["history"],
+        "summary": "List History",
+        "operationId": "history-list_history",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 24,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string",
+              "default": "desc",
+              "title": "Sort Order"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HistoryListResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings": {
+      "get": {
+        "tags": ["settings"],
+        "summary": "Get Settings",
+        "description": "Get current settings.",
+        "operationId": "settings-get_settings",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SettingsResponse" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["settings"],
+        "summary": "Update Settings",
+        "description": "Update settings in .env file.",
+        "operationId": "settings-update_settings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SettingsUpdate" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SettingsResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/library-overview": {
+      "get": {
+        "tags": ["filesystem"],
+        "summary": "Get Library Overview",
+        "description": "获取库概览统计。",
+        "operationId": "filesystem-get_library_overview",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/recent-activity": {
+      "get": {
+        "tags": ["filesystem"],
+        "summary": "Get Recent Activity",
+        "description": "获取最近活动日志。",
+        "operationId": "filesystem-get_recent_activity",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "default": 200, "title": "Limit" }
+          },
+          {
+            "name": "since_latest_startup",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "boolean", "default": true, "title": "Since Latest Startup" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/top-opened-folders": {
+      "get": {
+        "tags": ["filesystem"],
+        "summary": "Get Top Opened Folders",
+        "description": "获取最常打开的文件夹。",
+        "operationId": "filesystem-get_top_opened_folders",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "default": 5, "title": "Limit" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/download-full": {
+      "get": {
+        "tags": ["filesystem"],
+        "summary": "Download File Full",
+        "description": "下载完整文件（带 Content-Length），触发浏览器另存为对话框。",
+        "operationId": "filesystem-download_file_full",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "title": "Path" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/mkdir": {
+      "post": {
+        "tags": ["filesystem"],
+        "summary": "Make Directory",
+        "description": "创建目录（递归）。",
+        "operationId": "filesystem-mkdir",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MkdirRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fs/resolve-path": {
+      "get": {
+        "tags": ["filesystem"],
+        "summary": "Resolve Path",
+        "description": "解析路径并检查是否存在。",
+        "operationId": "filesystem-resolve_path",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "title": "Path" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ResolvePathResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/thumbnail": {
+      "get": {
+        "tags": ["thumbnail"],
+        "summary": "Get Entity Thumbnail",
+        "description": "按实体名获取缩略图（tag/author/coser）。",
+        "operationId": "thumbnail-get_entity_thumbnail",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["tag", "author", "coser"],
+              "title": "Type"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "title": "Name" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/search/local-check-batch": {
+      "post": {
+        "tags": ["search"],
+        "summary": "Local Check Batch",
+        "description": "批量本地持有检查（油猴脚本用）。",
+        "operationId": "search-local_check_batch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LocalCheckBatchRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LocalCheckBatchResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/verify-files": {
+      "post": {
+        "tags": ["settings"],
+        "summary": "Verify Files",
+        "description": "验证 DB 中文件是否存在，标记缺失。",
+        "operationId": "settings-verify_files",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ArchiveEntry": {
+        "properties": {
+          "name": { "type": "string", "title": "Name" },
+          "entry_path": { "type": "string", "title": "Entry Path" },
+          "file_type": {
+            "type": "string",
+            "enum": ["image", "video", "audio", "unknown"],
+            "title": "File Type"
+          },
+          "index": { "type": "integer", "title": "Index" }
+        },
+        "type": "object",
+        "required": ["name", "entry_path", "file_type", "index"],
+        "title": "ArchiveEntry"
+      },
+      "ArchiveListResponse": {
+        "properties": {
+          "entries": {
+            "items": { "$ref": "#/components/schemas/ArchiveEntry" },
+            "type": "array",
+            "title": "Entries"
+          },
+          "total": { "type": "integer", "title": "Total" }
+        },
+        "type": "object",
+        "required": ["entries", "total"],
+        "title": "ArchiveListResponse"
+      },
+      "AuthorListItem": {
+        "properties": {
+          "name": { "type": "string", "title": "Name" },
+          "thumbnail": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Thumbnail"
+          },
+          "file_count": { "type": "integer", "title": "File Count" }
+        },
+        "type": "object",
+        "required": ["name", "file_count"],
+        "title": "AuthorListItem"
+      },
+      "AuthorsResponse": {
+        "properties": {
+          "items": {
+            "items": { "$ref": "#/components/schemas/AuthorListItem" },
+            "type": "array",
+            "title": "Items"
+          },
+          "page": { "type": "integer", "title": "Page" },
+          "page_size": { "type": "integer", "title": "Page Size" },
+          "total": { "type": "integer", "title": "Total" }
+        },
+        "type": "object",
+        "required": ["items", "page", "page_size", "total"],
+        "title": "AuthorsResponse"
+      },
+      "BackfillRequest": {
+        "properties": {
+          "path": { "type": "string", "title": "Path" },
+          "recursive": {
+            "type": "boolean",
+            "title": "Recursive",
+            "default": true
+          },
+          "fill_thumbnail": {
+            "type": "boolean",
+            "title": "Fill Thumbnail",
+            "default": true
+          },
+          "fill_meta": {
+            "type": "boolean",
+            "title": "Fill Meta",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": ["path"],
+        "title": "BackfillRequest"
+      },
+      "BackfillResponse": {
+        "properties": {
+          "status": { "type": "string", "const": "ok", "title": "Status" },
+          "scanned_files": { "type": "integer", "title": "Scanned Files" },
+          "backfilled_thumbnails": {
+            "type": "integer",
+            "title": "Backfilled Thumbnails"
+          },
+          "backfilled_meta": { "type": "integer", "title": "Backfilled Meta" },
+          "message": { "type": "string", "title": "Message" }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "scanned_files",
+          "backfilled_thumbnails",
+          "backfilled_meta",
+          "message"
+        ],
+        "title": "BackfillResponse"
+      },
+      "BatchParseItem": {
+        "properties": {
+          "filepath": { "type": "string", "title": "Filepath" },
+          "result": {
+            "anyOf": [
+              { "$ref": "#/components/schemas/ParseResponse" },
+              { "type": "null" }
+            ]
+          }
+        },
+        "type": "object",
+        "required": ["filepath"],
+        "title": "BatchParseItem"
+      },
+      "BatchParseRequest": {
+        "properties": {
+          "filepaths": {
+            "items": { "type": "string" },
+            "type": "array",
+            "title": "Filepaths"
+          }
+        },
+        "type": "object",
+        "required": ["filepaths"],
+        "title": "BatchParseRequest"
+      },
+      "BatchParseResponse": {
+        "properties": {
+          "items": {
+            "items": { "$ref": "#/components/schemas/BatchParseItem" },
+            "type": "array",
+            "title": "Items"
+          },
+          "parsed_count": { "type": "integer", "title": "Parsed Count" },
+          "total_count": { "type": "integer", "title": "Total Count" }
+        },
+        "type": "object",
+        "required": ["items", "parsed_count", "total_count"],
+        "title": "BatchParseResponse"
+      },
+      "ClearCacheResponse": {
+        "properties": {
+          "status": { "type": "string", "const": "ok", "title": "Status" },
+          "message": { "type": "string", "title": "Message" },
+          "deleted_files": { "type": "integer", "title": "Deleted Files" },
+          "freed_bytes": { "type": "integer", "title": "Freed Bytes" },
+          "freed_size_readable": {
+            "type": "string",
+            "title": "Freed Size Readable"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "deleted_files",
+          "freed_bytes",
+          "freed_size_readable"
+        ],
+        "title": "ClearCacheResponse"
+      },
+      "CompressImagesRequest": {
+        "properties": {
+          "archive_path": { "type": "string", "title": "Archive Path" },
+          "output_mode": {
+            "anyOf": [
+              { "type": "string", "enum": ["new", "replace"] },
+              { "type": "null" }
+            ],
+            "title": "Output Mode"
+          },
+          "max_height": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Max Height",
+            "default": 1600
+          },
+          "quality": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Quality",
+            "default": 85
+          },
+          "min_size": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Min Size"
+          }
+        },
+        "type": "object",
+        "required": ["archive_path"],
+        "title": "CompressImagesRequest"
+      },
+      "CompressImagesResponse": {
+        "properties": {
+          "success": { "type": "boolean", "title": "Success" },
+          "original_path": { "type": "string", "title": "Original Path" },
+          "output_path": { "type": "string", "title": "Output Path" },
+          "original_size": { "type": "integer", "title": "Original Size" },
+          "compressed_size": { "type": "integer", "title": "Compressed Size" },
+          "compression_ratio": {
+            "type": "number",
+            "title": "Compression Ratio"
+          },
+          "processed_images": {
+            "type": "integer",
+            "title": "Processed Images"
+          },
+          "skipped_images": { "type": "integer", "title": "Skipped Images" },
+          "validation_passed": {
+            "type": "boolean",
+            "title": "Validation Passed"
+          },
+          "error_message": {
+            "type": "string",
+            "title": "Error Message",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "original_path",
+          "output_path",
+          "original_size",
+          "compressed_size",
+          "compression_ratio",
+          "processed_images",
+          "skipped_images",
+          "validation_passed"
+        ],
+        "title": "CompressImagesResponse"
+      },
+      "CoserListItem": {
+        "properties": {
+          "name": { "type": "string", "title": "Name" },
+          "thumbnail": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Thumbnail"
+          },
+          "file_count": { "type": "integer", "title": "File Count" }
+        },
+        "type": "object",
+        "required": ["name", "file_count"],
+        "title": "CoserListItem"
+      },
+      "CosersResponse": {
+        "properties": {
+          "items": {
+            "items": { "$ref": "#/components/schemas/CoserListItem" },
+            "type": "array",
+            "title": "Items"
+          },
+          "page": { "type": "integer", "title": "Page" },
+          "page_size": { "type": "integer", "title": "Page Size" },
+          "total": { "type": "integer", "title": "Total" }
+        },
+        "type": "object",
+        "required": ["items", "page", "page_size", "total"],
+        "title": "CosersResponse"
+      },
+      "DeletePathRequest": {
+        "properties": {
+          "path": { "type": "string", "title": "Path" },
+          "permanently": {
+            "type": "boolean",
+            "title": "Permanently",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": ["path"],
+        "title": "DeletePathRequest"
+      },
+      "ExtractStatus": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["extracting", "completed", "error"],
+            "title": "Status"
+          },
+          "extracted_count": { "type": "integer", "title": "Extracted Count" },
+          "total_count": { "type": "integer", "title": "Total Count" },
+          "cache_dir": { "type": "string", "title": "Cache Dir" },
+          "entries": {
+            "anyOf": [
+              {
+                "items": { "$ref": "#/components/schemas/ArchiveEntry" },
+                "type": "array"
+              },
+              { "type": "null" }
+            ],
+            "title": "Entries"
+          },
+          "mtime": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Mtime"
+          },
+          "filesize": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Filesize"
+          }
+        },
+        "type": "object",
+        "required": ["status", "extracted_count", "total_count", "cache_dir"],
+        "title": "ExtractStatus"
+      },
+      "FileSystemItem": {
+        "properties": {
+          "name": { "type": "string", "title": "Name" },
+          "path": { "type": "string", "title": "Path" },
+          "item_type": {
+            "type": "string",
+            "enum": ["folder", "file"],
+            "title": "Item Type"
+          },
+          "file_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["image", "video", "archive", "audio", "unknown"]
+              },
+              { "type": "null" }
+            ],
+            "title": "File Type"
+          },
+          "filesize": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Filesize"
+          },
+          "mtime": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Mtime"
+          },
+          "thumbnail_url": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Thumbnail Url"
+          },
+          "recommendation_score": {
+            "type": "number",
+            "title": "Recommendation Score",
+            "default": 0
+          },
+          "is_missing": {
+            "type": "integer",
+            "title": "Is Missing",
+            "default": 0
+          },
+          "image_count": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Image Count"
+          },
+          "video_count": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Video Count"
+          },
+          "audio_count": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Audio Count"
+          },
+          "avg_image_size": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Avg Image Size"
+          },
+          "last_read_at": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Last Read At"
+          }
+        },
+        "type": "object",
+        "required": ["name", "path", "item_type"],
+        "title": "FileSystemItem"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": { "$ref": "#/components/schemas/ValidationError" },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HistoryItem": {
+        "properties": {
+          "id": { "type": "integer", "title": "Id" },
+          "filepath": { "type": "string", "title": "Filepath" },
+          "filename": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Filename"
+          },
+          "file_type": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "File Type"
+          },
+          "thumbnail_url": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Thumbnail Url"
+          },
+          "opened_at": { "type": "integer", "title": "Opened At" }
+        },
+        "type": "object",
+        "required": ["filepath", "opened_at"],
+        "title": "HistoryItem"
+      },
+      "HistoryListResponse": {
+        "properties": {
+          "items": {
+            "items": { "$ref": "#/components/schemas/HistoryItem" },
+            "type": "array",
+            "title": "Items"
+          },
+          "page": { "type": "integer", "title": "Page" },
+          "page_size": { "type": "integer", "title": "Page Size" },
+          "total": { "type": "integer", "title": "Total" },
+          "total_pages": { "type": "integer", "title": "Total Pages" }
+        },
+        "type": "object",
+        "required": ["items", "page", "page_size", "total", "total_pages"],
+        "title": "HistoryListResponse"
+      },
+      "HistoryRecordRequest": {
+        "properties": {
+          "filepath": { "type": "string", "title": "Filepath" }
+        },
+        "type": "object",
+        "required": ["filepath"],
+        "title": "HistoryRecordRequest"
+      },
+      "HistoryRecordResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["ok", "skipped"],
+            "title": "Status"
+          },
+          "reason": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": ["status"],
+        "title": "HistoryRecordResponse"
+      },
+      "ListResponse": {
+        "properties": {
+          "items": {
+            "items": { "$ref": "#/components/schemas/FileSystemItem" },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": ["items"],
+        "title": "ListResponse"
+      },
+      "Message": {
+        "properties": { "message": { "type": "string", "title": "Message" } },
+        "type": "object",
+        "required": ["message"],
+        "title": "Message"
+      },
+      "MovePathRequest": {
+        "properties": {
+          "source_path": { "type": "string", "title": "Source Path" },
+          "dest_path": { "type": "string", "title": "Dest Path" }
+        },
+        "type": "object",
+        "required": ["source_path", "dest_path"],
+        "title": "MovePathRequest"
+      },
+      "ParseResponse": {
+        "properties": {
+          "title": { "type": "string", "title": "Title" },
+          "authors": {
+            "items": { "type": "string" },
+            "type": "array",
+            "title": "Authors"
+          },
+          "cosers": {
+            "items": { "type": "string" },
+            "type": "array",
+            "title": "Cosers",
+            "default": []
+          },
+          "group": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Group"
+          },
+          "raw_tags": {
+            "items": { "type": "string" },
+            "type": "array",
+            "title": "Raw Tags"
+          },
+          "event": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Event"
+          },
+          "date_tag": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Date Tag"
+          },
+          "type": { "type": "string", "title": "Type" },
+          "pack_kind": {
+            "type": "string",
+            "title": "Pack Kind",
+            "default": "manga"
+          }
+        },
+        "type": "object",
+        "required": ["title", "authors", "raw_tags", "type"],
+        "title": "ParseResponse"
+      },
+      "PathOperationResponse": {
+        "properties": {
+          "status": { "type": "string", "const": "ok", "title": "Status" },
+          "message": { "type": "string", "title": "Message" },
+          "path": { "type": "string", "title": "Path" },
+          "dest_path": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Dest Path"
+          }
+        },
+        "type": "object",
+        "required": ["status", "message", "path"],
+        "title": "PathOperationResponse"
+      },
+      "RenameRequest": {
+        "properties": {
+          "path": { "type": "string", "title": "Path" },
+          "new_name": { "type": "string", "title": "New Name" }
+        },
+        "type": "object",
+        "required": ["path", "new_name"],
+        "title": "RenameRequest"
+      },
+      "RootItem": {
+        "properties": {
+          "path": { "type": "string", "title": "Path" },
+          "dirname": { "type": "string", "title": "Dirname" }
+        },
+        "type": "object",
+        "required": ["path", "dirname"],
+        "title": "RootItem"
+      },
+      "ScanRequest": {
+        "properties": {
+          "path": { "type": "string", "title": "Path" },
+          "recursive": {
+            "type": "boolean",
+            "title": "Recursive",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": ["path"],
+        "title": "ScanRequest"
+      },
+      "ScanStartResponse": {
+        "properties": {
+          "status": { "type": "string", "const": "started", "title": "Status" },
+          "message": { "type": "string", "title": "Message" },
+          "path": { "type": "string", "title": "Path" }
+        },
+        "type": "object",
+        "required": ["status", "message", "path"],
+        "title": "ScanStartResponse"
+      },
+      "ScanStatusItem": {
+        "properties": {
+          "path": { "type": "string", "title": "Path" },
+          "status": {
+            "type": "string",
+            "enum": ["running", "completed", "error"],
+            "title": "Status"
+          },
+          "message": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Message"
+          },
+          "recursive": {
+            "type": "boolean",
+            "title": "Recursive",
+            "default": true
+          },
+          "scanned_folders": {
+            "type": "integer",
+            "title": "Scanned Folders",
+            "default": 0
+          },
+          "scanned_files": {
+            "type": "integer",
+            "title": "Scanned Files",
+            "default": 0
+          },
+          "parsed_files": {
+            "type": "integer",
+            "title": "Parsed Files",
+            "default": 0
+          },
+          "watcher_active": {
+            "type": "boolean",
+            "title": "Watcher Active",
+            "default": false
+          },
+          "started_at": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Finished At"
+          }
+        },
+        "type": "object",
+        "required": ["path", "status"],
+        "title": "ScanStatusItem"
+      },
+      "SearchRequest": {
+        "properties": {
+          "q": { "type": "string", "title": "Q", "default": "" },
+          "scopes": {
+            "items": {
+              "type": "string",
+              "enum": ["file", "author", "coser", "tag"]
+            },
+            "type": "array",
+            "title": "Scopes"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["exact", "hybrid", "local-check"],
+            "title": "Mode",
+            "default": "hybrid"
+          },
+          "presence_filter": {
+            "type": "string",
+            "enum": ["all", "watched", "scanned_recent"],
+            "title": "Presence Filter",
+            "default": "all"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit",
+            "default": 200
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "SearchRequest"
+      },
+      "SearchResponse": {
+        "properties": {
+          "items": {
+            "items": { "$ref": "#/components/schemas/FileSystemItem" },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": { "type": "integer", "title": "Total" }
+        },
+        "type": "object",
+        "required": ["items", "total"],
+        "title": "SearchResponse"
+      },
+      "SettingsResponse": {
+        "properties": {
+          "favorite_dir": { "type": "string", "title": "Favorite Dir" },
+          "fs_roots": { "type": "string", "title": "Fs Roots" },
+          "already_read_dir": { "type": "string", "title": "Already Read Dir" },
+          "move_place_dir": { "type": "string", "title": "Move Place Dir" },
+          "env_file_path": { "type": "string", "title": "Env File Path" },
+          "db_file_path": { "type": "string", "title": "Db File Path" }
+        },
+        "type": "object",
+        "required": ["favorite_dir", "fs_roots", "already_read_dir", "move_place_dir", "env_file_path", "db_file_path"],
+        "title": "SettingsResponse"
+      },
+      "SettingsUpdate": {
+        "properties": {
+          "favorite_dir": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Favorite Dir"
+          },
+          "fs_roots": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Fs Roots"
+          },
+          "already_read_dir": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Already Read Dir"
+          },
+          "move_place_dir": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Move Place Dir"
+          }
+        },
+        "type": "object",
+        "title": "SettingsUpdate"
+      },
+      "StoredParseResponse": {
+        "properties": {
+          "filepath": { "type": "string", "title": "Filepath" },
+          "title": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Title"
+          },
+          "authors": {
+            "items": { "type": "string" },
+            "type": "array",
+            "title": "Authors",
+            "default": []
+          },
+          "cosers": {
+            "items": { "type": "string" },
+            "type": "array",
+            "title": "Cosers",
+            "default": []
+          },
+          "group_name": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Group Name"
+          },
+          "raw_tags": {
+            "items": { "type": "string" },
+            "type": "array",
+            "title": "Raw Tags",
+            "default": []
+          },
+          "event": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Event"
+          },
+          "date_tag": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Date Tag"
+          },
+          "media_type": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Media Type"
+          }
+        },
+        "type": "object",
+        "required": ["filepath"],
+        "title": "StoredParseResponse"
+      },
+      "TagListItem": {
+        "properties": {
+          "name": { "type": "string", "title": "Name" },
+          "thumbnail": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Thumbnail"
+          },
+          "file_count": { "type": "integer", "title": "File Count" }
+        },
+        "type": "object",
+        "required": ["name", "file_count"],
+        "title": "TagListItem"
+      },
+      "TagsResponse": {
+        "properties": {
+          "items": {
+            "items": { "$ref": "#/components/schemas/TagListItem" },
+            "type": "array",
+            "title": "Items"
+          },
+          "page": { "type": "integer", "title": "Page" },
+          "page_size": { "type": "integer", "title": "Page Size" },
+          "total": { "type": "integer", "title": "Total" }
+        },
+        "type": "object",
+        "required": ["items", "page", "page_size", "total"],
+        "title": "TagsResponse"
+      },
+      "UnzipRequest": {
+        "properties": {
+          "archive_path": { "type": "string", "title": "Archive Path" },
+          "output_dir": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Output Dir"
+          }
+        },
+        "type": "object",
+        "required": ["archive_path"],
+        "title": "UnzipRequest"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": { "type": "string", "title": "Message" },
+          "type": { "type": "string", "title": "Error Type" },
+          "input": { "title": "Input" },
+          "ctx": { "type": "object", "title": "Context" }
+        },
+        "type": "object",
+        "required": ["loc", "msg", "type"],
+        "title": "ValidationError"
+      },
+      "ZipFolderRequest": {
+        "properties": {
+          "folder_path": { "type": "string", "title": "Folder Path" },
+          "output_path": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Output Path"
+          }
+        },
+        "type": "object",
+        "required": ["folder_path"],
+        "title": "ZipFolderRequest"
+      },
+      "MkdirRequest": {
+        "properties": {
+          "path": { "type": "string", "title": "Path" }
+        },
+        "type": "object",
+        "required": ["path"],
+        "title": "MkdirRequest"
+      },
+      "ResolvePathResponse": {
+        "properties": {
+          "path": { "type": "string", "title": "Path" },
+          "exists": { "type": "boolean", "title": "Exists" },
+          "is_dir": { "type": "boolean", "title": "Is Dir" }
+        },
+        "type": "object",
+        "required": ["path", "exists", "is_dir"],
+        "title": "ResolvePathResponse"
+      },
+      "LocalCheckBatchRequest": {
+        "properties": {
+          "queries": {
+            "items": { "type": "string" },
+            "type": "array",
+            "title": "Queries"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit",
+            "default": 5
+          },
+          "presence_filter": {
+            "type": "string",
+            "enum": ["all", "watched", "scanned_recent"],
+            "title": "Presence Filter",
+            "default": "all"
+          }
+        },
+        "type": "object",
+        "title": "LocalCheckBatchRequest"
+      },
+      "LocalCheckHit": {
+        "properties": {
+          "name": { "type": "string", "title": "Name" },
+          "path": { "type": "string", "title": "Path" },
+          "thumbnail_url": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Thumbnail Url"
+          },
+          "match_level": {
+            "type": "string",
+            "enum": ["downloaded", "likely", "same_author", "different"],
+            "title": "Match Level"
+          },
+          "confidence": { "type": "number", "title": "Confidence" }
+        },
+        "type": "object",
+        "required": ["name", "path", "match_level", "confidence"],
+        "title": "LocalCheckHit"
+      },
+      "LocalCheckResult": {
+        "properties": {
+          "q": { "type": "string", "title": "Q" },
+          "match_level": {
+            "type": "string",
+            "enum": ["downloaded", "likely", "same_author", "different"],
+            "title": "Match Level"
+          },
+          "confidence": { "type": "number", "title": "Confidence" },
+          "reason": { "type": "string", "title": "Reason" },
+          "hits": {
+            "items": { "$ref": "#/components/schemas/LocalCheckHit" },
+            "type": "array",
+            "title": "Hits"
+          }
+        },
+        "type": "object",
+        "required": ["q", "match_level", "confidence", "reason", "hits"],
+        "title": "LocalCheckResult"
+      },
+      "LocalCheckBatchResponse": {
+        "properties": {
+          "results": {
+            "items": { "$ref": "#/components/schemas/LocalCheckResult" },
+            "type": "array",
+            "title": "Results"
+          }
+        },
+        "type": "object",
+        "required": ["results"],
+        "title": "LocalCheckBatchResponse"
+      }
+    }
+  }
+}
