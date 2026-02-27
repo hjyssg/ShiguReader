@@ -24,11 +24,11 @@ import { type Item, Main } from "./Main"
 const baseItems: Item[] = [
   // { icon: Home, title: "home", path: "/" },
   { icon: FolderOpen, title: "explorer", path: "/" },
+  { icon: Search, title: "search", path: "/search" },
   { icon: History, title: "history", path: "/history" },
   { icon: Tag, title: "tags", path: "/tags" },
   { icon: UserRound, title: "authors", path: "/authors" },
   { icon: VenetianMask, title: "cosers", path: "/cosers" },
-  { icon: Search, title: "search", path: "/search" },
   { icon: Settings, title: "settings", path: "/settings" },
 ]
 
