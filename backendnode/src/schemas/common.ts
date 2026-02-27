@@ -555,7 +555,7 @@ export const RecentActivityResponse = Type.Object(
 );
 
 export const TopFoldersResponse = Type.Object(
-  { folder_ids: Type.Array(Type.Integer()) },
+  { folder_pathes: Type.Array(Type.String()) },
   { $id: "TopFoldersResponse", title: "TopFoldersResponse" },
 );
 

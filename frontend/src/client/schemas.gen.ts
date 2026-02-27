@@ -1354,6 +1354,16 @@ export const TagListItemSchema = {
         },
         file_count: {
             type: 'integer'
+        },
+        recommendation_score: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         }
     }
 } as const;
@@ -1378,6 +1388,16 @@ export const AuthorListItemSchema = {
         },
         file_count: {
             type: 'integer'
+        },
+        recommendation_score: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         }
     }
 } as const;
@@ -1402,6 +1422,16 @@ export const CoserListItemSchema = {
         },
         file_count: {
             type: 'integer'
+        },
+        recommendation_score: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         }
     }
 } as const;
@@ -1603,6 +1633,134 @@ export const CosersResponseSchema = {
         },
         total: {
             type: 'integer'
+        }
+    }
+} as const;
+
+export const LibraryOverviewResponseSchema = {
+    title: 'LibraryOverviewResponse',
+    type: 'object',
+    required: ['archives', 'videos', 'images', 'audio', 'folders'],
+    properties: {
+        archives: {
+            type: 'integer'
+        },
+        videos: {
+            type: 'integer'
+        },
+        images: {
+            type: 'integer'
+        },
+        audio: {
+            type: 'integer'
+        },
+        folders: {
+            type: 'integer'
+        }
+    }
+} as const;
+
+export const ActivityItemSchema = {
+    title: 'ActivityItem',
+    type: 'object',
+    required: ['activity_type', 'status', 'created_at'],
+    properties: {
+        id: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        activity_type: {
+            type: 'string'
+        },
+        status: {
+            type: 'string'
+        },
+        task_key: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        message: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        target_path: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        context: {
+            anyOf: [
+                {},
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        created_at: {
+            type: 'integer'
+        }
+    }
+} as const;
+
+export const RecentActivityResponseSchema = {
+    title: 'RecentActivityResponse',
+    type: 'object',
+    required: ['items'],
+    properties: {
+        items: {
+            type: 'array',
+            items: {
+                '$ref': '#/components/schemas/ActivityItem'
+            }
+        }
+    }
+} as const;
+
+export const TopFoldersResponseSchema = {
+    title: 'TopFoldersResponse',
+    type: 'object',
+    required: ['folder_pathes'],
+    properties: {
+        folder_pathes: {
+            type: 'array',
+            items: {
+                type: 'string'
+            }
+        }
+    }
+} as const;
+
+export const MkdirResponseSchema = {
+    title: 'MkdirResponse',
+    type: 'object',
+    required: ['status'],
+    properties: {
+        status: {
+            type: 'string',
+            enum: ['ok']
         }
     }
 } as const;

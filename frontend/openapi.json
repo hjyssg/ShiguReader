@@ -1548,6 +1548,16 @@
           },
           "file_count": {
             "type": "integer"
+          },
+          "recommendation_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         }
       },
@@ -1574,6 +1584,16 @@
           },
           "file_count": {
             "type": "integer"
+          },
+          "recommendation_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         }
       },
@@ -1600,6 +1620,16 @@
           },
           "file_count": {
             "type": "integer"
+          },
+          "recommendation_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         }
       },
@@ -1836,6 +1866,147 @@
             "type": "integer"
           }
         }
+      },
+      "LibraryOverviewResponse": {
+        "title": "LibraryOverviewResponse",
+        "type": "object",
+        "required": [
+          "archives",
+          "videos",
+          "images",
+          "audio",
+          "folders"
+        ],
+        "properties": {
+          "archives": {
+            "type": "integer"
+          },
+          "videos": {
+            "type": "integer"
+          },
+          "images": {
+            "type": "integer"
+          },
+          "audio": {
+            "type": "integer"
+          },
+          "folders": {
+            "type": "integer"
+          }
+        }
+      },
+      "ActivityItem": {
+        "title": "ActivityItem",
+        "type": "object",
+        "required": [
+          "activity_type",
+          "status",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "activity_type": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "task_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "target_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "context": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "integer"
+          }
+        }
+      },
+      "RecentActivityResponse": {
+        "title": "RecentActivityResponse",
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityItem"
+            }
+          }
+        }
+      },
+      "TopFoldersResponse": {
+        "title": "TopFoldersResponse",
+        "type": "object",
+        "required": [
+          "folder_pathes"
+        ],
+        "properties": {
+          "folder_pathes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "MkdirResponse": {
+        "title": "MkdirResponse",
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok"
+            ]
+          }
+        }
       }
     }
   },
@@ -1985,7 +2156,39 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "LibraryOverviewResponse",
+                  "type": "object",
+                  "required": [
+                    "archives",
+                    "videos",
+                    "images",
+                    "audio",
+                    "folders"
+                  ],
+                  "properties": {
+                    "archives": {
+                      "type": "integer"
+                    },
+                    "videos": {
+                      "type": "integer"
+                    },
+                    "images": {
+                      "type": "integer"
+                    },
+                    "audio": {
+                      "type": "integer"
+                    },
+                    "folders": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -2000,7 +2203,10 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "minimum": 1,
+              "maximum": 500,
+              "default": 200,
+              "type": "integer"
             },
             "in": "query",
             "name": "limit",
@@ -2017,7 +2223,26 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "RecentActivityResponse",
+                  "type": "object",
+                  "required": [
+                    "items"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ActivityItem"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -2032,7 +2257,10 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "minimum": 1,
+              "maximum": 20,
+              "default": 5,
+              "type": "integer"
             },
             "in": "query",
             "name": "limit",
@@ -2041,7 +2269,26 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "TopFoldersResponse",
+                  "type": "object",
+                  "required": [
+                    "folder_pathes"
+                  ],
+                  "properties": {
+                    "folder_pathes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -2725,7 +2972,26 @@
         },
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MkdirResponse",
+                  "type": "object",
+                  "required": [
+                    "status"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -3548,7 +3814,9 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "minimum": 1,
+              "default": 1,
+              "type": "integer"
             },
             "in": "query",
             "name": "page",
@@ -3556,7 +3824,10 @@
           },
           {
             "schema": {
-              "type": "string"
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "type": "integer"
             },
             "in": "query",
             "name": "page_size",

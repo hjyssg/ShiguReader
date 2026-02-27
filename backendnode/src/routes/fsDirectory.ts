@@ -283,5 +283,5 @@ export async function getTopOpenedFolders(
   reply: FastifyReply,
 ) {
   const limit = Math.min(20, Math.max(1, req.query.limit ?? 5));
-  return reply.send({ folder_ids: getRepo().listTopOpenedFolderIds(limit) });
+  return reply.send({ folder_pathes: getRepo().listTopOpenedFolderIds(limit) });
 }
