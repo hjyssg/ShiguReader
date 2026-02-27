@@ -191,3 +191,31 @@ scan and watch是坏的
 
 
 ----
+1 explorer的sort by name没有按照文件名内部的数字来，我记得有个numeric啥的。前后端各种给图片按名字排序都要 fileNameA. localeCompare(fileNameB, undefined, { numeric: true });
+
+
+2 read的nav-button要包裹在
+.big-column-button {
+
+    background-color: transparent;
+
+    &.next {
+        right: 0;
+    }
+
+    &.prev {
+        left: 0;
+    }
+
+    position: fixed;
+    top: 0;
+    width: $zoom-width;
+    height: 100%;
+    z-index: 10;
+
+    // 被hover就显示它包裹的nav-button
+}
+
+
+
+3 read sibiling mode下一页有问题。好像没有按照page递增递减，你code review

@@ -170,14 +170,14 @@ function Video() {
         </video>
       </div>
 
-      <ReaderMetaBar
+      {/* <ReaderMetaBar
         left={
           <>
             <span title="修改时间" className="text-foreground cursor-default">{mtimeText}</span>
             <span title="文件大小" className="text-foreground cursor-default">{sizeText}</span>
           </>
         }
-      />
+      /> */}
 
       <RenameDialog
         open={renameOpen}
