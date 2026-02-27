@@ -418,6 +418,11 @@ export const DeletePathRequestSchema = {
         path: {
             type: 'string',
             title: 'Path'
+        },
+        permanently: {
+            type: 'boolean',
+            title: 'Permanently',
+            default: false
         }
     },
     type: 'object',
@@ -443,6 +448,42 @@ export const ExtractStatusSchema = {
         cache_dir: {
             type: 'string',
             title: 'Cache Dir'
+        },
+        entries: {
+            anyOf: [
+                {
+                    items: {
+                        '$ref': '#/components/schemas/ArchiveEntry'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Entries'
+        },
+        mtime: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Mtime'
+        },
+        filesize: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Filesize'
         }
     },
     type: 'object',
@@ -585,6 +626,28 @@ export const FileSystemItemSchema = {
                 }
             ],
             title: 'Avg Image Size'
+        },
+        likeScore: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Like Score'
+        },
+        last_read_at: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Last Read At'
         }
     },
     type: 'object',
@@ -679,6 +742,17 @@ export const HistoryItemSchema = {
                 }
             ],
             title: 'Page Total'
+        },
+        file_exists: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'File Exists'
         }
     },
     type: 'object',
@@ -1124,7 +1198,7 @@ export const SearchRequestSchema = {
         },
         mode: {
             type: 'string',
-            enum: ['exact', 'hybrid'],
+            enum: ['exact', 'hybrid', 'local-check'],
             title: 'Mode',
             default: 'hybrid'
         },

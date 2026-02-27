@@ -4,14 +4,13 @@ const webpack = require("webpack");
 const metadata = `// ==UserScript==\n`
   + `// @name        EhentaiLight配合Shigureader\n`
   + `// @grant       GM_addStyle\n`
-  + `// @grant       GM_getValue\n`
-  + `// @grant       GM_setValue\n`
-  + `// @grant       GM_getResourceText\n`
+  + `// @grant       GM_xmlhttpRequest\n`
   + `// @connect     localhost\n`
   + `// @namespace       Aji47\n`
-  + `// @version         0.0.31\n`
-  + `// @description\n`
+  + `// @version         0.0.32\n`
+  + `// @description     配合ShiguReader高亮已下载内容\n`
   + `// @author        Aji47\n`
+  + `// @include       *://exhentai.org/\n`
   + `// @include       *://exhentai.org/*\n`
   + `// @include       *://g.e-hentai.org/*\n`
   + `// @include       *://e-hentai.org/*\n`

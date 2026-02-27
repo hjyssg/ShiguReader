@@ -103,7 +103,7 @@ export class FilesystemService {
     public static listDirectory(data: FilesystemListDirectoryData): CancelablePromise<FilesystemListDirectoryResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/fs/listdir',
+            url: '/api/v1/fs/list',
             query: {
                 path: data.path,
                 sort_by: data.sortBy,
@@ -297,7 +297,7 @@ export class FilesystemService {
     public static backfillDirectory(data: FilesystemBackfillDirectoryData): CancelablePromise<FilesystemBackfillDirectoryResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/fs/generate',
+            url: '/api/v1/fs/backfill',
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -317,7 +317,7 @@ export class FilesystemService {
     public static scanAndWatch(data: FilesystemScanAndWatchData): CancelablePromise<FilesystemScanAndWatchResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/fs/scan-and-watch',
+            url: '/api/v1/fs/scan-watch',
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -398,7 +398,7 @@ export class FilesystemService {
     public static clearExtractCacheEndpoint(): CancelablePromise<FilesystemClearExtractCacheEndpointResponse> {
         return __request(OpenAPI, {
             method: 'DELETE',
-            url: '/api/v1/fs/clean-extract-cache'
+            url: '/api/v1/fs/extract-cache'
         });
     }
     

@@ -1,14 +1,13 @@
 // ==UserScript==
 // @name        EhentaiLight配合Shigureader
 // @grant       GM_addStyle
-// @grant       GM_getValue
-// @grant       GM_setValue
-// @grant       GM_getResourceText
+// @grant       GM_xmlhttpRequest
 // @connect     localhost
 // @namespace       Aji47
-// @version         0.0.31
-// @description
+// @version         0.0.32
+// @description     配合ShiguReader高亮已下载内容
 // @author        Aji47
+// @include       *://exhentai.org/
 // @include       *://exhentai.org/*
 // @include       *://g.e-hentai.org/*
 // @include       *://e-hentai.org/*
@@ -46,9 +45,10 @@ GM_addStyle(`
 const IS_EHENTAI = window.location.hostname.includes("exhentai") || window.location.hostname.includes("e-hentai");
 const IS_NYAA = window.location.hostname.includes("nyaa");
 
-const production_port = 3000;
-const QUICK_MATCH_BATCH_SIZE = 20;
-const QUICK_MATCH_LIMIT = 5;
+const production_port = 8000;
+const LOCAL_CHECK_BATCH_SIZE = 20;
+const LOCAL_CHECK_LIMIT = 5;
+const QUERY_CACHE_MAX = 500;
 
 const MATCH_LEVEL_STYLE = {
     downloaded: { color: "#61ef47", message: "明确已下载" },
@@ -73,31 +73,35 @@ function chunkArray(input, chunkSize) {
     return out;
 }
 
-async function requestJson(url, method, body, timeoutMs = 4000) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-        const response = await fetch(url, {
+// Use GM_xmlhttpRequest to bypass Chrome's Private Network Access restrictions
+// (fetch from https:// to http://localhost is blocked since Chrome 94)
+function requestJson(url, method, body, timeoutMs = 4000) {
+    return new Promise((resolve, reject) => {
+        GM_xmlhttpRequest({
             method,
-            cache: "no-cache",
-            headers: {
-                "Content-Type": "application/json",
+            url,
+            headers: { "Content-Type": "application/json" },
+            data: body ? JSON.stringify(body) : undefined,
+            timeout: timeoutMs,
+            onload: (r) => {
+                if (r.status >= 200 && r.status < 300) {
+                    try {
+                        resolve(JSON.parse(r.responseText));
+                    } catch (e) {
+                        reject(new Error("Invalid JSON response"));
+                    }
+                } else {
+                    reject(new Error(`HTTP ${r.status}`));
+                }
             },
-            body: body ? JSON.stringify(body) : undefined,
-            signal: controller.signal,
+            onerror: () => reject(new Error("Network error")),
+            ontimeout: () => reject(new Error("Request timeout")),
         });
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        return await response.json();
-    } finally {
-        clearTimeout(timer);
-    }
+    });
 }
 
 function buildSearchUrl(text) {
-    return `http://localhost:${production_port}/search?q=${encodeURIComponent((text || "").trim())}`;
+    return `http://localhost:${production_port}/search?q=${encodeURIComponent((text || "").trim())}&mode=local-check`;
 }
 
 function appendSearchLink(fileTitleDom, text, label = "Find in ShiguReader") {
@@ -162,7 +166,7 @@ function applyMatchStyleToNyaaTitleNode(node, result) {
     addTooltip(node, style.message, result);
 }
 
-async function quickMatchBatch(queries) {
+async function localCheckBatch(queries) {
     if (!isServerUp || !queries || queries.length === 0) {
         return new Map();
     }
@@ -171,8 +175,8 @@ async function quickMatchBatch(queries) {
     const pending = uniqueQueries.filter(q => !queryCache.has(q));
 
     try {
-        const api = `http://localhost:${production_port}/api/search/quick-match-batch`;
-        const chunks = chunkArray(pending, QUICK_MATCH_BATCH_SIZE);
+        const api = `http://localhost:${production_port}/api/search/local-check-batch`;
+        const chunks = chunkArray(pending, LOCAL_CHECK_BATCH_SIZE);
 
         for (const chunk of chunks) {
             if (!chunk.length) {
@@ -180,12 +184,16 @@ async function quickMatchBatch(queries) {
             }
             const payload = {
                 queries: chunk,
-                limit: QUICK_MATCH_LIMIT,
-                chunk_size: QUICK_MATCH_BATCH_SIZE,
+                limit: LOCAL_CHECK_LIMIT,
                 presence_filter: "all",
             };
             const res = await requestJson(api, "POST", payload, 4000);
             const results = res && Array.isArray(res.results) ? res.results : [];
+
+            // Evict cache if it grows too large
+            if (queryCache.size + results.length > QUERY_CACHE_MAX) {
+                queryCache.clear();
+            }
             results.forEach((item) => {
                 if (item && item.q) {
                     queryCache.set(item.q, item);
@@ -193,8 +201,11 @@ async function quickMatchBatch(queries) {
             });
         }
     } catch (e) {
-        isServerUp = false;
-        console.error("quick-match-batch failed", e);
+        // Only mark server as down for real failures, not timeouts
+        if (e.message !== "Request timeout") {
+            isServerUp = false;
+        }
+        console.error("local-check-batch failed", e);
     }
 
     const out = new Map();
@@ -218,7 +229,7 @@ function popMessage(text) {
 }
 
 /**
- * ehentai防瞎眼
+ * ehentai防瞎眼：隐藏评分低于2星的条目
  */
 function ehentaiProtection() {
     function disappearNode(node) {
@@ -240,14 +251,9 @@ function ehentaiProtection() {
             return;
         }
 
-        const pos = tokens.map(tt => parseInt(tt.replace("px", "")));
-        const [x, y] = pos;
-        const THRESHOLD = -48; // 2 star
-        if (y === -21) {
-            if (x <= THRESHOLD) {
-                disappearNode(node);
-            }
-        } else if (x <= THRESHOLD) {
+        const x = parseInt(tokens[0].replace("px", ""));
+        const THRESHOLD = -48; // below 2 stars
+        if (x <= THRESHOLD) {
             disappearNode(node);
         }
     });
@@ -274,12 +280,12 @@ async function highlightEhentaiThumbnail() {
         entries.push({ card, subNode, thumbnailNode, text });
     });
 
-    const resultMap = await quickMatchBatch(entries.map(e => e.text));
+    const resultMap = await localCheckBatch(entries.map(e => e.text));
 
     entries.forEach((entry) => {
         const result = resultMap.get(entry.text) || { match_level: "different", hits: [] };
         applyMatchStyleToEhentaiTitleNode(entry.subNode, entry.thumbnailNode, result);
-        appendSearchLink(entry.card, entry.text, "Quick Search");
+        appendSearchLink(entry.card, entry.text, "Local Check in ShiguReader");
     });
 }
 
@@ -294,7 +300,7 @@ async function highlightNyaa() {
         .map((node) => ({ node, text: (node.textContent || "").trim() }))
         .filter((e) => !!e.text);
 
-    const resultMap = await quickMatchBatch(entries.map(e => e.text));
+    const resultMap = await localCheckBatch(entries.map(e => e.text));
 
     entries.forEach((entry) => {
         const result = resultMap.get(entry.text) || { match_level: "different", hits: [] };
@@ -312,7 +318,7 @@ function addSearchLinkForEhentai() {
     }
 
     if (title && fileTitleDom) {
-        appendSearchLink(fileTitleDom, title, "Find in ShiguReader");
+        appendSearchLink(fileTitleDom, title, "Local Check in ShiguReader");
     }
 }
 
@@ -335,6 +341,7 @@ async function main() {
     }
 }
 
-main();
+main().catch(console.error);
+
 /******/ })()
 ;

@@ -151,6 +151,7 @@
     "mode": "模式",
     "modeExact": "精确",
     "modeHybrid": "混合",
+    "modeLocalCheck": "本地持有检查",
     "presence": "存在状态",
     "presenceAll": "全部",
     "presenceWatched": "处于文件监听",

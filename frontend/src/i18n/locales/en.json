@@ -151,6 +151,7 @@
     "mode": "Mode",
     "modeExact": "Exact",
     "modeHybrid": "Hybrid",
+    "modeLocalCheck": "Local Check",
     "presence": "Presence",
     "presenceAll": "All",
     "presenceWatched": "Watched only",

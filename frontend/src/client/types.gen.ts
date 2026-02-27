@@ -106,14 +106,13 @@ export type DeletePathRequest = {
 };
 
 export type ExtractStatus = {
-    status: 'extracting' | 'completed' | 'error' | 'started' | 'already_running';
+    status: 'extracting' | 'completed' | 'error';
     extracted_count: number;
     total_count: number;
     cache_dir: string;
-    avg_image_size?: (number | null);
-    entries?: Array<ArchiveEntry>;
-    mtime?: number;
-    filesize?: number;
+    entries?: (Array<ArchiveEntry> | null);
+    mtime?: (number | null);
+    filesize?: (number | null);
 };
 
 export type status = 'extracting' | 'completed' | 'error';
@@ -135,8 +134,8 @@ export type FileSystemItem = {
     video_count?: (number | null);
     audio_count?: (number | null);
     avg_image_size?: (number | null);
-    last_read_at?: (number | null);
     likeScore?: (number | null);
+    last_read_at?: (number | null);
 };
 
 export type item_type = 'folder' | 'file';
@@ -153,6 +152,7 @@ export type HistoryItem = {
     read_at: number;
     page_current?: (number | null);
     page_total?: (number | null);
+    file_exists?: (boolean | null);
 };
 
 export type file_type2 = 'image' | 'video' | 'archive' | 'audio' | 'unknown';
@@ -259,11 +259,11 @@ export type status2 = 'running' | 'completed' | 'error';
 export type SearchRequest = {
     q?: string;
     scopes?: Array<('file' | 'author' | 'coser' | 'tag')>;
-    mode?: 'exact' | 'hybrid';
+    mode?: 'exact' | 'hybrid' | 'local-check';
     presence_filter?: 'all' | 'watched' | 'scanned_recent';
 };
 
-export type mode = 'exact' | 'hybrid';
+export type mode = 'exact' | 'hybrid' | 'local-check';
 
 export type presence_filter = 'all' | 'watched' | 'scanned_recent';
 
@@ -384,10 +384,6 @@ export type CosersReadCosersData = {
 export type CosersReadCosersResponse = (CosersResponse);
 
 export type FilesystemGetRootsResponse = (Array<RootItem>);
-
-export type FilesystemGetFavoriteRootResponse = ((RootItem | null));
-
-export type FilesystemGetAlreadyReadRootResponse = ((RootItem | null));
 
 export type FilesystemGetDrivesResponse = (Array<RootItem>);
 

@@ -73,16 +73,22 @@ async function searchFiles(
   return reply.send({ items, total });
 }
 
-// ── quick-match-batch ─────────────────────────────────────────────────────────
+// ── local-check-batch ─────────────────────────────────────────────────────────
 
 type MatchLevel = "downloaded" | "likely" | "same_author" | "different";
 
-interface QuickMatchResult {
+interface LocalCheckResult {
   q: string;
   match_level: MatchLevel;
   confidence: number;
   reason: string;
-  hits: Array<{ name: string; match_level: MatchLevel; confidence: number }>;
+  hits: Array<{
+    name: string;
+    path: string;
+    thumbnail_url: string | null;
+    match_level: MatchLevel;
+    confidence: number;
+  }>;
 }
 
 /**
@@ -152,7 +158,7 @@ function decideMatchLevel(authorScore: number, titleScore: number, differentVolu
   return "different";
 }
 
-async function quickMatchBatch(
+async function localCheckBatch(
   req: FastifyRequest<{
     Body: {
       queries?: string[];
@@ -168,7 +174,7 @@ async function quickMatchBatch(
   }
 
   const repo = getRepo();
-  const results: QuickMatchResult[] = [];
+  const results: LocalCheckResult[] = [];
 
   for (const q of queries) {
     const trimmed = (q || "").trim();
@@ -200,7 +206,16 @@ async function quickMatchBatch(
       );
       const level = decideMatchLevel(authorScore, titleScore, differentVolume);
       const confidence = Math.round((authorScore * 0.4 + titleScore * 0.6) * 100) / 100;
-      return { name: c.filename, match_level: level, confidence, reason: titleReason, authorScore, titleScore };
+      return {
+        name: c.filename,
+        path: c.filepath,
+        thumbnail_url: buildThumbUrl(c.filepath),
+        match_level: level,
+        confidence,
+        reason: titleReason,
+        authorScore,
+        titleScore,
+      };
     });
 
     // Sort: downloaded > likely > same_author > different, then by confidence
@@ -215,20 +230,26 @@ async function quickMatchBatch(
       match_level: best.match_level,
       confidence: best.confidence,
       reason: best.reason,
-      hits: topHits.map((h) => ({ name: h.name, match_level: h.match_level, confidence: h.confidence })),
+      hits: topHits.map((h) => ({
+        name: h.name,
+        path: h.path,
+        thumbnail_url: h.thumbnail_url,
+        match_level: h.match_level,
+        confidence: h.confidence,
+      })),
     });
   }
 
   return reply.send({ results });
 }
 
-export { quickMatchBatch as quickMatchBatchHandler };
+export { localCheckBatch as localCheckBatchHandler };
 
 export async function searchRoutes(app: FastifyInstance) {
   app.post("", { schema: { summary: "搜索文件（支持文件名/作者/coser/标签）", tags: ["搜索"] } }, searchFiles);
   app.post(
-    "/quick-match-batch",
-    { schema: { summary: "批量快速匹配（油猴脚本用）", tags: ["搜索"] } },
-    quickMatchBatch,
+    "/local-check-batch",
+    { schema: { summary: "批量本地持有检查（油猴脚本用）", tags: ["搜索"] } },
+    localCheckBatch,
   );
 }

@@ -1,5 +1,5 @@
 /**
- * 搜索页面 - 支持文件、作者、Coser、标签的多维度搜索
+ * 搜索页面 - 支持文件、作者、Coser、标签的多维度搜索，以及本地持有检查
  */
 import { useQuery } from "@/shims/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
@@ -7,7 +7,7 @@ import { ExternalLink, Search } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 
-import { SearchService } from "@/client"
+import { OpenAPI, SearchService } from "@/client"
 import { FileViewContainer } from "@/components/Files/FileViewContainer"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -22,14 +22,19 @@ import {
 } from "@/components/ui/select"
 
 type Scope = "file" | "author" | "coser" | "tag"
-type Mode = "exact" | "hybrid"
+type Mode = "exact" | "hybrid" | "local-check"
 type PresenceFilter = "all" | "watched" | "scanned_recent"
 
 export const Route = createFileRoute("/_layout/search")({
   component: SearchPage,
   validateSearch: (search: Record<string, unknown>) => {
     const q = typeof search.q === "string" ? search.q : ""
-    const mode: Mode = search.mode === "exact" ? "exact" : "hybrid"
+    const mode: Mode =
+      search.mode === "exact"
+        ? "exact"
+        : search.mode === "local-check"
+          ? "local-check"
+          : "hybrid"
     const page = Math.max(1, Number(search.page) || 1)
     const presenceFilter: PresenceFilter =
       search.presenceFilter === "watched" ||
@@ -41,7 +46,6 @@ export const Route = createFileRoute("/_layout/search")({
     const validScope = (s: unknown): s is Scope =>
       s === "file" || s === "author" || s === "coser" || s === "tag"
 
-    // Normalize to array: TanStack Router may serialize arrays as JSON strings
     const scopesList: unknown[] = Array.isArray(rawScopes)
       ? rawScopes
       : typeof rawScopes === "string"
@@ -67,11 +71,7 @@ export const Route = createFileRoute("/_layout/search")({
     }
   },
   head: () => ({
-    meta: [
-      {
-        title: "Search",
-      },
-    ],
+    meta: [{ title: "Search" }],
   }),
 })
 
@@ -129,6 +129,35 @@ const SCOPE_OPTIONS: Array<{ value: Scope; labelKey: string }> = [
 const PAGE_SIZE_OPTIONS = [24, 48, 100] as const
 const DEFAULT_PAGE_SIZE = PAGE_SIZE_OPTIONS[0]
 
+type LocalCheckHit = {
+  name: string
+  path: string
+  thumbnail_url: string | null
+  match_level: "downloaded" | "likely" | "same_author" | "different"
+  confidence: number
+}
+
+function useLocalCheckQuery(q: string, presenceFilter: PresenceFilter) {
+  return useQuery({
+    queryKey: ["local-check", q, presenceFilter],
+    queryFn: async () => {
+      const res = await fetch(`${OpenAPI.BASE}/api/search/local-check-batch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          queries: [q],
+          limit: 10,
+          presence_filter: presenceFilter,
+        }),
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = await res.json() as { results: Array<{ q: string; hits: LocalCheckHit[] }> }
+      return data.results[0]?.hits ?? []
+    },
+    enabled: q.trim().length > 0,
+  })
+}
+
 function SearchPage() {
   const { t } = useTranslation()
   const search = Route.useSearch()
@@ -141,7 +170,6 @@ function SearchPage() {
   const [presenceFilter, setPresenceFilter] = useState<PresenceFilter>(
     search.presenceFilter,
   )
-
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE)
 
   useEffect(() => {
@@ -152,7 +180,8 @@ function SearchPage() {
     setPresenceFilter(search.presenceFilter)
   }, [search.mode, search.presenceFilter, search.q, search.scopes])
 
-  const { data, isLoading } = useQuery({
+  // Normal file search
+  const { data: fileData, isLoading: fileLoading } = useQuery({
     queryKey: ["search", submittedQ, scopes, mode, presenceFilter],
     queryFn: () =>
       SearchService.searchFiles({
@@ -163,8 +192,14 @@ function SearchPage() {
           presence_filter: presenceFilter,
         },
       }),
-    enabled: submittedQ.trim().length > 0,
+    enabled: submittedQ.trim().length > 0 && mode !== "local-check",
   })
+
+  // Local-check mode
+  const { data: localCheckHits, isLoading: localCheckLoading } = useLocalCheckQuery(
+    mode === "local-check" ? submittedQ : "",
+    presenceFilter,
+  )
 
   const toggleScope = (scope: Scope, checked: boolean) => {
     setScopes((prev) => {
@@ -179,25 +214,21 @@ function SearchPage() {
 
   const totalText = useMemo(() => {
     if (!submittedQ) return ""
-    return t("search.resultCount", { count: data?.total ?? 0 })
-  }, [data?.total, submittedQ, t])
+    if (mode === "local-check") {
+      return t("search.resultCount", { count: localCheckHits?.length ?? 0 })
+    }
+    return t("search.resultCount", { count: fileData?.total ?? 0 })
+  }, [fileData?.total, localCheckHits?.length, mode, submittedQ, t])
 
   const goToPage = (nextPage: number) => {
     const target = Math.max(1, nextPage)
     if (target !== search.page) {
       navigate({
         to: "/search",
-        search: {
-          q: submittedQ,
-          mode,
-          scopes,
-          page: target,
-          presenceFilter,
-        },
+        search: { q: submittedQ, mode, scopes, page: target, presenceFilter },
       })
     }
   }
-
 
   const trimmedQ = submittedQ.trim()
   const externalLinks = useMemo(
@@ -214,9 +245,22 @@ function SearchPage() {
     [trimmedQ],
   )
 
+  // Convert local-check hits to FileSystemItem for FileViewContainer
+  const localCheckItems = useMemo(() => {
+    if (!localCheckHits) return []
+    return localCheckHits.map((h) => ({
+      name: h.name,
+      path: h.path,
+      item_type: "file" as const,
+      file_type: "archive" as const,
+      filesize: null,
+      mtime: null,
+      thumbnail_url: h.thumbnail_url,
+    }))
+  }, [localCheckHits])
+
   return (
     <div className="space-y-6">
-      {/* ── 页面标题 ── */}
       <div className="space-y-2">
         <h1 className="text-2xl font-bold tracking-tight">
           {t("search.title")}
@@ -224,9 +268,7 @@ function SearchPage() {
         <p className="text-muted-foreground">{t("search.description")}</p>
       </div>
 
-      {/* ── 搜索框 + 范围/模式/presence 过滤器 + 外部搜索链接 ── */}
       <div className="border rounded-lg p-4 space-y-4">
-        {/* 搜索输入框 */}
         <div className="flex items-center gap-2">
           <Input
             value={q}
@@ -245,29 +287,42 @@ function SearchPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-6">
-          <div className="flex items-center gap-1">
-            <div className="flex items-center gap-4">
-              {SCOPE_OPTIONS.map((option) => (
-                <ScopeCheckbox
-                  key={option.value}
-                  value={option.value}
-                  label={t(option.labelKey)}
-                  checked={scopes.includes(option.value)}
-                  onToggle={toggleScope}
-                />
-              ))}
+          {mode !== "local-check" && (
+            <div className="flex items-center gap-1">
+              <div className="flex items-center gap-4">
+                {SCOPE_OPTIONS.map((option) => (
+                  <ScopeCheckbox
+                    key={option.value}
+                    value={option.value}
+                    label={t(option.labelKey)}
+                    checked={scopes.includes(option.value)}
+                    onToggle={toggleScope}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="flex items-center gap-2">
             <Label className="text-sm">{t("search.mode")}</Label>
-            <Select value={mode} onValueChange={(v) => setMode(v as Mode)}>
-              <SelectTrigger className="w-[140px] h-8">
+            <Select
+              value={mode}
+              onValueChange={(v) => {
+                const newMode = v as Mode
+                setMode(newMode)
+                navigate({
+                  to: "/search",
+                  search: { q: submittedQ, mode: newMode, scopes, page: 1, presenceFilter },
+                })
+              }}
+            >
+              <SelectTrigger className="w-[160px] h-8">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="exact">{t("search.modeExact")}</SelectItem>
                 <SelectItem value="hybrid">{t("search.modeHybrid")}</SelectItem>
+                <SelectItem value="local-check">{t("search.modeLocalCheck")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -276,7 +331,14 @@ function SearchPage() {
             <Label className="text-sm">{t("search.presence")}</Label>
             <Select
               value={presenceFilter}
-              onValueChange={(v) => setPresenceFilter(v as PresenceFilter)}
+              onValueChange={(v) => {
+                const newFilter = v as PresenceFilter
+                setPresenceFilter(newFilter)
+                navigate({
+                  to: "/search",
+                  search: { q: submittedQ, mode, scopes, page: 1, presenceFilter: newFilter },
+                })
+              }}
             >
               <SelectTrigger className="w-[180px] h-8">
                 <SelectValue />
@@ -304,28 +366,35 @@ function SearchPage() {
         </div>
       </div>
 
-      {/* ── 搜索结果列表（仅在提交过查询后显示）── */}
       {submittedQ ? (
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">{totalText}</p>
-          <FileViewContainer
-            items={data?.items ?? []}
-            isLoading={isLoading}
-            pagination={{
-              page: search.page,
-              pageSize,
-              onChange: ({ page }) => goToPage(page),
-              onPageSizeChange: (nextPageSize) => {
-                setPageSize(nextPageSize)
-                if (search.page !== 1) {
-                  goToPage(1)
-                }
-              },
-              pageSizeOptions: PAGE_SIZE_OPTIONS,
-              pageSizeLabel: "Page size",
-            }}
-            emptyText={t("search.noResults")}
-          />
+          {mode === "local-check" ? (
+            <FileViewContainer
+              items={localCheckItems}
+              isLoading={localCheckLoading}
+              emptyText={t("search.noResults")}
+            />
+          ) : (
+            <FileViewContainer
+              items={fileData?.items ?? []}
+              isLoading={fileLoading}
+              pagination={{
+                page: search.page,
+                pageSize,
+                onChange: ({ page }) => goToPage(page),
+                onPageSizeChange: (nextPageSize) => {
+                  setPageSize(nextPageSize)
+                  if (search.page !== 1) {
+                    goToPage(1)
+                  }
+                },
+                pageSizeOptions: PAGE_SIZE_OPTIONS,
+                pageSizeLabel: "Page size",
+              }}
+              emptyText={t("search.noResults")}
+            />
+          )}
         </div>
       ) : null}
     </div>

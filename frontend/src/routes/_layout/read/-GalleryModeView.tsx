@@ -42,7 +42,7 @@ interface GalleryModeViewProps {
   extractStatus: {
     cache_dir?: string
     status?: "extracting" | "completed" | "error" | "started" | "already_running"
-    entries?: { file_type: string }[]
+    entries?: { file_type: string }[] | null
     avg_image_size?: number | null
   } | null
   parseMeta: {

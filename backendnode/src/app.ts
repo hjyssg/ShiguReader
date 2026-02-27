@@ -7,7 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { fsRoutes } from "./routes/fs.js";
-import { searchRoutes, quickMatchBatchHandler } from "./routes/search.js";
+import { searchRoutes, localCheckBatchHandler } from "./routes/search.js";
 import { historyRoutes } from "./routes/history.js";
 import { tagsRoutes } from "./routes/entities/tags.js";
 import { authorsRoutes } from "./routes/entities/authors.js";
@@ -108,9 +108,9 @@ export function buildApp() {
 
   // ── Compatibility aliases (Tampermonkey script uses /api/search/...) ───────
   app.post(
-    "/api/search/quick-match-batch",
-    { schema: { summary: "批量快速匹配（兼容别名，油猴脚本用）", tags: ["搜索"] } },
-    quickMatchBatchHandler,
+    "/api/search/local-check-batch",
+    { schema: { summary: "批量本地持有检查（兼容别名，油猴脚本用）", tags: ["搜索"] } },
+    localCheckBatchHandler,
   );
 
   // ── Global error handler (dev-friendly: includes stack trace) ─────────────
