@@ -57,6 +57,10 @@ import {
   PathQuery,
   ArchiveFileQuery,
   ExtractQuery,
+  LibraryOverviewResponse,
+  RecentActivityResponse,
+  TopFoldersResponse,
+  MkdirResponse,
 } from "../schemas/common.js";
 
 export async function fsRoutes(app: FastifyInstance) {
@@ -64,9 +68,9 @@ export async function fsRoutes(app: FastifyInstance) {
   app.get("/roots", { schema: { operationId: "getRoots", summary: "获取配置的根目录列表", tags: ["Filesystem"], response: { 200: Type.Array(Type.Ref(RootItem)) } } }, getRoots);
   app.get("/drives", { schema: { operationId: "getDrives", summary: "获取系统盘符 (Windows)", tags: ["Filesystem"], response: { 200: Type.Array(Type.Ref(RootItem)) } } }, getDrives);
   app.get("/listdir", { schema: { operationId: "listDirectory", summary: "列出目录内容（文件+文件夹）", tags: ["Filesystem"], querystring: ListDirQuery, response: { 200: ListResponse } } }, listDirectory);
-  app.get("/library-overview", { schema: { operationId: "getLibraryOverview", summary: "获取库概览统计", tags: ["Filesystem"] } }, getLibraryOverview);
-  app.get("/recent-activity", { schema: { operationId: "getRecentActivity", summary: "获取最近活动日志", tags: ["Filesystem"], querystring: RecentActivityQuery } }, getRecentActivity);
-  app.get("/top-opened-folders", { schema: { operationId: "getTopOpenedFolders", summary: "获取最常打开的文件夹", tags: ["Filesystem"], querystring: TopFoldersQuery } }, getTopOpenedFolders);
+  app.get("/library-overview", { schema: { operationId: "getLibraryOverview", summary: "获取库概览统计", tags: ["Filesystem"], response: { 200: LibraryOverviewResponse } } }, getLibraryOverview);
+  app.get("/recent-activity", { schema: { operationId: "getRecentActivity", summary: "获取最近活动日志", tags: ["Filesystem"], querystring: RecentActivityQuery, response: { 200: RecentActivityResponse } } }, getRecentActivity);
+  app.get("/top-opened-folders", { schema: { operationId: "getTopOpenedFolders", summary: "获取最常打开的文件夹", tags: ["Filesystem"], querystring: TopFoldersQuery, response: { 200: TopFoldersResponse } } }, getTopOpenedFolders);
 
   // ── 扫描 ─────────────────────────────────────────────────────────────────
   app.post("/scan", { schema: { operationId: "scanDirectory", summary: "扫描目录并索引文件", tags: ["Filesystem"], body: ScanRequest, response: { 200: ScanStartResponse } } }, scanDirectory);
@@ -83,7 +87,7 @@ export async function fsRoutes(app: FastifyInstance) {
   app.get("/download", { schema: { operationId: "downloadFile", summary: "下载文件（attachment）", tags: ["Filesystem"], querystring: PathQuery } }, downloadFile);
   app.get("/download-full", { schema: { operationId: "downloadFileFull", summary: "下载完整文件（带 Content-Length）", tags: ["Filesystem"], querystring: PathQuery } }, downloadFileFull);
   app.get("/file", { schema: { operationId: "serveFile", summary: "直接返回文件流（inline）", tags: ["Filesystem"], querystring: PathQuery } }, serveFile);
-  app.post("/mkdir", { schema: { operationId: "ensureDir", summary: "创建目录（递归）", tags: ["Filesystem"], body: MkdirRequest } }, ensureDir);
+  app.post("/mkdir", { schema: { operationId: "ensureDir", summary: "创建目录（递归）", tags: ["Filesystem"], body: MkdirRequest, response: { 200: MkdirResponse } } }, ensureDir);
   app.get("/resolve-path", { schema: { operationId: "resolvePath", summary: "解析路径并检查是否存在", tags: ["Filesystem"], querystring: PathQuery, response: { 200: ResolvePathResponse } } }, resolvePath);
 
   // ── 压缩包 ───────────────────────────────────────────────────────────────

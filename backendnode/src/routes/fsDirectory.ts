@@ -257,10 +257,10 @@ export async function getLibraryOverview(_req: FastifyRequest, reply: FastifyRep
 }
 
 export async function getRecentActivity(
-  req: FastifyRequest<{ Querystring: { limit?: string; since_latest_startup?: string } }>,
+  req: FastifyRequest<{ Querystring: { limit?: number; since_latest_startup?: string } }>,
   reply: FastifyReply,
 ) {
-  const limit = Math.min(500, Math.max(1, parseInt(req.query.limit ?? "200", 10) || 200));
+  const limit = Math.min(500, Math.max(1, req.query.limit ?? 200));
   const sinceStartup = req.query.since_latest_startup !== "false";
   const repo = getRepo();
   const rows = sinceStartup ? repo.listActivityLogsSinceLatestStartup(limit) : repo.listActivityLogs(limit);
@@ -279,9 +279,9 @@ export async function getRecentActivity(
 }
 
 export async function getTopOpenedFolders(
-  req: FastifyRequest<{ Querystring: { limit?: string } }>,
+  req: FastifyRequest<{ Querystring: { limit?: number } }>,
   reply: FastifyReply,
 ) {
-  const limit = Math.min(20, Math.max(1, parseInt(req.query.limit ?? "5", 10) || 5));
+  const limit = Math.min(20, Math.max(1, req.query.limit ?? 5));
   return reply.send({ folder_ids: getRepo().listTopOpenedFolderIds(limit) });
 }

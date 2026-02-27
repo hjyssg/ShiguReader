@@ -7,8 +7,8 @@ import { Type } from "@sinclair/typebox";
 import { HistoryListResponse, HistoryRecordRequest, HistoryRecordResponse } from "../schemas/common.js";
 
 const ListHistoryQuery = Type.Object({
-  page: Type.Optional(Type.String()),
-  page_size: Type.Optional(Type.String()),
+  page: Type.Optional(Type.Integer({ minimum: 1, default: 1 })),
+  page_size: Type.Optional(Type.Integer({ minimum: 1, maximum: 200, default: 50 })),
   sort_order: Type.Optional(Type.Union([Type.Literal("asc"), Type.Literal("desc")])),
 });
 
@@ -28,11 +28,11 @@ function shouldSkipHistoryRecord(filepath: string): boolean {
 }
 
 async function listHistory(
-  req: FastifyRequest<{ Querystring: { page?: string; page_size?: string; sort_order?: string } }>,
+  req: FastifyRequest<{ Querystring: { page?: number; page_size?: number; sort_order?: string } }>,
   reply: FastifyReply,
 ) {
-  const page = Math.max(1, parseInt(req.query.page ?? "1", 10) || 1);
-  const pageSize = Math.min(200, Math.max(1, parseInt(req.query.page_size ?? "50", 10) || 50));
+  const page = Math.max(1, req.query.page ?? 1);
+  const pageSize = Math.min(200, Math.max(1, req.query.page_size ?? 50));
   const offset = (page - 1) * pageSize;
   const sortOrder = req.query.sort_order === "asc" ? "asc" : "desc";
 

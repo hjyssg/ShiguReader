@@ -440,6 +440,7 @@ export const EntityListItem = (id: string) =>
       name: Type.String(),
       thumbnail: Type.Optional(Nullable(Type.String())),
       file_count: Type.Integer(),
+      recommendation_score: Type.Optional(Nullable(Type.Number())),
     },
     { $id: id, title: id },
   );
@@ -485,12 +486,12 @@ export const ListDirQuery = Type.Object({
 });
 
 export const RecentActivityQuery = Type.Object({
-  limit: Type.Optional(Type.String()),
+  limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 500, default: 200 })),
   since_latest_startup: Type.Optional(Type.String()),
 });
 
 export const TopFoldersQuery = Type.Object({
-  limit: Type.Optional(Type.String()),
+  limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 20, default: 5 })),
 });
 
 export const ScanStatusQuery = Type.Object({
@@ -520,6 +521,48 @@ export const ThumbnailQuerySchema = Type.Object({
   type: Type.Optional(Type.Union([Type.Literal("tag"), Type.Literal("author"), Type.Literal("coser")])),
   name: Type.Optional(Type.String()),
 });
+
+// ── 文件系统附加响应 ────────────────────────────────────────────────────────────
+
+export const LibraryOverviewResponse = Type.Object(
+  {
+    archives: Type.Integer(),
+    videos: Type.Integer(),
+    images: Type.Integer(),
+    audio: Type.Integer(),
+    folders: Type.Integer(),
+  },
+  { $id: "LibraryOverviewResponse", title: "LibraryOverviewResponse" },
+);
+
+export const ActivityItem = Type.Object(
+  {
+    id: Type.Optional(Nullable(Type.Integer())),
+    activity_type: Type.String(),
+    status: Type.String(),
+    task_key: Type.Optional(Nullable(Type.String())),
+    message: Type.Optional(Nullable(Type.String())),
+    target_path: Type.Optional(Nullable(Type.String())),
+    context: Type.Optional(Nullable(Type.Unknown())),
+    created_at: Type.Integer(),
+  },
+  { $id: "ActivityItem", title: "ActivityItem" },
+);
+
+export const RecentActivityResponse = Type.Object(
+  { items: Type.Array(Type.Ref(ActivityItem)) },
+  { $id: "RecentActivityResponse", title: "RecentActivityResponse" },
+);
+
+export const TopFoldersResponse = Type.Object(
+  { folder_ids: Type.Array(Type.Integer()) },
+  { $id: "TopFoldersResponse", title: "TopFoldersResponse" },
+);
+
+export const MkdirResponse = Type.Object(
+  { status: Type.Literal("ok") },
+  { $id: "MkdirResponse", title: "MkdirResponse" },
+);
 
 // ── 所有 schema 列表（用于 app.addSchema 批量注册）─────────────────────────────
 
@@ -572,4 +615,9 @@ export const ALL_SCHEMAS = [
   TagsResponse,
   AuthorsResponse,
   CosersResponse,
+  LibraryOverviewResponse,
+  ActivityItem,
+  RecentActivityResponse,
+  TopFoldersResponse,
+  MkdirResponse,
 ];

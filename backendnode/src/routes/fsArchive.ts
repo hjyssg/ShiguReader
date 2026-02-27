@@ -90,11 +90,10 @@ export async function listArchive(req: FastifyRequest<{ Querystring: { path: str
 }
 
 export async function extractArchive(
-  req: FastifyRequest<{ Querystring: { path: string; page?: string } }>,
+  req: FastifyRequest<{ Querystring: { path: string; page?: number } }>,
   reply: FastifyReply,
 ) {
-  const { path: archivePath, page: pageStr = "0" } = req.query;
-  const page = parseInt(pageStr, 10) || 0;
+  const { path: archivePath, page = 0 } = req.query;
   if (!archivePath) {
     return reply.status(400).send({ error: "path is required" });
   }

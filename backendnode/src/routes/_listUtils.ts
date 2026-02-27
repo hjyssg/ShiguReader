@@ -22,7 +22,12 @@ export function buildThumbUrl(filePath: string): string {
   return `${config.API_V1_STR}/fs/thumb?path=${encodeURIComponent(filePath)}`;
 }
 
-type PaginatedQuery = { page?: string; page_size?: string; sort_by?: string; sort_order?: string };
+type PaginatedQuery = {
+  page?: number;
+  page_size?: number;
+  sort_by?: string;
+  sort_order?: string;
+};
 
 interface ListHandlerOptions<R extends Record<string, unknown>> {
   count: (repo: IndexRepository) => number;
@@ -39,8 +44,8 @@ interface ListHandlerOptions<R extends Record<string, unknown>> {
  */
 export function makeListHandler<R extends Record<string, unknown>>(opts: ListHandlerOptions<R>) {
   return async (req: FastifyRequest<{ Querystring: PaginatedQuery }>, reply: FastifyReply) => {
-    const page = Math.max(1, parseInt(req.query.page ?? "1", 10) || 1);
-    const pageSize = Math.min(500, Math.max(1, parseInt(req.query.page_size ?? "100", 10) || 100));
+    const page = Math.max(1, req.query.page ?? 1);
+    const pageSize = Math.min(500, Math.max(1, req.query.page_size ?? 100));
     const offset = (page - 1) * pageSize;
     const sortBy = req.query.sort_by ?? "count";
     const sortOrder = req.query.sort_order ?? "desc";
