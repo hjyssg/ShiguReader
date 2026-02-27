@@ -620,6 +620,22 @@ function SettingsPage() {
           </section>
 
           <SinglePathSection
+            title={t("settings.favoriteDir")}
+            description={t("settings.favoriteDirDesc")}
+            value={favoriteDir}
+            placeholder={t("settings.favoriteDirPlaceholder")}
+            id="favoriteDir"
+            colorClass="settings-section--blue"
+            onChange={setFavoriteDir}
+            onSave={saveFavoriteDirIfChanged}
+            onReset={() => {
+              setFavoriteDir("")
+              setTimeout(saveFavoriteDirIfChanged, 0)
+            }}
+            t={t}
+          />
+
+          <SinglePathSection
             title={t("settings.alreadyReadDir")}
             description={t("settings.alreadyReadDirDesc")}
             value={alreadyReadDir}
@@ -663,21 +679,7 @@ function SettingsPage() {
             <Input value={settings?.env_file_path || ""} readOnly />
           </section>
 
-          <SinglePathSection
-            title={t("settings.favoriteDir")}
-            description={t("settings.favoriteDirDesc")}
-            value={favoriteDir}
-            placeholder={t("settings.favoriteDirPlaceholder")}
-            id="favoriteDir"
-            colorClass="settings-section--blue"
-            onChange={setFavoriteDir}
-            onSave={saveFavoriteDirIfChanged}
-            onReset={() => {
-              setFavoriteDir("")
-              setTimeout(saveFavoriteDirIfChanged, 0)
-            }}
-            t={t}
-          />
+
 
 
         </TabsContent>
