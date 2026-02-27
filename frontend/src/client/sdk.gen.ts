@@ -103,7 +103,7 @@ export class FilesystemService {
     public static listDirectory(data: FilesystemListDirectoryData): CancelablePromise<FilesystemListDirectoryResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/fs/list',
+            url: '/api/v1/fs/listdir',
             query: {
                 path: data.path,
                 sort_by: data.sortBy,
