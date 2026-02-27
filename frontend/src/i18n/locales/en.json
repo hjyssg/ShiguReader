@@ -69,7 +69,7 @@
       "dateModified": "Date Modified",
       "type": "Type",
       "size": "Size",
-      "likeScore": "Like Score",
+      "recommendation_score": "Like Score",
       "imageCount": "Image Count",
       "lastReadAt": "Last Read"
     }

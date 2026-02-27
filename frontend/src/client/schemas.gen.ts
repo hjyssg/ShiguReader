@@ -84,7 +84,7 @@ export const FileSystemItemSchema = {
                 }
             ]
         },
-        likeScore: {
+        recommendation_score: {
             default: 0,
             type: 'number'
         },
@@ -882,15 +882,15 @@ export const ExtractStatusSchema = {
             anyOf: [
                 {
                     type: 'string',
-                    enum: ['extracting']
+                    enum: ['started']
+                },
+                {
+                    type: 'string',
+                    enum: ['already_running']
                 },
                 {
                     type: 'string',
                     enum: ['completed']
-                },
-                {
-                    type: 'string',
-                    enum: ['error']
                 }
             ]
         },

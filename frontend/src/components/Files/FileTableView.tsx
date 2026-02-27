@@ -9,7 +9,7 @@ import { useIsMobile } from "@/hooks/useMobile"
 import { FileNameLinkCell } from "./FileNameLinkCell"
 import { formatDateTime, formatFileSize, formatFileType } from "./utils"
 
-export type SortField = "name" | "type" | "mtime" | "likeScore" | "image_count" | "last_read_at"
+export type SortField = "name" | "type" | "mtime" | "recommendation_score" | "image_count" | "last_read_at"
 export type SortOrder = "asc" | "desc"
 
 interface FileTableViewProps {
@@ -86,15 +86,15 @@ export function FileTableView({
       headerClassName: "w-[100px] text-right",
     },
     {
-      key: "likeScore",
+      key: "recommendation_score",
       header: (
         <button
           type="button"
           className="ml-auto inline-flex items-center"
-          onClick={() => onSort("likeScore")}
+          onClick={() => onSort("recommendation_score")}
         >
-          {t("explorer.table.likeScore")}
-          <SortIcon field="likeScore" />
+          {t("explorer.table.recommendation_score")}
+          <SortIcon field="recommendation_score" />
         </button>
       ),
       headerClassName: "w-[130px] text-right",
@@ -176,7 +176,7 @@ function TableRowCells({ item }: { item: FileSystemItem }) {
         {!isFolder && item.filesize ? formatFileSize(item.filesize) : "-"}
       </td>
       <td className="p-2 text-right text-muted-foreground">
-        {!isFolder ? (item.likeScore ?? 0).toFixed(3) : "-"}
+        {!isFolder ? (item.recommendation_score ?? 0).toFixed(3) : "-"}
       </td>
       <td className="p-2 text-right text-muted-foreground">
         {isArchive && item.image_count

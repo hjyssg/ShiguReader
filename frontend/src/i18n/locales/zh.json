@@ -69,7 +69,7 @@
       "dateModified": "修改日期",
       "type": "类型",
       "size": "大小",
-      "likeScore": "Like Score",
+      "recommendation_score": "Like Score",
       "imageCount": "图片数",
       "lastReadAt": "最后阅读时间"
     }

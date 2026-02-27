@@ -109,7 +109,7 @@
               }
             ]
           },
-          "likeScore": {
+          "recommendation_score": {
             "default": 0,
             "type": "number"
           },
@@ -1015,19 +1015,19 @@
               {
                 "type": "string",
                 "enum": [
-                  "extracting"
+                  "started"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "already_running"
                 ]
               },
               {
                 "type": "string",
                 "enum": [
                   "completed"
-                ]
-              },
-              {
-                "type": "string",
-                "enum": [
-                  "error"
                 ]
               }
             ]
@@ -3298,19 +3298,19 @@
                         {
                           "type": "string",
                           "enum": [
-                            "extracting"
+                            "started"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "already_running"
                           ]
                         },
                         {
                           "type": "string",
                           "enum": [
                             "completed"
-                          ]
-                        },
-                        {
-                          "type": "string",
-                          "enum": [
-                            "error"
                           ]
                         }
                       ]

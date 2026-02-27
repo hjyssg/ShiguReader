@@ -89,12 +89,12 @@ export function FileItem({
     </FileName>
   )
 
-  const likeScore = item.likeScore
+  const recommendation_score = item.recommendation_score
   const lastReadAt = item.last_read_at
   const defaultThumbnailTooltip = [
     getParentPath(item.path),
     `${t("explorer.table.dateModified")}: ${item.mtime ? formatDateTime(item.mtime) : "-"}`,
-    `${t("explorer.table.likeScore")}: ${likeScore != null ? Number(likeScore).toFixed(3) : "-"}`,
+    `${t("explorer.table.recommendation_score")}: ${recommendation_score != null ? Number(recommendation_score).toFixed(3) : "-"}`,
     `${t("explorer.table.lastReadAt")}: ${lastReadAt ? formatDateTime(lastReadAt) : "-"}`,
   ].join("\n")
 

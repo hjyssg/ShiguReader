@@ -18,7 +18,7 @@ export const FileSystemItem = Type.Object(
     filesize: Type.Optional(Nullable(Type.Integer())),
     mtime: Type.Optional(Nullable(Type.Integer())),
     thumbnail_url: Type.Optional(Nullable(Type.String())),
-    likeScore: Type.Optional(Type.Number({ default: 0 })),
+    recommendation_score: Type.Optional(Type.Number({ default: 0 })),
     is_missing: Type.Optional(Type.Integer({ default: 0 })),
     image_count: Type.Optional(Nullable(Type.Integer())),
     video_count: Type.Optional(Nullable(Type.Integer())),
@@ -271,7 +271,7 @@ export const ArchiveListResponse = Type.Object(
 
 export const ExtractStatus = Type.Object(
   {
-    status: Type.Union([Type.Literal("extracting"), Type.Literal("completed"), Type.Literal("error")]),
+    status: Type.Union([Type.Literal("started"), Type.Literal("already_running"), Type.Literal("completed")]),
     extracted_count: Type.Integer(),
     total_count: Type.Integer(),
     cache_dir: Type.String(),

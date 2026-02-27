@@ -132,7 +132,7 @@ export type DeletePathRequest = {
 };
 
 export type ExtractStatus = {
-    status: ('extracting' | 'completed' | 'error');
+    status: ('started' | 'already_running' | 'completed');
     extracted_count: number;
     total_count: number;
     cache_dir: string;
@@ -149,7 +149,7 @@ export type FileSystemItem = {
     filesize?: (number | null);
     mtime?: (number | null);
     thumbnail_url?: (string | null);
-    likeScore?: number;
+    recommendation_score?: number;
     is_missing?: number;
     image_count?: (number | null);
     video_count?: (number | null);
@@ -652,7 +652,7 @@ export type ExtractArchiveData = {
 };
 
 export type ExtractArchiveResponse = ({
-    status: ('extracting' | 'completed' | 'error');
+    status: ('started' | 'already_running' | 'completed');
     extracted_count: number;
     total_count: number;
     cache_dir: string;
