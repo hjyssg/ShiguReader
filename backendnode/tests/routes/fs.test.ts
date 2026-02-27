@@ -165,11 +165,11 @@ describe("GET /api/v1/fs/recent-activity", () => {
 });
 
 describe("GET /api/v1/fs/top-opened-folders", () => {
-  it("returns folder_ids array", async () => {
+  it("returns folder_pathes array", async () => {
     const app = buildApp();
     const res = await app.inject({ method: "GET", url: "/api/v1/fs/top-opened-folders" });
     expect(res.statusCode).toBe(200);
-    expect(res.json()).toHaveProperty("folder_ids");
+    expect(res.json()).toHaveProperty("folder_pathes");
   });
 });
 

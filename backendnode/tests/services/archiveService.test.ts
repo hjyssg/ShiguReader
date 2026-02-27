@@ -190,19 +190,21 @@ describe("getExtractCacheDir", () => {
   });
 
   it("returns a deterministic path for the same input", () => {
-    const dir1 = getExtractCacheDir("/some/archive.zip");
-    const dir2 = getExtractCacheDir("/some/archive.zip");
+    const stat = { mtimeMs: 1700000000000, size: 12345 };
+    const dir1 = getExtractCacheDir("/some/archive.zip", stat);
+    const dir2 = getExtractCacheDir("/some/archive.zip", stat);
     expect(dir1).toBe(dir2);
   });
 
   it("returns different paths for different archives", () => {
-    const dir1 = getExtractCacheDir("/archive1.zip");
-    const dir2 = getExtractCacheDir("/archive2.zip");
+    const stat = { mtimeMs: 1700000000000, size: 12345 };
+    const dir1 = getExtractCacheDir("/archive1.zip", stat);
+    const dir2 = getExtractCacheDir("/archive2.zip", stat);
     expect(dir1).not.toBe(dir2);
   });
 
   it("cache dir is under EXTRACT_CACHE_DIR", () => {
-    const dir = getExtractCacheDir("/some/archive.zip");
+    const dir = getExtractCacheDir("/some/archive.zip", { mtimeMs: 1700000000000, size: 12345 });
     // path.resolve("/fake/cache") on Windows may differ, use includes check
     expect(dir).toContain("cache");
   });
@@ -211,9 +213,13 @@ describe("getExtractCacheDir", () => {
 describe("extractEntries", () => {
   beforeEach(() => {
     vi.mocked(fs.existsSync).mockReturnValue(false);
-    vi.mocked(fs.mkdirSync).mockReturnValue(undefined);
-    vi.mocked(fs.writeFileSync).mockReturnValue(undefined);
-    vi.mocked(fs.unlinkSync).mockReturnValue(undefined);
+    vi.spyOn(fs.promises, "mkdir").mockResolvedValue(undefined as unknown as string);
+    vi.spyOn(fs.promises, "writeFile").mockResolvedValue(undefined);
+    vi.spyOn(fs.promises, "unlink").mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("does nothing when entries list is empty", async () => {
@@ -241,7 +247,7 @@ describe("extractEntries", () => {
 
     await extractEntries("/fake/test.zip", "/fake/dest", ["page001.jpg"]);
 
-    expect(fs.mkdirSync).toHaveBeenCalledWith("/fake/dest", { recursive: true });
+    expect(fs.promises.mkdir).toHaveBeenCalledWith("/fake/dest", { recursive: true });
   });
 
   it("cleans up temp list file even on error", async () => {
@@ -251,6 +257,6 @@ describe("extractEntries", () => {
       extractEntries("/fake/test.zip", "/fake/dest", ["page001.jpg"])
     ).rejects.toThrow("extraction failed");
 
-    expect(fs.unlinkSync).toHaveBeenCalled();
+    expect(fs.promises.unlink).toHaveBeenCalled();
   });
 });

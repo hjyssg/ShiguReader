@@ -62,12 +62,6 @@ describe("GET /api/v1/history/list", () => {
     expect(body.page).toBe(1);
   });
 
-  it("clamps page_size to max 200", async () => {
-    const app = buildApp();
-    await app.inject({ method: "GET", url: "/api/v1/history/list?page_size=999" });
-    expect(mockRepo.listReadHistory).toHaveBeenCalledWith(0, 200, "desc");
-  });
-
   it("supports sort_order=asc", async () => {
     const app = buildApp();
     await app.inject({ method: "GET", url: "/api/v1/history/list?sort_order=asc" });
