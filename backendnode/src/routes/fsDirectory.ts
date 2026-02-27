@@ -7,6 +7,7 @@ import { getRepo, buildThumbUrl } from "./_listUtils.js";
 import { parseName } from "../utils/nameParser.js";
 import { isHiddenFile } from "../utils/fileFilters.js";
 import { fileExists } from "../utils/fsUtils.js";
+import { sortFileByName } from "../../../common/src/fileTypeUtil.js";
 
 // ─── types ───────────────────────────────────────────────────────────────────
 
@@ -229,8 +230,8 @@ export async function listDirectory(
     );
   }
 
-  // Sort: folders first (by name), then files
-  const folders = filteredItems.filter((i) => i.item_type === "folder").sort((a, b) => a.name.localeCompare(b.name));
+  // Sort: folders first (by name numeric), then files
+  const folders = filteredItems.filter((i) => i.item_type === "folder").sort(sortFileByName);
   const files = filteredItems.filter((i) => i.item_type === "file");
   const rev = sort_order === "desc" ? -1 : 1;
   files.sort((a, b) => {
@@ -246,7 +247,8 @@ export async function listDirectory(
     if (sort_by === "image_count") {
       return rev * ((a.image_count ?? 0) - (b.image_count ?? 0));
     }
-    return rev * a.name.localeCompare(b.name);
+    // default: sort by name with numeric awareness ("2" before "10")
+    return rev * sortFileByName(a, b);
   });
 
   return reply.send({ items: [...folders, ...files] });

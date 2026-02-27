@@ -3,6 +3,7 @@ import type { Static } from "@sinclair/typebox";
 import path from "node:path";
 import { getRepo, buildThumbUrl } from "./_listUtils.js";
 import { config, resolveProjectPath } from "../config.js";
+import { getFileType } from "../../../common/src/fileTypeUtil.js";
 import { Type } from "@sinclair/typebox";
 import { HistoryListResponse, HistoryRecordRequest, HistoryRecordResponse } from "../schemas/common.js";
 
@@ -22,9 +23,19 @@ function isPathInside(targetPath: string, parentPath: string): boolean {
 }
 
 function shouldSkipHistoryRecord(filepath: string): boolean {
+  // 跳过 extract cache 和 thumb cache 目录下的文件
   const extractCacheDir = resolveProjectPath(config.EXTRACT_CACHE_DIR);
   const thumbCacheDir = resolveProjectPath(config.THUMB_CACHE_DIR);
-  return isPathInside(filepath, extractCacheDir) || isPathInside(filepath, thumbCacheDir);
+  if (isPathInside(filepath, extractCacheDir) || isPathInside(filepath, thumbCacheDir)) {
+    return true;
+  }
+
+  // 跳过单张图片文件（sibling 模式打开，不应记录历史）
+  if (getFileType(filepath) === "image") {
+    return true;
+  }
+
+  return false;
 }
 
 async function listHistory(

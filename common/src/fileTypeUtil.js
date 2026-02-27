@@ -51,3 +51,14 @@ export const isArchive = (p) => getFileType(p) === "archive"
 export const isAudio = (p) => getFileType(p) === "audio"
 /** @param {string} p */
 export const isFolder = (p) => getFileType(p) === "folder"
+
+/**
+ * 按文件名排序的比较函数 — 使用 numeric localeCompare，使 "2.jpg" 排在 "10.jpg" 前面
+ * 前后端共用，替代裸 localeCompare(b.name)
+ * @param {{ name: string }} a
+ * @param {{ name: string }} b
+ * @returns {number}
+ */
+export function sortFileByName(a, b) {
+  return a.name.localeCompare(b.name, undefined, { numeric: true })
+}

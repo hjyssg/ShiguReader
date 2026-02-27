@@ -189,6 +189,44 @@
   right: 1rem;
 }
 
+/* ── 大列按钮：透明的全高点击区域，hover 时显示内部的 nav-button ── */
+.big-column-button {
+  background-color: transparent;
+  position: fixed;
+  top: 0;
+  width: 10vw;
+  height: 100%;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  padding: 0;
+}
+
+.big-column-button.prev {
+  left: 0;
+}
+
+.big-column-button.next {
+  right: 0;
+}
+
+/* hover 大列区域时，显示内部的圆形 nav-button */
+.big-column-button:hover .reader-nav-button {
+  opacity: 1;
+}
+
+/* 大列按钮内的 nav-button 用 flex 居中，不用 absolute 定位 */
+.big-column-button .reader-nav-button {
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  transform: none;
+  pointer-events: none;
+}
+
 .reader-meta-bar {
   position: absolute;
   bottom: 0;

@@ -51,7 +51,12 @@ function ReadPage() {
   const parentPath = getParentPath(path)
 
   const hasAutoSwitchedRef = useRef(false)
-  useEffect(() => { hasAutoSwitchedRef.current = false }, [path])
+  // sibling 模式初始定位标记：path 变化时重置，确保只在首次加载时做 findIndex 定位
+  const siblingInitializedRef = useRef(false)
+  useEffect(() => {
+    hasAutoSwitchedRef.current = false
+    siblingInitializedRef.current = false
+  }, [path])
 
   const {
     isLoading,
@@ -64,7 +69,8 @@ function ReadPage() {
     filesize,
     source,
   } = useArchiveExtract(path)
-  const isFolderSource = source === "folder"
+  // sibling 模式下图片也是通过 filePath 访问（同 folder 模式），所以 isFolderSource 包含 sibling
+  const isFolderSource = source === "folder" || source === "sibling"
   const isArchiveSource = source === "archive"
 
   type ParseMetaData = Awaited<ReturnType<typeof ParseService.getParseResult>> | null
@@ -99,7 +105,20 @@ function ReadPage() {
     }
   }, [shouldAutoAudio, navigate, path])
 
-  const resolvedPage = page || Math.max(0, imageEntries.findIndex((e) => e.filePath === path))
+  // sibling 模式（点开单张图片）：初始加载时 page=0，需要定位到当前图片在兄弟列表中的位置
+  // 其他模式（archive/folder）：直接用 URL 中的 page
+  // 注意：不能用 `page || findIndex`，因为 page=0 是 falsy，翻回第 0 页时会错误触发 findIndex
+  // 用 siblingInitializedRef 标记是否已完成初始定位，避免翻回第 0 页时重复触发 findIndex
+  let resolvedPage: number
+  if (source === "sibling" && page === 0 && !siblingInitializedRef.current && imageEntries.length > 0) {
+    // 初始打开：定位到当前图片在父目录图片列表中的索引，并标记已初始化
+    const idx = imageEntries.findIndex((e) => e.filePath === path)
+    resolvedPage = Math.max(0, idx)
+    siblingInitializedRef.current = true
+  } else {
+    // 正常翻页：直接使用 URL 中的 page 参数
+    resolvedPage = page
+  }
   const totalPages = imageEntries.length
   const currentPage = wrapPageIndex(resolvedPage, totalPages)
 

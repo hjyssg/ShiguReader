@@ -39,8 +39,13 @@ export interface ArchiveExtractResult {
   mtime: number | null
   /** 文件大小（字节） */
   filesize: number | null
-  /** 推断出的数据源类型 */
-  source: "archive" | "folder"
+  /**
+   * 推断出的数据源类型：
+   * - "archive"：压缩包，图片来自解压结果
+   * - "folder"：文件夹，图片来自目录列表
+   * - "sibling"：单张图片/音频/视频文件，图片来自父目录列表（兄弟文件）
+   */
+  source: "archive" | "folder" | "sibling"
 }
 
 type InternalSource = "archive" | "folder" | "sibling"
@@ -57,7 +62,8 @@ export function useArchiveExtract(
 ): ArchiveExtractResult {
   const parentPath = getParentPath(path)
   const internalSource = inferInternalSource(path)
-  const source = internalSource === "archive" ? "archive" : "folder"
+  // source 直接透传 internalSource，让调用方能区分 sibling 模式
+  const source = internalSource
 
   const [folderData, setFolderData] = useState<ListResponse | null>(null)
   const [extractStatus, setExtractStatus] = useState<ExtractStatus | null>(null)

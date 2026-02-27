@@ -3,6 +3,7 @@ import { SearchRequest, SearchResponse, LocalCheckBatchRequest, LocalCheckBatchR
 import { getRepo, buildThumbUrl } from "./_listUtils.js";
 import { parseName } from "../utils/nameParser.js";
 import { compareTitles } from "../utils/titleMatcher.js";
+import { sortFileByName } from "../../../common/src/fileTypeUtil.js";
 
 function toItem(row: {
   filepath: string;
@@ -68,7 +69,8 @@ async function searchFiles(
     }
   }
 
-  const allItems = [...byPath.values()].sort((a, b) => a.name.localeCompare(b.name));
+  // sort by name with numeric awareness ("2" before "10")
+  const allItems = [...byPath.values()].sort(sortFileByName);
   const total = allItems.length;
   const items = allItems.slice(offset, offset + limit);
   return reply.send({ items, total });

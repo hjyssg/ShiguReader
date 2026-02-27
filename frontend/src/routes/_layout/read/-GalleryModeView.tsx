@@ -265,13 +265,17 @@ export function GalleryModeView({
           />
         )}
 
-        {/* 左右翻页按钮 */}
-        <button type="button" className="reader-nav-button reader-nav-button--left" onClick={goPrev} aria-label={t("reader.prevPage")}>
-          <ChevronLeft className="reader-nav-button__icon" />
-        </button>
-        <button type="button" className="reader-nav-button reader-nav-button--right" onClick={goNext} aria-label={t("reader.nextPage")}>
-          <ChevronRight className="reader-nav-button__icon" />
-        </button>
+        {/* 左右翻页大列按钮：透明全高区域，hover 时显示圆形 nav-button */}
+        <div className="big-column-button prev" role="button">
+          <span className="reader-nav-button" aria-hidden="true" onClick={goPrev} >
+            <ChevronLeft className="reader-nav-button__icon" />
+          </span>
+        </div>
+        <div className="big-column-button next" role="button" >
+          <span className="reader-nav-button" aria-hidden="true"  onClick={goNext}>
+            <ChevronRight className="reader-nav-button__icon" />
+          </span>
+        </div>
 
         {!isFolderSource && <ExtractingIndicator status={extractStatus?.status} variant="overlay" />}
       </div>

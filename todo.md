@@ -219,3 +219,9 @@ scan and watch是坏的
 
 
 3 read sibiling mode下一页有问题。好像没有按照page递增递减，你code review
+
+
+4 点开解压cache里面的任何文件不进行history的record。
+    点开单张图片也不记录record
+    你在后端限制就行。
+    
