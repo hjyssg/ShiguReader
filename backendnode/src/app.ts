@@ -16,6 +16,7 @@ import { settingsRoutes } from "./routes/settings.js";
 import { parseRoutes } from "./routes/parse.js";
 import { thumbnailRoutes } from "./routes/thumbnail.js";
 import { config } from "./config.js";
+import { ALL_SCHEMAS } from "./schemas/common.js";
 import { getOrGenerateThumb } from "./services/thumbService.js";
 import { getDb } from "./db/client.js";
 import { IndexRepository } from "./db/repository.js";
@@ -48,6 +49,11 @@ export function buildApp() {
       deepLinking: true,
     },
   });
+
+  // ── 注册公共 schema（解析 Type.Ref 内部引用）─────────────────────────────
+  for (const schema of ALL_SCHEMAS) {
+    app.addSchema(schema);
+  }
 
   // ── @fastify/static — 注册 reply.sendFile() 装饰器 ────────────────────────
   // serve: false → 不自动托管文件，仅提供 reply.sendFile(basename, dirname)

@@ -176,7 +176,7 @@ function TableRowCells({ item }: { item: FileSystemItem }) {
         {!isFolder && item.filesize ? formatFileSize(item.filesize) : "-"}
       </td>
       <td className="p-2 text-right text-muted-foreground">
-        {!isFolder ? (item.recommendation_score ?? 0).toFixed(3) : "-"}
+        {!isFolder ? (item.likeScore ?? 0).toFixed(3) : "-"}
       </td>
       <td className="p-2 text-right text-muted-foreground">
         {isArchive && item.image_count

@@ -89,7 +89,7 @@ export function FileItem({
     </FileName>
   )
 
-  const likeScore = item.likeScore ?? item.recommendation_score
+  const likeScore = item.likeScore
   const lastReadAt = item.last_read_at
   const defaultThumbnailTooltip = [
     getParentPath(item.path),

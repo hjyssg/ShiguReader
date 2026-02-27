@@ -10,6 +10,7 @@ import type { FastifyRequest, FastifyReply } from "fastify";
 import { getDb } from "../db/client.js";
 import { IndexRepository } from "../db/repository.js";
 import { config } from "../config.js";
+export { EntityPageQuerySchema } from "../schemas/common.js";
 
 /** 创建一个绑定到当前请求 DB 连接的 IndexRepository 实例 */
 export function getRepo(): IndexRepository {

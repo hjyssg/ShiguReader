@@ -9,13 +9,14 @@ import { getDb } from "../db/client.js";
 import { IndexRepository } from "../db/repository.js";
 import { getOrGenerateThumb } from "../services/thumbService.js";
 import { getMimeType } from "../utils/fileType.js";
+import { ThumbnailQuerySchema } from "../schemas/common.js";
 
 type ThumbnailQuery = { type?: string; name?: string };
 
 export async function thumbnailRoutes(app: FastifyInstance) {
   app.get(
     "",
-    { schema: { summary: "按实体名获取缩略图（tag/author/coser）", tags: ["缩略图"] } },
+    { schema: { operationId: "getThumbnail", summary: "按实体名获取缩略图（tag/author/coser）", tags: ["Thumbnail"], querystring: ThumbnailQuerySchema } },
     async (req, reply) => {
       const { type, name } = req.query as ThumbnailQuery;
       if (!type || !name) {

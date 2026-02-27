@@ -3,11 +3,9 @@
 export type ArchiveEntry = {
     name: string;
     entry_path: string;
-    file_type: 'image' | 'video' | 'audio' | 'unknown';
+    file_type: ('image' | 'video' | 'audio' | 'unknown');
     index: number;
 };
-
-export type file_type = 'image' | 'video' | 'audio' | 'unknown';
 
 export type ArchiveListResponse = {
     entries: Array<ArchiveEntry>;
@@ -18,6 +16,13 @@ export type AuthorListItem = {
     name: string;
     thumbnail?: (string | null);
     file_count: number;
+};
+
+export type AuthorsQuery = {
+    page?: number;
+    page_size?: number;
+    sort_by?: ('count' | 'name');
+    sort_order?: ('asc' | 'desc');
 };
 
 export type AuthorsResponse = {
@@ -35,12 +40,14 @@ export type BackfillRequest = {
 };
 
 export type BackfillResponse = {
-    status: "ok";
+    status: 'ok';
     scanned_files: number;
     backfilled_thumbnails: number;
     backfilled_meta: number;
     message: string;
 };
+
+export type status = 'ok';
 
 export type BatchParseItem = {
     filepath: string;
@@ -58,7 +65,7 @@ export type BatchParseResponse = {
 };
 
 export type ClearCacheResponse = {
-    status: "ok";
+    status: 'ok';
     message: string;
     deleted_files: number;
     freed_bytes: number;
@@ -67,8 +74,7 @@ export type ClearCacheResponse = {
 
 export type CompressImagesRequest = {
     archive_path: string;
-    output_path?: (string | null);
-    max_width?: (number | null);
+    output_mode?: (('new' | 'replace') | null);
     max_height?: (number | null);
     quality?: (number | null);
     min_size?: (number | null);
@@ -93,6 +99,13 @@ export type CoserListItem = {
     file_count: number;
 };
 
+export type CosersQuery = {
+    page?: number;
+    page_size?: number;
+    sort_by?: ('count' | 'name');
+    sort_order?: ('asc' | 'desc');
+};
+
 export type CosersResponse = {
     items: Array<CoserListItem>;
     page: number;
@@ -106,7 +119,7 @@ export type DeletePathRequest = {
 };
 
 export type ExtractStatus = {
-    status: 'extracting' | 'completed' | 'error';
+    status: ('extracting' | 'completed' | 'error');
     extracted_count: number;
     total_count: number;
     cache_dir: string;
@@ -115,47 +128,31 @@ export type ExtractStatus = {
     filesize?: (number | null);
 };
 
-export type status = 'extracting' | 'completed' | 'error';
-
 export type FileSystemItem = {
     name: string;
     path: string;
-    item_type: 'folder' | 'file';
-    file_type?: ('image' | 'video' | 'archive' | 'audio' | 'unknown' | null);
+    item_type: ('folder' | 'file');
+    file_type?: (('image' | 'video' | 'archive' | 'audio' | 'unknown') | null);
     filesize?: (number | null);
     mtime?: (number | null);
     thumbnail_url?: (string | null);
-    recommendation_score?: (number | null);
-    scan_state?: number;
-    watch_state?: number;
-    confidence_level?: 'certain' | 'likely_present' | 'uncertain';
-    confidence_score?: number;
+    likeScore?: number;
+    is_missing?: number;
     image_count?: (number | null);
     video_count?: (number | null);
     audio_count?: (number | null);
     avg_image_size?: (number | null);
-    likeScore?: (number | null);
     last_read_at?: (number | null);
 };
 
-export type item_type = 'folder' | 'file';
-
-export type confidence_level = 'certain' | 'likely_present' | 'uncertain';
-
 export type HistoryItem = {
+    id?: number;
     filepath: string;
-    filename: string;
-    file_type: 'image' | 'video' | 'archive' | 'audio' | 'unknown';
-    filesize?: (number | null);
-    mtime?: (number | null);
+    filename?: (string | null);
+    file_type?: (string | null);
     thumbnail_url?: (string | null);
-    read_at: number;
-    page_current?: (number | null);
-    page_total?: (number | null);
-    file_exists?: (boolean | null);
+    opened_at: number;
 };
-
-export type file_type2 = 'image' | 'video' | 'archive' | 'audio' | 'unknown';
 
 export type HistoryListResponse = {
     items: Array<HistoryItem>;
@@ -167,26 +164,45 @@ export type HistoryListResponse = {
 
 export type HistoryRecordRequest = {
     filepath: string;
-    page_current?: (number | null);
-    page_total?: (number | null);
-    position_sec?: (number | null);
-    duration_sec?: (number | null);
 };
 
 export type HistoryRecordResponse = {
-    status: "ok";
-};
-
-export type HTTPValidationError = {
-    detail?: Array<ValidationError>;
+    status: ('ok' | 'skipped');
+    reason?: (string | null);
 };
 
 export type ListResponse = {
     items: Array<FileSystemItem>;
 };
 
-export type Message = {
-    message: string;
+export type LocalCheckBatchRequest = {
+    queries?: Array<(string)>;
+    limit?: number;
+    presence_filter?: ('all' | 'watched' | 'scanned_recent');
+};
+
+export type LocalCheckBatchResponse = {
+    results: Array<LocalCheckResult>;
+};
+
+export type LocalCheckHit = {
+    name: string;
+    path: string;
+    thumbnail_url: (string | null);
+    match_level: ('downloaded' | 'likely' | 'same_author' | 'different');
+    confidence: number;
+};
+
+export type LocalCheckResult = {
+    q: string;
+    match_level: ('downloaded' | 'likely' | 'same_author' | 'different');
+    confidence: number;
+    reason: string;
+    hits: Array<LocalCheckHit>;
+};
+
+export type MkdirRequest = {
+    path: string;
 };
 
 export type MovePathRequest = {
@@ -207,22 +223,21 @@ export type ParseResponse = {
 };
 
 export type PathOperationResponse = {
-    status: "ok";
+    status: 'ok';
     message: string;
     path: string;
     dest_path?: (string | null);
 };
 
-export type PrivateUserCreate = {
-    email: string;
-    password: string;
-    full_name: string;
-    is_verified?: boolean;
-};
-
 export type RenameRequest = {
     path: string;
     new_name: string;
+};
+
+export type ResolvePathResponse = {
+    path: string;
+    exists: boolean;
+    is_dir: boolean;
 };
 
 export type RootItem = {
@@ -236,14 +251,16 @@ export type ScanRequest = {
 };
 
 export type ScanStartResponse = {
-    status: "started";
+    status: 'started';
     message: string;
     path: string;
 };
 
+export type status2 = 'started';
+
 export type ScanStatusItem = {
     path: string;
-    status: 'running' | 'completed' | 'error';
+    status: ('running' | 'completed' | 'error');
     message?: (string | null);
     recursive?: boolean;
     scanned_folders?: number;
@@ -254,18 +271,14 @@ export type ScanStatusItem = {
     finished_at?: (number | null);
 };
 
-export type status2 = 'running' | 'completed' | 'error';
-
 export type SearchRequest = {
     q?: string;
     scopes?: Array<('file' | 'author' | 'coser' | 'tag')>;
-    mode?: 'exact' | 'fuzzy' | 'local-check';
-    presence_filter?: 'all' | 'watched' | 'scanned_recent';
+    mode?: ('exact' | 'fuzzy' | 'local-check');
+    presence_filter?: ('all' | 'watched' | 'scanned_recent');
+    limit?: number;
+    offset?: number;
 };
-
-export type mode = 'exact' | 'fuzzy' | 'local-check';
-
-export type presence_filter = 'all' | 'watched' | 'scanned_recent';
 
 export type SearchResponse = {
     items: Array<FileSystemItem>;
@@ -276,12 +289,16 @@ export type SettingsResponse = {
     favorite_dir: string;
     fs_roots: string;
     already_read_dir: string;
+    move_place_dir: string;
+    env_file_path: string;
+    db_file_path: string;
 };
 
 export type SettingsUpdate = {
     favorite_dir?: (string | null);
     fs_roots?: (string | null);
     already_read_dir?: (string | null);
+    move_place_dir?: (string | null);
 };
 
 export type StoredParseResponse = {
@@ -302,6 +319,13 @@ export type TagListItem = {
     file_count: number;
 };
 
+export type TagsQuery = {
+    page?: number;
+    page_size?: number;
+    sort_by?: ('count' | 'name');
+    sort_order?: ('asc' | 'desc');
+};
+
 export type TagsResponse = {
     items: Array<TagListItem>;
     page: number;
@@ -314,333 +338,434 @@ export type UnzipRequest = {
     output_dir?: (string | null);
 };
 
-export type UserCreate = {
-    email: string;
-    is_active?: boolean;
-    is_superuser?: boolean;
-    full_name?: (string | null);
-    password: string;
-};
-
-export type UserPublic = {
-    email: string;
-    is_active?: boolean;
-    is_superuser?: boolean;
-    full_name?: (string | null);
-    id: string;
-    created_at?: (string | null);
-};
-
-export type UserRegister = {
-    email: string;
-    password: string;
-    full_name?: (string | null);
-};
-
-export type UsersPublic = {
-    data: Array<UserPublic>;
-    count: number;
-};
-
-export type UserUpdate = {
-    email?: (string | null);
-    is_active?: boolean;
-    is_superuser?: boolean;
-    full_name?: (string | null);
-    password?: (string | null);
-};
-
-export type ValidationError = {
-    loc: Array<(string | number)>;
-    msg: string;
-    type: string;
-    input?: unknown;
-    ctx?: {
-        [key: string]: unknown;
-    };
-};
-
 export type ZipFolderRequest = {
     folder_path: string;
     output_path?: (string | null);
 };
 
-export type AuthorsReadAuthorsData = {
+export type ListTagsData = {
     page?: number;
     pageSize?: number;
-    sortBy?: 'count' | 'name';
-    sortOrder?: 'asc' | 'desc';
+    sortBy?: string;
+    sortOrder?: ('asc' | 'desc');
 };
 
-export type AuthorsReadAuthorsResponse = (AuthorsResponse);
+export type ListTagsResponse = ({
+    items: Array<TagListItem>;
+    page: number;
+    page_size: number;
+    total: number;
+});
 
-export type CosersReadCosersData = {
+export type ListAuthorsData = {
     page?: number;
     pageSize?: number;
-    sortBy?: 'count' | 'name';
-    sortOrder?: 'asc' | 'desc';
+    sortBy?: string;
+    sortOrder?: ('asc' | 'desc');
 };
 
-export type CosersReadCosersResponse = (CosersResponse);
+export type ListAuthorsResponse = ({
+    items: Array<AuthorListItem>;
+    page: number;
+    page_size: number;
+    total: number;
+});
 
-export type FilesystemGetRootsResponse = (Array<RootItem>);
-
-export type FilesystemGetDrivesResponse = (Array<RootItem>);
-
-export type FilesystemListDirectoryData = {
-    /**
-     * 筛选包含音频的压缩包
-     */
-    hasAudio?: (boolean | null);
-    /**
-     * 筛选包含视频的压缩包
-     */
-    hasVideo?: (boolean | null);
-    /**
-     * Directory path to list
-     */
-    path: string;
-    /**
-     * Sort by field
-     */
-    sortBy?: 'name' | 'mtime' | 'type' | 'recommendation' | 'image_count';
-    /**
-     * Sort order
-     */
-    sortOrder?: 'asc' | 'desc';
-};
-
-export type FilesystemListDirectoryResponse = (ListResponse);
-
-export type FilesystemMoveFileData = {
-    requestBody: MovePathRequest;
-};
-
-export type FilesystemMoveFileResponse = (PathOperationResponse);
-
-export type FilesystemMoveFolderData = {
-    requestBody: MovePathRequest;
-};
-
-export type FilesystemMoveFolderResponse = (PathOperationResponse);
-
-export type FilesystemDeletePathData = {
-    requestBody: DeletePathRequest;
-};
-
-export type FilesystemDeletePathResponse = (PathOperationResponse);
-
-export type FilesystemZipFolderData = {
-    requestBody: ZipFolderRequest;
-};
-
-export type FilesystemZipFolderResponse = (PathOperationResponse);
-
-export type FilesystemRenamePathData = {
-    requestBody: RenameRequest;
-};
-
-export type FilesystemRenamePathResponse = (PathOperationResponse);
-
-export type FilesystemDownloadFileData = {
-    /**
-     * File path to download
-     */
-    path: string;
-};
-
-export type FilesystemDownloadFileResponse = (unknown);
-
-export type FilesystemUnzipArchiveData = {
-    requestBody: UnzipRequest;
-};
-
-export type FilesystemUnzipArchiveResponse = (PathOperationResponse);
-
-export type FilesystemScanFavoriteResponse = (ScanStartResponse);
-
-export type FilesystemScanDirectoryData = {
-    requestBody: ScanRequest;
-};
-
-export type FilesystemScanDirectoryResponse = (ScanStartResponse);
-
-export type FilesystemBackfillDirectoryData = {
-    requestBody: BackfillRequest;
-};
-
-export type FilesystemBackfillDirectoryResponse = (BackfillResponse);
-
-export type FilesystemScanAndWatchData = {
-    requestBody: ScanRequest;
-};
-
-export type FilesystemScanAndWatchResponse = (ScanStartResponse);
-
-export type FilesystemGetScanStatusData = {
-    /**
-     * Optional path filter
-     */
-    path?: (string | null);
-};
-
-export type FilesystemGetScanStatusResponse = (Array<ScanStatusItem>);
-
-export type FilesystemGetThumbnailData = {
-    /**
-     * File path for thumbnail
-     */
-    path: string;
-};
-
-export type FilesystemGetThumbnailResponse = (unknown);
-
-export type FilesystemListArchiveData = {
-    /**
-     * Archive file path
-     */
-    path: string;
-};
-
-export type FilesystemListArchiveResponse = (ArchiveListResponse);
-
-export type FilesystemClearExtractCacheEndpointResponse = (ClearCacheResponse);
-
-export type FilesystemExtractArchiveData = {
-    /**
-     * 当前页码（基于过滤后的媒体文件列表）
-     */
+export type ListCosersData = {
     page?: number;
-    /**
-     * 压缩包文件路径
-     */
+    pageSize?: number;
+    sortBy?: string;
+    sortOrder?: ('asc' | 'desc');
+};
+
+export type ListCosersResponse = ({
+    items: Array<CoserListItem>;
+    page: number;
+    page_size: number;
+    total: number;
+});
+
+export type GetRootsResponse = (Array<RootItem>);
+
+export type GetDrivesResponse = (Array<RootItem>);
+
+export type ListDirectoryData = {
+    hasAudio?: string;
+    hasVideo?: string;
+    path: string;
+    sortBy?: string;
+    sortOrder?: ('asc' | 'desc');
+};
+
+export type ListDirectoryResponse = ({
+    items: Array<FileSystemItem>;
+});
+
+export type GetLibraryOverviewResponse = (unknown);
+
+export type GetRecentActivityData = {
+    limit?: string;
+    sinceLatestStartup?: string;
+};
+
+export type GetRecentActivityResponse = (unknown);
+
+export type GetTopOpenedFoldersData = {
+    limit?: string;
+};
+
+export type GetTopOpenedFoldersResponse = (unknown);
+
+export type ScanDirectoryData = {
+    requestBody: {
+        path: string;
+        recursive?: boolean;
+    };
+};
+
+export type ScanDirectoryResponse = ({
+    status: 'started';
+    message: string;
+    path: string;
+});
+
+export type ScanFavoriteResponse = ({
+    status: 'started';
+    message: string;
+    path: string;
+});
+
+export type BackfillData = {
+    requestBody: {
+        path: string;
+        recursive?: boolean;
+        fill_thumbnail?: boolean;
+        fill_meta?: boolean;
+    };
+};
+
+export type BackfillResponse2 = ({
+    status: 'ok';
+    scanned_files: number;
+    backfilled_thumbnails: number;
+    backfilled_meta: number;
+    message: string;
+});
+
+export type ScanAndWatchData = {
+    requestBody: {
+        path: string;
+        recursive?: boolean;
+    };
+};
+
+export type ScanAndWatchResponse = ({
+    status: 'started';
+    message: string;
+    path: string;
+});
+
+export type GetScanStatusData = {
+    path?: string;
+};
+
+export type GetScanStatusResponse = (Array<ScanStatusItem>);
+
+export type MoveFileData = {
+    requestBody: {
+        source_path: string;
+        dest_path: string;
+    };
+};
+
+export type MoveFileResponse = ({
+    status: 'ok';
+    message: string;
+    path: string;
+    dest_path?: (string | null);
+});
+
+export type MoveFolderData = {
+    requestBody: {
+        source_path: string;
+        dest_path: string;
+    };
+};
+
+export type MoveFolderResponse = ({
+    status: 'ok';
+    message: string;
+    path: string;
+    dest_path?: (string | null);
+});
+
+export type DeletePathData = {
+    requestBody: {
+        path: string;
+        permanently?: boolean;
+    };
+};
+
+export type DeletePathResponse = ({
+    status: 'ok';
+    message: string;
+    path: string;
+    dest_path?: (string | null);
+});
+
+export type RenameItemData = {
+    requestBody: {
+        path: string;
+        new_name: string;
+    };
+};
+
+export type RenameItemResponse = ({
+    status: 'ok';
+    message: string;
+    path: string;
+    dest_path?: (string | null);
+});
+
+export type DownloadFileData = {
     path: string;
 };
 
-export type FilesystemExtractArchiveResponse = (ExtractStatus);
+export type DownloadFileResponse = (unknown);
 
-export type FilesystemGetArchiveFileData = {
-    /**
-     * Entry path within archive
-     */
+export type DownloadFileFullData = {
+    path: string;
+};
+
+export type DownloadFileFullResponse = (unknown);
+
+export type ServeFileData = {
+    path: string;
+};
+
+export type ServeFileResponse = (unknown);
+
+export type EnsureDirData = {
+    requestBody: {
+        path: string;
+    };
+};
+
+export type EnsureDirResponse = (unknown);
+
+export type ResolvePathData = {
+    path: string;
+};
+
+export type ResolvePathResponse2 = ({
+    path: string;
+    exists: boolean;
+    is_dir: boolean;
+});
+
+export type ZipFolderData = {
+    requestBody: {
+        folder_path: string;
+        output_path?: (string | null);
+    };
+};
+
+export type ZipFolderResponse = ({
+    status: 'ok';
+    message: string;
+    path: string;
+    dest_path?: (string | null);
+});
+
+export type UnzipData = {
+    requestBody: {
+        archive_path: string;
+        output_dir?: (string | null);
+    };
+};
+
+export type UnzipResponse = ({
+    status: 'ok';
+    message: string;
+    path: string;
+    dest_path?: (string | null);
+});
+
+export type ListArchiveData = {
+    path: string;
+};
+
+export type ListArchiveResponse = ({
+    entries: Array<ArchiveEntry>;
+    total: number;
+});
+
+export type ExtractArchiveData = {
+    page?: number;
+    path: string;
+};
+
+export type ExtractArchiveResponse = ({
+    status: ('extracting' | 'completed' | 'error');
+    extracted_count: number;
+    total_count: number;
+    cache_dir: string;
+    entries?: (Array<ArchiveEntry> | null);
+    mtime?: (number | null);
+    filesize?: (number | null);
+});
+
+export type GetArchiveFileData = {
     entry: string;
-    /**
-     * Archive file path
-     */
     path: string;
 };
 
-export type FilesystemGetArchiveFileResponse = (unknown);
+export type GetArchiveFileResponse = (unknown);
 
-export type FilesystemGetFileData = {
-    /**
-     * File path
-     */
-    path: string;
+export type ClearExtractCacheResponse = ({
+    status: 'ok';
+    message: string;
+    deleted_files: number;
+    freed_bytes: number;
+    freed_size_readable: string;
+});
+
+export type CompressImagesData = {
+    requestBody: {
+        archive_path: string;
+        output_mode?: (('new' | 'replace') | null);
+        max_height?: (number | null);
+        quality?: (number | null);
+        min_size?: (number | null);
+    };
 };
 
-export type FilesystemGetFileResponse = (unknown);
+export type CompressImagesResponse2 = ({
+    success: boolean;
+    original_path: string;
+    output_path: string;
+    original_size: number;
+    compressed_size: number;
+    compression_ratio: number;
+    processed_images: number;
+    skipped_images: number;
+    validation_passed: boolean;
+    error_message?: string;
+});
 
-export type FilesystemCompressArchiveImagesEndpointData = {
-    requestBody: CompressImagesRequest;
+export type ListHistoryData = {
+    page?: string;
+    pageSize?: string;
+    sortOrder?: ('asc' | 'desc');
 };
 
-export type FilesystemCompressArchiveImagesEndpointResponse = (CompressImagesResponse);
+export type ListHistoryResponse = ({
+    items: Array<HistoryItem>;
+    page: number;
+    page_size: number;
+    total: number;
+    total_pages: number;
+});
 
-export type HistoryRecordHistoryData = {
-    requestBody: HistoryRecordRequest;
+export type RecordHistoryData = {
+    requestBody: {
+        filepath: string;
+    };
 };
 
-export type HistoryRecordHistoryResponse = (HistoryRecordResponse);
+export type RecordHistoryResponse = ({
+    status: ('ok' | 'skipped');
+    reason?: (string | null);
+});
 
-export type HistoryListHistoryData = {
-    page?: number;
-    pageSize?: number;
-    sortOrder?: 'asc' | 'desc';
+export type GetParseResultData = {
+    filepath?: string;
 };
 
-export type HistoryListHistoryResponse = (HistoryListResponse);
-
-export type ParseBatchParseData = {
-    requestBody: BatchParseRequest;
-};
-
-export type ParseBatchParseResponse = (BatchParseResponse);
-
-export type ParseGetParseResultData = {
-    /**
-     * File path to look up
-     */
+export type GetParseResultResponse = ({
     filepath: string;
+    title?: (string | null);
+    authors?: Array<(string)>;
+    cosers?: Array<(string)>;
+    group_name?: (string | null);
+    raw_tags?: Array<(string)>;
+    event?: (string | null);
+    date_tag?: (string | null);
+    media_type?: (string | null);
+});
+
+export type ParseBatchData = {
+    requestBody: {
+        filepaths: Array<(string)>;
+    };
 };
 
-export type ParseGetParseResultResponse = (StoredParseResponse);
+export type ParseBatchResponse = ({
+    items: Array<BatchParseItem>;
+    parsed_count: number;
+    total_count: number;
+});
 
-export type PrivateCreateUserData = {
-    requestBody: PrivateUserCreate;
+export type SearchFilesData = {
+    requestBody: {
+        q?: string;
+        scopes?: Array<('file' | 'author' | 'coser' | 'tag')>;
+        mode?: ('exact' | 'fuzzy' | 'local-check');
+        presence_filter?: ('all' | 'watched' | 'scanned_recent');
+        limit?: number;
+        offset?: number;
+    };
 };
 
-export type PrivateCreateUserResponse = (UserPublic);
+export type SearchFilesResponse = ({
+    items: Array<FileSystemItem>;
+    total: number;
+});
 
-export type SearchSearchFilesData = {
-    requestBody: SearchRequest;
+export type LocalCheckBatchData = {
+    requestBody: {
+        queries?: Array<(string)>;
+        limit?: number;
+        presence_filter?: ('all' | 'watched' | 'scanned_recent');
+    };
 };
 
-export type SearchSearchFilesResponse = (SearchResponse);
+export type LocalCheckBatchResponse2 = ({
+    results: Array<LocalCheckResult>;
+});
 
-export type SettingsGetSettingsResponse = (SettingsResponse);
+export type GetSettingsResponse = ({
+    favorite_dir: string;
+    fs_roots: string;
+    already_read_dir: string;
+    move_place_dir: string;
+    env_file_path: string;
+    db_file_path: string;
+});
 
-export type SettingsUpdateSettingsData = {
-    requestBody: SettingsUpdate;
+export type UpdateSettingsData = {
+    requestBody: {
+        favorite_dir?: (string | null);
+        fs_roots?: (string | null);
+        already_read_dir?: (string | null);
+        move_place_dir?: (string | null);
+    };
 };
 
-export type SettingsUpdateSettingsResponse = (SettingsResponse);
+export type UpdateSettingsResponse = ({
+    favorite_dir: string;
+    fs_roots: string;
+    already_read_dir: string;
+    move_place_dir: string;
+    env_file_path: string;
+    db_file_path: string;
+});
 
-export type TagsReadTagsData = {
-    page?: number;
-    pageSize?: number;
-    sortBy?: 'count' | 'name';
-    sortOrder?: 'asc' | 'desc';
+export type VerifyFilesResponse = (unknown);
+
+export type GetThumbnailData = {
+    name?: string;
+    type?: ('tag' | 'author' | 'coser');
 };
 
-export type TagsReadTagsResponse = (TagsResponse);
-
-export type UsersReadUsersData = {
-    limit?: number;
-    skip?: number;
-};
-
-export type UsersReadUsersResponse = (UsersPublic);
-
-export type UsersCreateUserData = {
-    requestBody: UserCreate;
-};
-
-export type UsersCreateUserResponse = (UserPublic);
-
-export type UsersRegisterUserData = {
-    requestBody: UserRegister;
-};
-
-export type UsersRegisterUserResponse = (UserPublic);
-
-export type UsersReadUserByIdData = {
-    userId: string;
-};
-
-export type UsersReadUserByIdResponse = (UserPublic);
-
-export type UsersUpdateUserData = {
-    requestBody: UserUpdate;
-    userId: string;
-};
-
-export type UsersUpdateUserResponse = (UserPublic);
-
-export type UsersDeleteUserData = {
-    userId: string;
-};
-
-export type UsersDeleteUserResponse = (Message);
-
-export type UtilsHealthCheckResponse = (boolean);
+export type GetThumbnailResponse = (unknown);

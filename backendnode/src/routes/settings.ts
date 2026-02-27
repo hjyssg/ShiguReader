@@ -1,10 +1,12 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import type { Static } from "@sinclair/typebox";
 import fs from "node:fs";
 import path from "node:path";
 import { fileExists } from "../utils/fsUtils.js";
 import { config, ENV_FILE_PATH, DB_FILE_PATH } from "../config.js";
 import { getDb } from "../db/client.js";
 import { IndexRepository } from "../db/repository.js";
+import { SettingsResponse, SettingsUpdate } from "../schemas/common.js";
 
 const ENV_FILE = ENV_FILE_PATH;
 const DB_FILE = DB_FILE_PATH;
@@ -157,7 +159,22 @@ async function verifyFiles(_req: FastifyRequest, reply: FastifyReply) {
 }
 
 export async function settingsRoutes(app: FastifyInstance) {
-  app.get("", { schema: { summary: "获取当前设置", tags: ["设置"] } }, getSettings);
-  app.put("", { schema: { summary: "更新设置（fs_roots/favorite_dir 等）", tags: ["设置"] } }, updateSettings);
-  app.post("/verify-files", { schema: { summary: "验证 DB 中文件是否存在，标记缺失", tags: ["设置"] } }, verifyFiles);
+  app.get("", {
+    schema: {
+      operationId: "getSettings",
+      summary: "获取当前设置",
+      tags: ["Settings"],
+      response: { 200: SettingsResponse },
+    },
+  }, getSettings);
+  app.put("", {
+    schema: {
+      operationId: "updateSettings",
+      summary: "更新设置（fs_roots/favorite_dir 等）",
+      tags: ["Settings"],
+      body: SettingsUpdate,
+      response: { 200: SettingsResponse },
+    },
+  }, updateSettings);
+  app.post("/verify-files", { schema: { operationId: "verifyFiles", summary: "验证 DB 中文件是否存在，标记缺失", tags: ["Settings"] } }, verifyFiles);
 }

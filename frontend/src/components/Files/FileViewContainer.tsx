@@ -112,7 +112,7 @@ export function FileViewContainer({
         comparison = (a.image_count ?? 0) - (b.image_count ?? 0)
         if (comparison === 0) comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
       } else if (sortField === "likeScore") {
-        comparison = (a.recommendation_score ?? a.likeScore ?? 0) - (b.recommendation_score ?? b.likeScore ?? 0)
+        comparison = (a.likeScore ?? 0) - (b.likeScore ?? 0)
         if (comparison === 0) comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
       } else if (sortField === "last_read_at") {
         comparison = (a.last_read_at ?? 0) - (b.last_read_at ?? 0)

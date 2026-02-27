@@ -3,20 +3,43 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AuthorsReadAuthorsData, AuthorsReadAuthorsResponse, CosersReadCosersData, CosersReadCosersResponse, FilesystemGetRootsResponse, FilesystemGetDrivesResponse, FilesystemListDirectoryData, FilesystemListDirectoryResponse, FilesystemMoveFileData, FilesystemMoveFileResponse, FilesystemMoveFolderData, FilesystemMoveFolderResponse, FilesystemDeletePathData, FilesystemDeletePathResponse, FilesystemZipFolderData, FilesystemZipFolderResponse, FilesystemRenamePathData, FilesystemRenamePathResponse, FilesystemDownloadFileData, FilesystemDownloadFileResponse, FilesystemUnzipArchiveData, FilesystemUnzipArchiveResponse, FilesystemScanFavoriteResponse, FilesystemScanDirectoryData, FilesystemScanDirectoryResponse, FilesystemBackfillDirectoryData, FilesystemBackfillDirectoryResponse, FilesystemScanAndWatchData, FilesystemScanAndWatchResponse, FilesystemGetScanStatusData, FilesystemGetScanStatusResponse, FilesystemGetThumbnailData, FilesystemGetThumbnailResponse, FilesystemListArchiveData, FilesystemListArchiveResponse, FilesystemClearExtractCacheEndpointResponse, FilesystemExtractArchiveData, FilesystemExtractArchiveResponse, FilesystemGetArchiveFileData, FilesystemGetArchiveFileResponse, FilesystemGetFileData, FilesystemGetFileResponse, FilesystemCompressArchiveImagesEndpointData, FilesystemCompressArchiveImagesEndpointResponse, HistoryRecordHistoryData, HistoryRecordHistoryResponse, HistoryListHistoryData, HistoryListHistoryResponse, ParseBatchParseData, ParseBatchParseResponse, ParseGetParseResultData, ParseGetParseResultResponse, PrivateCreateUserData, PrivateCreateUserResponse, SearchSearchFilesData, SearchSearchFilesResponse, SettingsGetSettingsResponse, SettingsUpdateSettingsData, SettingsUpdateSettingsResponse, TagsReadTagsData, TagsReadTagsResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { ListTagsData, ListTagsResponse, ListAuthorsData, ListAuthorsResponse, ListCosersData, ListCosersResponse, GetRootsResponse, GetDrivesResponse, ListDirectoryData, ListDirectoryResponse, GetLibraryOverviewResponse, GetRecentActivityData, GetRecentActivityResponse, GetTopOpenedFoldersData, GetTopOpenedFoldersResponse, ScanDirectoryData, ScanDirectoryResponse, ScanFavoriteResponse, BackfillData, BackfillResponse2, ScanAndWatchData, ScanAndWatchResponse, GetScanStatusData, GetScanStatusResponse, MoveFileData, MoveFileResponse, MoveFolderData, MoveFolderResponse, DeletePathData, DeletePathResponse, RenameItemData, RenameItemResponse, DownloadFileData, DownloadFileResponse, DownloadFileFullData, DownloadFileFullResponse, ServeFileData, ServeFileResponse, EnsureDirData, EnsureDirResponse, ResolvePathData, ResolvePathResponse2, ZipFolderData, ZipFolderResponse, UnzipData, UnzipResponse, ListArchiveData, ListArchiveResponse, ExtractArchiveData, ExtractArchiveResponse, GetArchiveFileData, GetArchiveFileResponse, ClearExtractCacheResponse, CompressImagesData, CompressImagesResponse2, ListHistoryData, ListHistoryResponse, RecordHistoryData, RecordHistoryResponse, GetParseResultData, GetParseResultResponse, ParseBatchData, ParseBatchResponse, SearchFilesData, SearchFilesResponse, LocalCheckBatchData, LocalCheckBatchResponse2, GetSettingsResponse, UpdateSettingsData, UpdateSettingsResponse, VerifyFilesResponse, GetThumbnailData, GetThumbnailResponse } from './types.gen';
 
-export class AuthorsService {
+export class EntitiesService {
     /**
-     * Read Authors
+     * 获取标签列表（分页，含文件数）
      * @param data The data for the request.
      * @param data.page
      * @param data.pageSize
      * @param data.sortBy
      * @param data.sortOrder
-     * @returns AuthorsResponse Successful Response
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static readAuthors(data: AuthorsReadAuthorsData = {}): CancelablePromise<AuthorsReadAuthorsResponse> {
+    public static listTags(data: ListTagsData = {}): CancelablePromise<ListTagsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/tags',
+            query: {
+                page: data.page,
+                page_size: data.pageSize,
+                sort_by: data.sortBy,
+                sort_order: data.sortOrder
+            }
+        });
+    }
+    
+    /**
+     * 获取作者列表（分页，含文件数）
+     * @param data The data for the request.
+     * @param data.page
+     * @param data.pageSize
+     * @param data.sortBy
+     * @param data.sortOrder
+     * @returns unknown Default Response
+     * @throws ApiError
+     */
+    public static listAuthors(data: ListAuthorsData = {}): CancelablePromise<ListAuthorsResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/authors',
@@ -25,26 +48,21 @@ export class AuthorsService {
                 page_size: data.pageSize,
                 sort_by: data.sortBy,
                 sort_order: data.sortOrder
-            },
-            errors: {
-                422: 'Validation Error'
             }
         });
     }
-}
-
-export class CosersService {
+    
     /**
-     * Read Cosers
+     * 获取 Coser 列表（分页，含文件数）
      * @param data The data for the request.
      * @param data.page
      * @param data.pageSize
      * @param data.sortBy
      * @param data.sortOrder
-     * @returns CosersResponse Successful Response
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static readCosers(data: CosersReadCosersData = {}): CancelablePromise<CosersReadCosersResponse> {
+    public static listCosers(data: ListCosersData = {}): CancelablePromise<ListCosersResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/cosers',
@@ -53,9 +71,6 @@ export class CosersService {
                 page_size: data.pageSize,
                 sort_by: data.sortBy,
                 sort_order: data.sortOrder
-            },
-            errors: {
-                422: 'Validation Error'
             }
         });
     }
@@ -63,12 +78,11 @@ export class CosersService {
 
 export class FilesystemService {
     /**
-     * Get Roots
-     * Get configured root directories.
-     * @returns RootItem Successful Response
+     * 获取配置的根目录列表
+     * @returns RootItem Default Response
      * @throws ApiError
      */
-    public static getRoots(): CancelablePromise<FilesystemGetRootsResponse> {
+    public static getRoots(): CancelablePromise<GetRootsResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/fs/roots'
@@ -76,12 +90,11 @@ export class FilesystemService {
     }
     
     /**
-     * Get Drives
-     * Get available drive letters (Windows only).
-     * @returns RootItem Successful Response
+     * 获取系统盘符 (Windows)
+     * @returns RootItem Default Response
      * @throws ApiError
      */
-    public static getDrives(): CancelablePromise<FilesystemGetDrivesResponse> {
+    public static getDrives(): CancelablePromise<GetDrivesResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/fs/drives'
@@ -89,18 +102,17 @@ export class FilesystemService {
     }
     
     /**
-     * List Directory
-     * List contents of a directory.
+     * 列出目录内容（文件+文件夹）
      * @param data The data for the request.
-     * @param data.path Directory path to list
-     * @param data.sortBy Sort by field
-     * @param data.sortOrder Sort order
-     * @param data.hasVideo 筛选包含视频的压缩包
-     * @param data.hasAudio 筛选包含音频的压缩包
-     * @returns ListResponse Successful Response
+     * @param data.path
+     * @param data.sortBy
+     * @param data.sortOrder
+     * @param data.hasVideo
+     * @param data.hasAudio
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static listDirectory(data: FilesystemListDirectoryData): CancelablePromise<FilesystemListDirectoryResponse> {
+    public static listDirectory(data: ListDirectoryData): CancelablePromise<ListDirectoryResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/fs/listdir',
@@ -110,156 +122,80 @@ export class FilesystemService {
                 sort_order: data.sortOrder,
                 has_video: data.hasVideo,
                 has_audio: data.hasAudio
-            },
-            errors: {
-                422: 'Validation Error'
             }
         });
     }
     
     /**
-     * Move File
-     * @param data The data for the request.
-     * @param data.requestBody
-     * @returns PathOperationResponse Successful Response
+     * 获取库概览统计
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static moveFile(data: FilesystemMoveFileData): CancelablePromise<FilesystemMoveFileResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/fs/move-file',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Move Folder
-     * @param data The data for the request.
-     * @param data.requestBody
-     * @returns PathOperationResponse Successful Response
-     * @throws ApiError
-     */
-    public static moveFolder(data: FilesystemMoveFolderData): CancelablePromise<FilesystemMoveFolderResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/fs/move-folder',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Delete Path
-     * @param data The data for the request.
-     * @param data.requestBody
-     * @returns PathOperationResponse Successful Response
-     * @throws ApiError
-     */
-    public static deletePath(data: FilesystemDeletePathData): CancelablePromise<FilesystemDeletePathResponse> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/api/v1/fs/delete',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Zip Folder
-     * @param data The data for the request.
-     * @param data.requestBody
-     * @returns PathOperationResponse Successful Response
-     * @throws ApiError
-     */
-    public static zipFolder(data: FilesystemZipFolderData): CancelablePromise<FilesystemZipFolderResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/fs/zip-folder',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Rename Path
-     * 重命名文件或文件夹。
-     * @param data The data for the request.
-     * @param data.requestBody
-     * @returns PathOperationResponse Successful Response
-     * @throws ApiError
-     */
-    public static renamePath(data: FilesystemRenamePathData): CancelablePromise<FilesystemRenamePathResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/fs/rename',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Download File
-     * 下载单个文件。
-     * @param data The data for the request.
-     * @param data.path File path to download
-     * @returns unknown Successful Response
-     * @throws ApiError
-     */
-    public static downloadFile(data: FilesystemDownloadFileData): CancelablePromise<FilesystemDownloadFileResponse> {
+    public static getLibraryOverview(): CancelablePromise<GetLibraryOverviewResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/fs/download',
+            url: '/api/v1/fs/library-overview'
+        });
+    }
+    
+    /**
+     * 获取最近活动日志
+     * @param data The data for the request.
+     * @param data.limit
+     * @param data.sinceLatestStartup
+     * @returns unknown Default Response
+     * @throws ApiError
+     */
+    public static getRecentActivity(data: GetRecentActivityData = {}): CancelablePromise<GetRecentActivityResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/fs/recent-activity',
             query: {
-                path: data.path
-            },
-            errors: {
-                422: 'Validation Error'
+                limit: data.limit,
+                since_latest_startup: data.sinceLatestStartup
             }
         });
     }
     
     /**
-     * Unzip Archive
-     * 解压压缩包到指定目录，保持原始目录结构。
+     * 获取最常打开的文件夹
+     * @param data The data for the request.
+     * @param data.limit
+     * @returns unknown Default Response
+     * @throws ApiError
+     */
+    public static getTopOpenedFolders(data: GetTopOpenedFoldersData = {}): CancelablePromise<GetTopOpenedFoldersResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/fs/top-opened-folders',
+            query: {
+                limit: data.limit
+            }
+        });
+    }
+    
+    /**
+     * 扫描目录并索引文件
      * @param data The data for the request.
      * @param data.requestBody
-     * @returns PathOperationResponse Successful Response
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static unzipArchive(data: FilesystemUnzipArchiveData): CancelablePromise<FilesystemUnzipArchiveResponse> {
+    public static scanDirectory(data: ScanDirectoryData): CancelablePromise<ScanDirectoryResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/fs/unzip',
+            url: '/api/v1/fs/scan',
             body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
+            mediaType: 'application/json'
         });
     }
     
     /**
-     * Scan Favorite
-     * @returns ScanStartResponse Successful Response
+     * 扫描收藏目录
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static scanFavorite(): CancelablePromise<FilesystemScanFavoriteResponse> {
+    public static scanFavorite(): CancelablePromise<ScanFavoriteResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/fs/scan-favorite'
@@ -267,274 +203,329 @@ export class FilesystemService {
     }
     
     /**
-     * Scan Directory
-     * Scan a directory and optionally recurse into subfolders.
+     * 生成元数据和缩略图
      * @param data The data for the request.
      * @param data.requestBody
-     * @returns ScanStartResponse Successful Response
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static scanDirectory(data: FilesystemScanDirectoryData): CancelablePromise<FilesystemScanDirectoryResponse> {
+    public static backfill(data: BackfillData): CancelablePromise<BackfillResponse2> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/fs/scan',
+            url: '/api/v1/fs/generate',
             body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
+            mediaType: 'application/json'
         });
     }
     
     /**
-     * Backfill Directory
-     * Backfill missing thumbnail/meta for files under a folder.
+     * 扫描并启动目录文件监听
      * @param data The data for the request.
      * @param data.requestBody
-     * @returns BackfillResponse Successful Response
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static backfillDirectory(data: FilesystemBackfillDirectoryData): CancelablePromise<FilesystemBackfillDirectoryResponse> {
+    public static scanAndWatch(data: ScanAndWatchData): CancelablePromise<ScanAndWatchResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/fs/backfill',
+            url: '/api/v1/fs/scan-and-watch',
             body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
+            mediaType: 'application/json'
         });
     }
     
     /**
-     * Scan And Watch
-     * Scan a directory recursively and start watchdog listener.
+     * 查询扫描任务状态
      * @param data The data for the request.
-     * @param data.requestBody
-     * @returns ScanStartResponse Successful Response
+     * @param data.path
+     * @returns ScanStatusItem Default Response
      * @throws ApiError
      */
-    public static scanAndWatch(data: FilesystemScanAndWatchData): CancelablePromise<FilesystemScanAndWatchResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/fs/scan-watch',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Get Scan Status
-     * Get background scan status for all paths or one path.
-     * @param data The data for the request.
-     * @param data.path Optional path filter
-     * @returns ScanStatusItem Successful Response
-     * @throws ApiError
-     */
-    public static getScanStatus(data: FilesystemGetScanStatusData = {}): CancelablePromise<FilesystemGetScanStatusResponse> {
+    public static getScanStatus(data: GetScanStatusData = {}): CancelablePromise<GetScanStatusResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/fs/scan-status',
             query: {
                 path: data.path
-            },
-            errors: {
-                422: 'Validation Error'
             }
         });
     }
     
     /**
-     * Get Thumbnail
-     * Get or generate thumbnail for a file.
+     * 移动文件
      * @param data The data for the request.
-     * @param data.path File path for thumbnail
-     * @returns unknown Successful Response
+     * @param data.requestBody
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static getThumbnail(data: FilesystemGetThumbnailData): CancelablePromise<FilesystemGetThumbnailResponse> {
+    public static moveFile(data: MoveFileData): CancelablePromise<MoveFileResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/fs/move-file',
+            body: data.requestBody,
+            mediaType: 'application/json'
+        });
+    }
+    
+    /**
+     * 移动文件夹
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns unknown Default Response
+     * @throws ApiError
+     */
+    public static moveFolder(data: MoveFolderData): CancelablePromise<MoveFolderResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/fs/move-folder',
+            body: data.requestBody,
+            mediaType: 'application/json'
+        });
+    }
+    
+    /**
+     * 删除文件或文件夹（回收站/永久）
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns unknown Default Response
+     * @throws ApiError
+     */
+    public static deletePath(data: DeletePathData): CancelablePromise<DeletePathResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/fs/delete',
+            body: data.requestBody,
+            mediaType: 'application/json'
+        });
+    }
+    
+    /**
+     * 重命名文件或文件夹
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns unknown Default Response
+     * @throws ApiError
+     */
+    public static renameItem(data: RenameItemData): CancelablePromise<RenameItemResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/fs/rename',
+            body: data.requestBody,
+            mediaType: 'application/json'
+        });
+    }
+    
+    /**
+     * 下载文件（attachment）
+     * @param data The data for the request.
+     * @param data.path
+     * @returns unknown Default Response
+     * @throws ApiError
+     */
+    public static downloadFile(data: DownloadFileData): CancelablePromise<DownloadFileResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/fs/thumb',
+            url: '/api/v1/fs/download',
             query: {
                 path: data.path
-            },
-            errors: {
-                422: 'Validation Error'
             }
         });
     }
     
     /**
-     * List Archive
-     * List contents of an archive file.
+     * 下载完整文件（带 Content-Length）
      * @param data The data for the request.
-     * @param data.path Archive file path
-     * @returns ArchiveListResponse Successful Response
+     * @param data.path
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static listArchive(data: FilesystemListArchiveData): CancelablePromise<FilesystemListArchiveResponse> {
+    public static downloadFileFull(data: DownloadFileFullData): CancelablePromise<DownloadFileFullResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/fs/download-full',
+            query: {
+                path: data.path
+            }
+        });
+    }
+    
+    /**
+     * 直接返回文件流（inline）
+     * @param data The data for the request.
+     * @param data.path
+     * @returns unknown Default Response
+     * @throws ApiError
+     */
+    public static serveFile(data: ServeFileData): CancelablePromise<ServeFileResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/fs/file',
+            query: {
+                path: data.path
+            }
+        });
+    }
+    
+    /**
+     * 创建目录（递归）
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns unknown Default Response
+     * @throws ApiError
+     */
+    public static ensureDir(data: EnsureDirData): CancelablePromise<EnsureDirResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/fs/mkdir',
+            body: data.requestBody,
+            mediaType: 'application/json'
+        });
+    }
+    
+    /**
+     * 解析路径并检查是否存在
+     * @param data The data for the request.
+     * @param data.path
+     * @returns unknown Default Response
+     * @throws ApiError
+     */
+    public static resolvePath(data: ResolvePathData): CancelablePromise<ResolvePathResponse2> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/fs/resolve-path',
+            query: {
+                path: data.path
+            }
+        });
+    }
+    
+    /**
+     * 将文件夹压缩为 zip
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns unknown Default Response
+     * @throws ApiError
+     */
+    public static zipFolder(data: ZipFolderData): CancelablePromise<ZipFolderResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/fs/zip-folder',
+            body: data.requestBody,
+            mediaType: 'application/json'
+        });
+    }
+    
+    /**
+     * 解压压缩包到目录
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns unknown Default Response
+     * @throws ApiError
+     */
+    public static unzip(data: UnzipData): CancelablePromise<UnzipResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/fs/unzip',
+            body: data.requestBody,
+            mediaType: 'application/json'
+        });
+    }
+    
+    /**
+     * 列出压缩包内文件条目
+     * @param data The data for the request.
+     * @param data.path
+     * @returns unknown Default Response
+     * @throws ApiError
+     */
+    public static listArchive(data: ListArchiveData): CancelablePromise<ListArchiveResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/fs/archive/list',
             query: {
                 path: data.path
-            },
-            errors: {
-                422: 'Validation Error'
             }
         });
     }
     
     /**
-     * Clear Extract Cache Endpoint
-     * 清理所有解压缓存（跳过正在解压的目录）。
-     * @returns ClearCacheResponse Successful Response
-     * @throws ApiError
-     */
-    public static clearExtractCacheEndpoint(): CancelablePromise<FilesystemClearExtractCacheEndpointResponse> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/api/v1/fs/extract-cache'
-        });
-    }
-    
-    /**
-     * Extract Archive
-     * 三阶段优先级解压压缩包。
-     *
-     * 阶段 1：当前页（立即可用）
-     * 阶段 2：前后 ±5 页（快速可用）
-     * 阶段 3：剩余文件（后台解压，图片优先）
-     *
-     * 此端点是幂等的 — 重复调用不会触发重复解压。
-     * 前端每次翻页都会调用此接口，后端通过 _active_extractions 锁避免重复工作。
+     * 分步解压压缩包（按页）
      * @param data The data for the request.
-     * @param data.path 压缩包文件路径
-     * @param data.page 当前页码（基于过滤后的媒体文件列表）
-     * @returns ExtractStatus Successful Response
+     * @param data.path
+     * @param data.page
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static extractArchive(data: FilesystemExtractArchiveData): CancelablePromise<FilesystemExtractArchiveResponse> {
+    public static extractArchive(data: ExtractArchiveData): CancelablePromise<ExtractArchiveResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/fs/archive/extract',
             query: {
                 path: data.path,
                 page: data.page
-            },
-            errors: {
-                422: 'Validation Error'
             }
         });
     }
     
     /**
-     * Get Archive File
-     * Get a file from extracted archive cache.
+     * 获取压缩包内单个文件
      * @param data The data for the request.
-     * @param data.path Archive file path
-     * @param data.entry Entry path within archive
-     * @returns unknown Successful Response
+     * @param data.path
+     * @param data.entry
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static getArchiveFile(data: FilesystemGetArchiveFileData): CancelablePromise<FilesystemGetArchiveFileResponse> {
+    public static getArchiveFile(data: GetArchiveFileData): CancelablePromise<GetArchiveFileResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/fs/archive/file',
             query: {
                 path: data.path,
                 entry: data.entry
-            },
-            errors: {
-                422: 'Validation Error'
             }
         });
     }
     
     /**
-     * Get File
-     * Serve a file directly from disk.
-     * @param data The data for the request.
-     * @param data.path File path
-     * @returns unknown Successful Response
+     * 清除解压缓存
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static getFile(data: FilesystemGetFileData): CancelablePromise<FilesystemGetFileResponse> {
+    public static clearExtractCache(): CancelablePromise<ClearExtractCacheResponse> {
         return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/fs/file',
-            query: {
-                path: data.path
-            },
-            errors: {
-                422: 'Validation Error'
-            }
+            method: 'DELETE',
+            url: '/api/v1/fs/clean-extract-cache'
         });
     }
     
     /**
-     * Compress Archive Images Endpoint
-     * 压缩压缩包内的大图片并重新打包。
-     *
-     * 功能：
-     * - 扫描 zip 内所有图片
-     * - 压缩大于阈值的图片（默认 1MB，分辨率 > 2000x2000）
-     * - 转换为 JPEG 格式，质量 85
-     * - 保持原始目录结构
-     * - 验证压缩包完整性
-     * - 验证失败时输出文件添加 .error 后缀
+     * 压缩包内图片批量压缩
      * @param data The data for the request.
      * @param data.requestBody
-     * @returns CompressImagesResponse Successful Response
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static compressArchiveImagesEndpoint(data: FilesystemCompressArchiveImagesEndpointData): CancelablePromise<FilesystemCompressArchiveImagesEndpointResponse> {
+    public static compressImages(data: CompressImagesData): CancelablePromise<CompressImagesResponse2> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/fs/archive/compress-images',
             body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
+            mediaType: 'application/json'
         });
     }
 }
 
 export class HistoryService {
     /**
-     * Record History
-     * @param data The data for the request.
-     * @param data.requestBody
-     * @returns HistoryRecordResponse Successful Response
-     * @throws ApiError
-     */
-    public static recordHistory(data: HistoryRecordHistoryData): CancelablePromise<HistoryRecordHistoryResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/history/record',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * List History
+     * 获取阅读历史列表（分页）
      * @param data The data for the request.
      * @param data.page
      * @param data.pageSize
      * @param data.sortOrder
-     * @returns HistoryListResponse Successful Response
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static listHistory(data: HistoryListHistoryData = {}): CancelablePromise<HistoryListHistoryResponse> {
+    public static listHistory(data: ListHistoryData = {}): CancelablePromise<ListHistoryResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/history/list',
@@ -542,108 +533,103 @@ export class HistoryService {
                 page: data.page,
                 page_size: data.pageSize,
                 sort_order: data.sortOrder
-            },
-            errors: {
-                422: 'Validation Error'
             }
+        });
+    }
+    
+    /**
+     * 记录一次阅读
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns unknown Default Response
+     * @throws ApiError
+     */
+    public static recordHistory(data: RecordHistoryData): CancelablePromise<RecordHistoryResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/history/record',
+            body: data.requestBody,
+            mediaType: 'application/json'
         });
     }
 }
 
 export class ParseService {
     /**
-     * Batch Parse
-     * Parse a list of filenames and persist results to the index DB.
+     * 解析单个文件名元数据（作者/标签/标题）
      * @param data The data for the request.
-     * @param data.requestBody
-     * @returns BatchParseResponse Successful Response
+     * @param data.filepath
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static batchParse(data: ParseBatchParseData): CancelablePromise<ParseBatchParseResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/parse/batch',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Get Parse Result
-     * Retrieve stored parse result for a single file.
-     * @param data The data for the request.
-     * @param data.filepath File path to look up
-     * @returns StoredParseResponse Successful Response
-     * @throws ApiError
-     */
-    public static getParseResult(data: ParseGetParseResultData): CancelablePromise<ParseGetParseResultResponse> {
+    public static getParseResult(data: GetParseResultData = {}): CancelablePromise<GetParseResultResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/parse',
             query: {
                 filepath: data.filepath
-            },
-            errors: {
-                422: 'Validation Error'
             }
         });
     }
-}
-
-export class PrivateService {
+    
     /**
-     * Create User
-     * Create a new user.
+     * 批量解析文件名元数据
      * @param data The data for the request.
      * @param data.requestBody
-     * @returns UserPublic Successful Response
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static createUser(data: PrivateCreateUserData): CancelablePromise<PrivateCreateUserResponse> {
+    public static batch(data: ParseBatchData): CancelablePromise<ParseBatchResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/private/users/',
+            url: '/api/v1/parse/batch',
             body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
+            mediaType: 'application/json'
         });
     }
 }
 
 export class SearchService {
     /**
-     * Search Files
+     * 搜索文件（支持文件名/作者/coser/标签）
      * @param data The data for the request.
      * @param data.requestBody
-     * @returns SearchResponse Successful Response
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static searchFiles(data: SearchSearchFilesData): CancelablePromise<SearchSearchFilesResponse> {
+    public static files(data: SearchFilesData): CancelablePromise<SearchFilesResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/search',
             body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
+            mediaType: 'application/json'
+        });
+    }
+    
+    /**
+     * 批量本地持有检查（油猴脚本用）
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns unknown Default Response
+     * @throws ApiError
+     */
+    public static localCheckBatch(data: LocalCheckBatchData): CancelablePromise<LocalCheckBatchResponse2> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/search/local-check-batch',
+            body: data.requestBody,
+            mediaType: 'application/json'
         });
     }
 }
 
 export class SettingsService {
     /**
-     * Get Settings
-     * Get current settings.
-     * @returns SettingsResponse Successful Response
+     * 获取当前设置
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static getSettings(): CancelablePromise<SettingsGetSettingsResponse> {
+    public static getSettings(): CancelablePromise<GetSettingsResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/settings'
@@ -651,195 +637,51 @@ export class SettingsService {
     }
     
     /**
-     * Update Settings
-     * Update settings in .env file.
+     * 更新设置（fs_roots/favorite_dir 等）
      * @param data The data for the request.
      * @param data.requestBody
-     * @returns SettingsResponse Successful Response
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static updateSettings(data: SettingsUpdateSettingsData): CancelablePromise<SettingsUpdateSettingsResponse> {
+    public static updateSettings(data: UpdateSettingsData): CancelablePromise<UpdateSettingsResponse> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/settings',
             body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-}
-
-export class TagsService {
-    /**
-     * Read Tags
-     * @param data The data for the request.
-     * @param data.page
-     * @param data.pageSize
-     * @param data.sortBy
-     * @param data.sortOrder
-     * @returns TagsResponse Successful Response
-     * @throws ApiError
-     */
-    public static readTags(data: TagsReadTagsData = {}): CancelablePromise<TagsReadTagsResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/tags',
-            query: {
-                page: data.page,
-                page_size: data.pageSize,
-                sort_by: data.sortBy,
-                sort_order: data.sortOrder
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-}
-
-export class UsersService {
-    /**
-     * Read Users
-     * Retrieve users.
-     * @param data The data for the request.
-     * @param data.skip
-     * @param data.limit
-     * @returns UsersPublic Successful Response
-     * @throws ApiError
-     */
-    public static readUsers(data: UsersReadUsersData = {}): CancelablePromise<UsersReadUsersResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/users/',
-            query: {
-                skip: data.skip,
-                limit: data.limit
-            },
-            errors: {
-                422: 'Validation Error'
-            }
+            mediaType: 'application/json'
         });
     }
     
     /**
-     * Create User
-     * Create new user.
-     * @param data The data for the request.
-     * @param data.requestBody
-     * @returns UserPublic Successful Response
+     * 验证 DB 中文件是否存在，标记缺失
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static createUser(data: UsersCreateUserData): CancelablePromise<UsersCreateUserResponse> {
+    public static verifyFiles(): CancelablePromise<VerifyFilesResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/users/',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Register User
-     * Create new user without the need to be logged in.
-     * @param data The data for the request.
-     * @param data.requestBody
-     * @returns UserPublic Successful Response
-     * @throws ApiError
-     */
-    public static registerUser(data: UsersRegisterUserData): CancelablePromise<UsersRegisterUserResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/users/signup',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Read User By Id
-     * Get a specific user by id.
-     * @param data The data for the request.
-     * @param data.userId
-     * @returns UserPublic Successful Response
-     * @throws ApiError
-     */
-    public static readUserById(data: UsersReadUserByIdData): CancelablePromise<UsersReadUserByIdResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/users/{user_id}',
-            path: {
-                user_id: data.userId
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Update User
-     * Update a user.
-     * @param data The data for the request.
-     * @param data.userId
-     * @param data.requestBody
-     * @returns UserPublic Successful Response
-     * @throws ApiError
-     */
-    public static updateUser(data: UsersUpdateUserData): CancelablePromise<UsersUpdateUserResponse> {
-        return __request(OpenAPI, {
-            method: 'PATCH',
-            url: '/api/v1/users/{user_id}',
-            path: {
-                user_id: data.userId
-            },
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Delete User
-     * Delete a user.
-     * @param data The data for the request.
-     * @param data.userId
-     * @returns Message Successful Response
-     * @throws ApiError
-     */
-    public static deleteUser(data: UsersDeleteUserData): CancelablePromise<UsersDeleteUserResponse> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/api/v1/users/{user_id}',
-            path: {
-                user_id: data.userId
-            },
-            errors: {
-                422: 'Validation Error'
-            }
+            url: '/api/v1/settings/verify-files'
         });
     }
 }
 
-export class UtilsService {
+export class ThumbnailService {
     /**
-     * Health Check
-     * @returns boolean Successful Response
+     * 按实体名获取缩略图（tag/author/coser）
+     * @param data The data for the request.
+     * @param data.type
+     * @param data.name
+     * @returns unknown Default Response
      * @throws ApiError
      */
-    public static healthCheck(): CancelablePromise<UtilsHealthCheckResponse> {
+    public static getThumbnail(data: GetThumbnailData = {}): CancelablePromise<GetThumbnailResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/utils/health-check/'
+            url: '/api/v1/thumbnail',
+            query: {
+                type: data.type,
+                name: data.name
+            }
         });
     }
 }

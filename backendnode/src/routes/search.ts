@@ -1,4 +1,5 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { SearchRequest, SearchResponse, LocalCheckBatchRequest, LocalCheckBatchResponse } from "../schemas/common.js";
 import { getRepo, buildThumbUrl } from "./_listUtils.js";
 import { parseName } from "../utils/nameParser.js";
 import { compareTitles } from "../utils/titleMatcher.js";
@@ -246,10 +247,22 @@ async function localCheckBatch(
 export { localCheckBatch as localCheckBatchHandler };
 
 export async function searchRoutes(app: FastifyInstance) {
-  app.post("", { schema: { summary: "搜索文件（支持文件名/作者/coser/标签）", tags: ["搜索"] } }, searchFiles);
-  app.post(
-    "/local-check-batch",
-    { schema: { summary: "批量本地持有检查（油猴脚本用）", tags: ["搜索"] } },
-    localCheckBatch,
-  );
+  app.post("", {
+    schema: {
+      operationId: "searchFiles",
+      summary: "搜索文件（支持文件名/作者/coser/标签）",
+      tags: ["Search"],
+      body: SearchRequest,
+      response: { 200: SearchResponse },
+    },
+  }, searchFiles);
+  app.post("/local-check-batch", {
+    schema: {
+      operationId: "localCheckBatch",
+      summary: "批量本地持有检查（油猴脚本用）",
+      tags: ["Search"],
+      body: LocalCheckBatchRequest,
+      response: { 200: LocalCheckBatchResponse },
+    },
+  }, localCheckBatch);
 }

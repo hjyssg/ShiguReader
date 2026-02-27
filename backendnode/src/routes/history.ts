@@ -1,16 +1,21 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import type { Static } from "@sinclair/typebox";
 import path from "node:path";
 import { getRepo, buildThumbUrl } from "./_listUtils.js";
 import { config, resolveProjectPath } from "../config.js";
+import { Type } from "@sinclair/typebox";
+import { HistoryListResponse, HistoryRecordRequest, HistoryRecordResponse } from "../schemas/common.js";
+
+const ListHistoryQuery = Type.Object({
+  page: Type.Optional(Type.String()),
+  page_size: Type.Optional(Type.String()),
+  sort_order: Type.Optional(Type.Union([Type.Literal("asc"), Type.Literal("desc")])),
+});
 
 function isPathInside(targetPath: string, parentPath: string): boolean {
   const target = path.resolve(targetPath);
   const parent = path.resolve(parentPath);
-
-  if (target === parent) {
-    return true;
-  }
-
+  if (target === parent) return true;
   const normalizedTarget = process.platform === "win32" ? target.toLowerCase() : target;
   const normalizedParent = process.platform === "win32" ? parent.toLowerCase() : parent;
   return normalizedTarget.startsWith(`${normalizedParent}${path.sep}`);
@@ -22,7 +27,6 @@ function shouldSkipHistoryRecord(filepath: string): boolean {
   return isPathInside(filepath, extractCacheDir) || isPathInside(filepath, thumbCacheDir);
 }
 
-// GET /api/v1/history/list
 async function listHistory(
   req: FastifyRequest<{ Querystring: { page?: string; page_size?: string; sort_order?: string } }>,
   reply: FastifyReply,
@@ -57,23 +61,40 @@ async function listHistory(
   });
 }
 
-// POST /api/v1/history/record
-async function recordHistory(req: FastifyRequest<{ Body: { filepath: string } }>, reply: FastifyReply) {
-  const body = req.body ?? {};
+async function recordHistory(
+  req: FastifyRequest<{ Body: Static<typeof HistoryRecordRequest> }>,
+  reply: FastifyReply,
+) {
+  const body = req.body ?? ({} as Static<typeof HistoryRecordRequest>);
   if (!body.filepath) {
     return reply.status(400).send({ error: "filepath is required" });
   }
-
   if (shouldSkipHistoryRecord(body.filepath)) {
     return reply.send({ status: "skipped", reason: "cache_path" });
   }
-
   const repo = getRepo();
   repo.recordRead(body.filepath);
   return reply.send({ status: "ok" });
 }
 
 export async function historyRoutes(app: FastifyInstance) {
-  app.get("/list", { schema: { summary: "获取阅读历史列表（分页）", tags: ["历史"] } }, listHistory);
-  app.post("/record", { schema: { summary: "记录一次阅读", tags: ["历史"] } }, recordHistory);
+  app.get("/list", {
+    schema: {
+      operationId: "listHistory",
+      summary: "获取阅读历史列表（分页）",
+      tags: ["History"],
+      querystring: ListHistoryQuery,
+      response: { 200: HistoryListResponse },
+    },
+  }, listHistory);
+
+  app.post("/record", {
+    schema: {
+      operationId: "recordHistory",
+      summary: "记录一次阅读",
+      tags: ["History"],
+      body: HistoryRecordRequest,
+      response: { 200: HistoryRecordResponse },
+    },
+  }, recordHistory);
 }

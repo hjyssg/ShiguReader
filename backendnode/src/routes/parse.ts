@@ -1,7 +1,10 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import type { Static } from "@sinclair/typebox";
+import { Type } from "@sinclair/typebox";
 import path from "node:path";
 import { parseName } from "../utils/nameParser.js";
 import { getRepo } from "./_listUtils.js";
+import { StoredParseResponse, BatchParseRequest, BatchParseResponse } from "../schemas/common.js";
 
 // GET /api/v1/parse?filepath=...
 // Returns StoredParseResponse shape
@@ -92,7 +95,27 @@ async function parseBatch(
   });
 }
 
+const ParseSingleQuery = Type.Object({
+  filepath: Type.Optional(Type.String()),
+});
+
 export async function parseRoutes(app: FastifyInstance) {
-  app.get("", { schema: { summary: "解析单个文件名元数据（作者/标签/标题）", tags: ["解析"] } }, parseSingle);
-  app.post("/batch", { schema: { summary: "批量解析文件名元数据", tags: ["解析"] } }, parseBatch);
+  app.get("", {
+    schema: {
+      operationId: "getParseResult",
+      summary: "解析单个文件名元数据（作者/标签/标题）",
+      tags: ["Parse"],
+      querystring: ParseSingleQuery,
+      response: { 200: StoredParseResponse },
+    },
+  }, parseSingle);
+  app.post("/batch", {
+    schema: {
+      operationId: "parseBatch",
+      summary: "批量解析文件名元数据",
+      tags: ["Parse"],
+      body: BatchParseRequest,
+      response: { 200: BatchParseResponse },
+    },
+  }, parseBatch);
 }
