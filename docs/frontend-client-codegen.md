@@ -39,21 +39,21 @@ npm run generate-client
 
 ## 示例：扩展 SearchRequest.mode 的合法值
 
-`SearchRequest.mode` 原来只有 `["exact", "hybrid"]`，添加 `"local-check"` 时需要：
+`SearchRequest.mode` 原来只有 `["exact", "fuzzy"]`，添加 `"local-check"` 时需要：
 
 **修改 openapi.json：**
 ```json
 "mode": {
   "type": "string",
-  "enum": ["exact", "hybrid", "local-check"],
+  "enum": ["exact", "fuzzy", "local-check"],
   "title": "Mode",
-  "default": "hybrid"
+  "default": "fuzzy"
 }
 ```
 
 然后重跑 `npm run generate-client`，`types.gen.ts` 里的类型就会自动更新为：
 ```ts
-mode?: 'exact' | 'hybrid' | 'local-check';
+mode?: 'exact' | 'fuzzy' | 'local-check';
 ```
 
 ## 注意事项

@@ -150,7 +150,7 @@
     "tag": "Tag",
     "mode": "Mode",
     "modeExact": "Exact",
-    "modeHybrid": "Hybrid",
+    "modeFuzzy": "Fuzzy",
     "modeLocalCheck": "Local Check",
     "presence": "Presence",
     "presenceAll": "All",

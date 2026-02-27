@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select"
 
 type Scope = "file" | "author" | "coser" | "tag"
-type Mode = "exact" | "hybrid" | "local-check"
+type Mode = "exact" | "fuzzy" | "local-check"
 type PresenceFilter = "all" | "watched" | "scanned_recent"
 
 export const Route = createFileRoute("/_layout/search")({
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/_layout/search")({
         ? "exact"
         : search.mode === "local-check"
           ? "local-check"
-          : "hybrid"
+          : "fuzzy"
     const page = Math.max(1, Number(search.page) || 1)
     const presenceFilter: PresenceFilter =
       search.presenceFilter === "watched" ||
@@ -321,7 +321,7 @@ function SearchPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="exact">{t("search.modeExact")}</SelectItem>
-                <SelectItem value="hybrid">{t("search.modeHybrid")}</SelectItem>
+                <SelectItem value="fuzzy">{t("search.modeFuzzy")}</SelectItem>
                 <SelectItem value="local-check">{t("search.modeLocalCheck")}</SelectItem>
               </SelectContent>
             </Select>

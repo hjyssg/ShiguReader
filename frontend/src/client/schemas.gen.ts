@@ -1198,9 +1198,9 @@ export const SearchRequestSchema = {
         },
         mode: {
             type: 'string',
-            enum: ['exact', 'hybrid', 'local-check'],
+            enum: ['exact', 'fuzzy', 'local-check'],
             title: 'Mode',
-            default: 'hybrid'
+            default: 'fuzzy'
         },
         presence_filter: {
             type: 'string',

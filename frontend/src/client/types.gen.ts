@@ -259,11 +259,11 @@ export type status2 = 'running' | 'completed' | 'error';
 export type SearchRequest = {
     q?: string;
     scopes?: Array<('file' | 'author' | 'coser' | 'tag')>;
-    mode?: 'exact' | 'hybrid' | 'local-check';
+    mode?: 'exact' | 'fuzzy' | 'local-check';
     presence_filter?: 'all' | 'watched' | 'scanned_recent';
 };
 
-export type mode = 'exact' | 'hybrid' | 'local-check';
+export type mode = 'exact' | 'fuzzy' | 'local-check';
 
 export type presence_filter = 'all' | 'watched' | 'scanned_recent';
 

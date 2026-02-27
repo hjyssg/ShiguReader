@@ -150,7 +150,7 @@
     "tag": "标签",
     "mode": "模式",
     "modeExact": "精确",
-    "modeHybrid": "混合",
+    "modeFuzzy": "模糊匹配",
     "modeLocalCheck": "本地持有检查",
     "presence": "存在状态",
     "presenceAll": "全部",

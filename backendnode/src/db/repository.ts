@@ -331,8 +331,8 @@ export class IndexRepository {
     return " AND is_missing = 0"; // default: present
   }
 
-  /** 按文件名/路径搜索，mode="exact" 时精确匹配，mode="hybrid" 时模糊匹配 */
-  searchFiles(q: string, presenceFilter = "present", mode = "hybrid"): FileRow[] {
+  /** 按文件名/路径搜索，mode="exact" 时精确匹配，mode="fuzzy" 时模糊匹配 */
+  searchFiles(q: string, presenceFilter = "present", mode = "fuzzy"): FileRow[] {
     if (mode === "exact") {
       return rows<FileRow>(
         this.db
@@ -350,8 +350,8 @@ export class IndexRepository {
     );
   }
 
-  /** 按作者名搜索，mode="exact" 时精确匹配，mode="hybrid" 时模糊匹配 */
-  searchByAuthor(q: string, presenceFilter = "present", mode = "hybrid"): FileRow[] {
+  /** 按作者名搜索，mode="exact" 时精确匹配，mode="fuzzy" 时模糊匹配 */
+  searchByAuthor(q: string, presenceFilter = "present", mode = "fuzzy"): FileRow[] {
     const artists = rows<{ artist_name: string }>(
       mode === "exact"
         ? this.db.prepare("SELECT artist_name FROM artists WHERE artist_name = ?").all(q)
@@ -381,8 +381,8 @@ export class IndexRepository {
     );
   }
 
-  /** 按 coser 名搜索，mode="exact" 时精确匹配，mode="hybrid" 时模糊匹配 */
-  searchByCoser(q: string, presenceFilter = "present", mode = "hybrid"): FileRow[] {
+  /** 按 coser 名搜索，mode="exact" 时精确匹配，mode="fuzzy" 时模糊匹配 */
+  searchByCoser(q: string, presenceFilter = "present", mode = "fuzzy"): FileRow[] {
     const artists = rows<{ artist_name: string }>(
       mode === "exact"
         ? this.db.prepare("SELECT artist_name FROM artists WHERE artist_name = ?").all(q)
@@ -412,8 +412,8 @@ export class IndexRepository {
     );
   }
 
-  /** 按 tag 名搜索，mode="exact" 时精确匹配，mode="hybrid" 时模糊匹配 */
-  searchByTag(q: string, presenceFilter = "present", mode = "hybrid"): FileRow[] {
+  /** 按 tag 名搜索，mode="exact" 时精确匹配，mode="fuzzy" 时模糊匹配 */
+  searchByTag(q: string, presenceFilter = "present", mode = "fuzzy"): FileRow[] {
     const tags = rows<{ tag_name: string }>(
       mode === "exact"
         ? this.db.prepare("SELECT tag_name FROM tags WHERE tag_name = ?").all(q)

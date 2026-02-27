@@ -150,7 +150,7 @@
     "tag": "태그",
     "mode": "모드",
     "modeExact": "정확히 일치",
-    "modeHybrid": "하이브리드",
+    "modeFuzzy": "퍼지 검색",
     "presence": "존재 상태",
     "presenceAll": "전체",
     "presenceWatched": "시청한 항목만",

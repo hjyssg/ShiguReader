@@ -35,7 +35,7 @@ async function searchFiles(
   }>,
   reply: FastifyReply,
 ) {
-  const { q = "", scopes = ["file", "author", "coser", "tag"], presence_filter = "all", mode = "hybrid" } = req.body ?? {};
+  const { q = "", scopes = ["file", "author", "coser", "tag"], presence_filter = "all", mode = "fuzzy" } = req.body ?? {};
   const limit = Math.min(500, Math.max(1, req.body?.limit ?? 200));
   const offset = Math.max(0, req.body?.offset ?? 0);
   const query = q.trim();

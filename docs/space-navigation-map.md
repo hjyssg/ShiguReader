@@ -108,7 +108,7 @@ path 是图片/音频    →  sibling 模式  →  listDirectory(parentPath)
 
 ### Search `/search?q=&scopes=&mode=&page=`
 - 支持 scope：`file` / `author` / `coser` / `tag`
-- 支持 mode：`exact` / `hybrid`
+- 支持 mode：`exact` / `fuzzy`
 - 支持 presenceFilter：`all` / `watched` / `scanned_recent`
 - **入口**：Sidebar、Read gallery 的 meta badge、Entities 页面
 - **出口**：搜索结果 → `Read` 或 `Explorer`（取决于文件类型）

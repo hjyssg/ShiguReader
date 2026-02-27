@@ -8,7 +8,7 @@
 |------|------|--------|------|
 | `q` | `string` | `""` | 搜索关键词。空字符串直接返回空结果 |
 | `scopes` | `string[]` | `["file","author","coser","tag"]` | 搜索维度，见下方说明 |
-| `mode` | `"exact" \| "hybrid"` | `"hybrid"` | 匹配模式，见下方说明 |
+| `mode` | `"exact" \| "fuzzy"` | `"fuzzy"` | 匹配模式，见下方说明 |
 | `presence_filter` | `"all" \| "watched" \| "scanned_recent"` | `"all"` | 文件存在性过滤，见下方说明 |
 | `limit` | `number` | `200` | 最多返回条数，上限 500 |
 | `offset` | `number` | `0` | 分页偏移量 |
@@ -20,11 +20,11 @@
 | 值 | SQL 等价 | 适用场景 |
 |----|---------|---------|
 | `exact` | `field = q` | 已知精确名称时使用，结果更干净。例如从 badge 点击跳转搜索 |
-| `hybrid` | `field LIKE %q%` | 用户手动输入关键词时使用，模糊匹配，容错性更好 |
+| `fuzzy` | `field LIKE %q%` | 用户手动输入关键词时使用，模糊匹配，容错性更好 |
 
 各 scope 在不同 mode 下的 SQL 行为：
 
-| scope | exact | hybrid |
+| scope | exact | fuzzy |
 |-------|-------|--------|
 | `file` | `filename = q OR filepath = q` | `filename LIKE %q% OR filepath LIKE %q%` |
 | `author` | `artist_name = q`（role=''） | `artist_name LIKE %q%`（role=''） |
@@ -105,4 +105,4 @@
 ## 前端跳转规范
 
 - 从 badge/列表点击已知名称跳转搜索 → 使用 `mode: "exact"`
-- 搜索框用户手动输入 → 使用 `mode: "hybrid"`（搜索页默认值）
+- 搜索框用户手动输入 → 使用 `mode: "fuzzy"`（搜索页默认值）

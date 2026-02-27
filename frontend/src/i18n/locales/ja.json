@@ -150,7 +150,7 @@
     "tag": "タグ",
     "mode": "モード",
     "modeExact": "完全一致",
-    "modeHybrid": "ハイブリッド",
+    "modeFuzzy": "あいまい検索",
     "presence": "存在状態",
     "presenceAll": "すべて",
     "presenceWatched": "閲覧済みのみ",
