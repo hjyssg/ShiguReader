@@ -13,7 +13,21 @@
       "type": "node-terminal",
       "request": "launch",
       "command": "npm run dev",
-      "cwd": "${workspaceFolder}/backendnode"
+      "cwd": "${workspaceFolder}/backend"
+    },
+    {
+      "name": "Run Frontend UT",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm test",
+      "cwd": "${workspaceFolder}/frontend"
+    },
+    {
+      "name": "Run Backend UT",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm test",
+      "cwd": "${workspaceFolder}/backend"
     }
   ]
 }
