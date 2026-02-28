@@ -56,7 +56,7 @@ async function listHistory(
     items: rows.map((r) => ({
       id: r.id,
       filepath: r.filepath,
-      filename: r.filename ?? null,
+      filename: r.filename ?? path.basename(r.filepath),
       file_type: r.file_type ?? null,
       thumbnail_url: r.thumbnail_filepath
         ? buildThumbUrl(r.thumbnail_filepath)

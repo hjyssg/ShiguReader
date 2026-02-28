@@ -257,3 +257,8 @@ Status Code
 
 
 audio mode翻页之后图片就不见了
+
+-------------
+1 local check有点慢
+2 setting Select directories to scan
+    多加一个scan and watch
