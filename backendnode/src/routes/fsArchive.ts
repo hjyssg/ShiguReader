@@ -31,9 +31,10 @@ function _backfillArchiveMeta(
     try {
       const repo = getRepo();
       const versionSig = `${Math.floor(archiveStat.mtimeMs / 1000)}:${archiveStat.size}`;
-      if (repo.getArchiveVersionSig(archivePath) === versionSig) {
-        return;
-      }
+      // 按需求：即使 versionSig 一致也强制回填，避免历史漏写数据长期不修复
+      // if (repo.getArchiveVersionSig(archivePath) === versionSig) {
+      //   return;
+      // }
 
       const imageEntries = entries.filter((e) => e.file_type === "image");
       const videoEntries = entries.filter((e) => e.file_type === "video");
