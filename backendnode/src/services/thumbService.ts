@@ -9,14 +9,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
-import os from "node:os";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import pLimit from "p-limit";
 import { config } from "../config.js";
 import { getFileType, isImage } from "../utils/fileType.js";
 import { get7z, getMagick, getFfmpeg } from "../utils/tools.js";
-import { fileExists } from "../utils/fsUtils.js";
+import { createTmpFilePath, createTmpWorkDir, fileExists } from "../utils/fsUtils.js";
 import { listEntries } from "./archiveService.js";
 
 const execFileAsync = promisify(execFile);
@@ -54,9 +53,9 @@ async function generateArchiveThumb(archivePath: string, outputPath: string): Pr
   }
 
   // Step 2: Extract only that one file using a temp list file to avoid encoding issues
-  const tmpDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "shiguthumb-"));
+  const tmpDir = await createTmpWorkDir("shiguthumb-");
   try {
-    const listFile = path.join(os.tmpdir(), `shiguthumb-list-${Date.now()}.txt`);
+    const listFile = await createTmpFilePath("shiguthumb-list-", ".txt");
     try {
       await fs.promises.writeFile(listFile, firstImageEntry.entry_path, "utf8");
       await execFileAsync(get7z(), ["x", archivePath, `-o${tmpDir}`, "-y", "-scsUTF-8", `@${listFile}`], {

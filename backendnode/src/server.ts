@@ -42,7 +42,7 @@ async function main() {
   // 启动时清除解压缓存
   try {
     logger.startup("Clearing extract cache...");
-    const cacheResult = clearExtractCache();
+    const cacheResult = await clearExtractCache();
     logger.startup(
       `Extract cache cleared: ${cacheResult.deleted_files} files, ${cacheResult.freed_size_readable} freed`,
     );

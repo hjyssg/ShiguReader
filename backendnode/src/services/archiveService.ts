@@ -6,7 +6,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
-import os from "node:os";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import pLimit from "p-limit";
@@ -15,6 +14,7 @@ import { getFileType } from "../utils/fileType.js";
 import { logger } from "../logger.js";
 import { get7z, getMagick } from "../utils/tools.js";
 import { isHiddenFile } from "../utils/fileFilters.js";
+import { createTmpFilePath, createTmpWorkDir } from "../utils/fsUtils.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -193,7 +193,7 @@ export async function extractEntries(archivePath: string, destDir: string, entri
     await fs.promises.mkdir(destDir, { recursive: true });
 
     // Write entry list to a temp UTF-8 file
-    const listFile = path.join(os.tmpdir(), `shigure-extract-${Date.now()}.txt`);
+    const listFile = await createTmpFilePath("shigure-extract-", ".txt");
     try {
       await fs.promises.writeFile(listFile, entries.join("\n"), "utf8");
       await execFileAsync(get7z(), ["x", archivePath, `-o${destDir}`, "-aos", "-scsUTF-8", `@${listFile}`], {
@@ -589,7 +589,7 @@ export async function compressArchiveImages(
   }
 
   // ── Archive mode ──────────────────────────────────────────────────────────
-  const tmpDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "shigure-compress-"));
+  const tmpDir = await createTmpWorkDir("shigure-compress-");
   const newOutputPath = archivePath.replace(/(\.[^.]+)$/, "_compressed$1");
   const tmpOutputPath = archivePath.replace(/(\.[^.]+)$/, `_tmp_${Date.now()}$1`);
   const finalOutputPath = outputMode === "replace" ? tmpOutputPath : newOutputPath;

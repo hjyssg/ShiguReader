@@ -48,6 +48,7 @@ export const config = {
 
   // Thumbnails
   THUMB_CACHE_DIR: env("THUMB_CACHE_DIR", "../data/thumb_cache"),
+  TMP_CACHE_DIR: env("TMP_CACHE_DIR", "data/cache/tmp"),
   THUMB_CONCURRENCY: envInt("THUMB_CONCURRENCY", 3),
   EXTRACT_CONCURRENCY: envInt("EXTRACT_CONCURRENCY", 2),
   THUMB_TIMEOUT_SEC: envInt("THUMB_TIMEOUT_SEC", 10),
