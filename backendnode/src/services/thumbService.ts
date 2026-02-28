@@ -184,13 +184,3 @@ export async function resolveCachedThumb(filePath: string): Promise<string | nul
   return (await isCached(p)) ? p : null;
 }
 
-/**
- * For image files the file itself can be served directly as a thumbnail.
- * Prefer getOrGenerateThumb for new code.
- */
-export async function resolveThumbSource(filePath: string): Promise<string | null> {
-  if (isImage(filePath)) {
-    return (await fileExists(filePath, fs.constants.R_OK)) ? filePath : null;
-  }
-  return resolveCachedThumb(filePath);
-}

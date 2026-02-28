@@ -49,7 +49,6 @@ export function createRouteMockRepo(overrides: Record<string, MockFn> = {}): Rou
     upsertFile: vi.fn(),
     recordFolderOpen: vi.fn(),
     markMissingInFolder: vi.fn(),
-    countFilesByType: vi.fn(() => 0),
     countFolders: vi.fn(() => 0),
     getLibraryOverview: vi.fn(() => ({ archives: 0, videos: 0, images: 0, audio: 0, folders: 0 })),
     listActivityLogs: vi.fn(() => []),
