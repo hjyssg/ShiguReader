@@ -44,6 +44,7 @@ const fakeStat = async (p: string): Promise<Partial<fs.Stats>> => {
   if (isTestChild(p, "sub"))         return { isDirectory: () => true,  isFile: () => false, size: 0,    mtimeMs: 1700000000000 };
   if (isTestChild(p, "file.zip"))    return { isDirectory: () => false, isFile: () => true,  size: 1024, mtimeMs: 1700000000000 };
   if (isTestChild(p, "img.jpg"))     return { isDirectory: () => false, isFile: () => true,  size: 512,  mtimeMs: 1700000000000 };
+  if (isTestChild(p, "README"))      return { isDirectory: () => false, isFile: () => true,  size: 128,  mtimeMs: 1700000000000 };
   if (isTestChild(p, "._2.jpg"))     return { isDirectory: () => false, isFile: () => true,  size: 12,   mtimeMs: 1700000000000 };
   throw Object.assign(new Error("ENOENT"), { code: "ENOENT" });
 };
@@ -54,6 +55,7 @@ const fakeReaddir = async (p: string): Promise<unknown[]> => {
       { name: "sub",      isDirectory: () => true,  isFile: () => false, isSymbolicLink: () => false },
       { name: "file.zip", isDirectory: () => false, isFile: () => true,  isSymbolicLink: () => false },
       { name: "img.jpg",  isDirectory: () => false, isFile: () => true,  isSymbolicLink: () => false },
+      { name: "README",   isDirectory: () => false, isFile: () => true,  isSymbolicLink: () => false },
       { name: "._2.jpg", isDirectory: () => false, isFile: () => true,  isSymbolicLink: () => false },
     ];
   }
@@ -61,7 +63,7 @@ const fakeReaddir = async (p: string): Promise<unknown[]> => {
 };
 
 const fakeAccess = async (p: string): Promise<void> => {
-  if (isTestDir(p) || isTestChild(p, "sub") || isTestChild(p, "file.zip") || isTestChild(p, "img.jpg") || isTestChild(p, "._2.jpg")) return;
+  if (isTestDir(p) || isTestChild(p, "sub") || isTestChild(p, "file.zip") || isTestChild(p, "img.jpg") || isTestChild(p, "README") || isTestChild(p, "._2.jpg")) return;
   throw Object.assign(new Error("ENOENT"), { code: "ENOENT" });
 };
 
@@ -119,12 +121,14 @@ describe("GET /api/v1/fs/listdir", () => {
     const sub = body.items.find((i: { name: string }) => i.name === "sub");
     const zip = body.items.find((i: { name: string }) => i.name === "file.zip");
     const img = body.items.find((i: { name: string }) => i.name === "img.jpg");
+    const readme = body.items.find((i: { name: string }) => i.name === "README");
     if (sub) expect(sub.item_type).toBe("folder");
     if (zip) {
       expect(zip.item_type).toBe("file");
       expect(zip.file_type).toBe("archive");
     }
     if (img) expect(img.file_type).toBe("image");
+    if (readme) expect(readme.file_type).toBe("unknown");
     // At least the items array should exist
     expect(Array.isArray(body.items)).toBe(true);
   });

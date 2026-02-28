@@ -244,3 +244,16 @@ waterfall的时候，
 3 http://localhost:5173/read?path=D%3A%5C_TEMP_DOWNLOADS%5C%E5%AE%87%E5%AE%99%E3%82%88%E3%82%8A%E3%82%82%E9%81%A0%E3%81%84%E5%A0%B4%E6%89%80+%E3%83%95%E3%82%A1%E3%83%B3%E3%83%96%E3%83%83%E3%82%AF%5Ci-036.jpg&page=0&mode=waterfall 加载不了图片，一般zip可以
 
  reader-toolbar在waterfall模式，position不需要是fixed。
+-----------------
+
+http://localhost:8000/api/v1/fs/listdir?path=D%3A%5CGit%5Cweibo-crawler
+Request Method
+GET
+Status Code
+500 Internal Server Erro  {
+    "error": "The value of 'FileSystemItem#/properties/file_type' does not match schema definition.",
+    "stack": "TypeError: The value of 'FileSystemItem#/properties/file_type' does not match schema definition.\n    at main (eval at build (D:\\Git\\Shigureader-vibecode\\backendnode\\node_modules\\fast-json-stringify\\index.js:239:23), <anonymous>:460:16)\n    at serialize (D:\\Git\\Shigureader-vibecode\\backendnode\\node_modules\\fastify\\lib\\reply.js:999:12)\n    at preSerializationHookEnd (D:\\Git\\Shigureader-vibecode\\backendnode\\node_modules\\fastify\\lib\\reply.js:514:17)\n    at preSerializationHook (D:\\Git\\Shigureader-vibecode\\backendnode\\node_modules\\fastify\\lib\\reply.js:498:5)\n    at Reply.send (D:\\Git\\Shigureader-vibecode\\backendnode\\node_modules\\fastify\\lib\\reply.js:205:7)\n    at Object.listDirectory (D:\\Git\\Shigureader-vibecode\\backendnode\\src\\routes\\fsDirectory.ts:254:16)"
+} 好像是出现其他文件就报错
+
+
+audio mode翻页之后图片就不见了

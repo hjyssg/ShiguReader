@@ -126,7 +126,11 @@ export async function listDirectory(
           last_read_at: null,
         });
       } else if (entry.isFile()) {
-        const fileType = getFileType(entry.name);
+        const rawFileType = getFileType(entry.name);
+        // getFileType() returns "folder" when extension is missing.
+        // For real file entries in listdir response, normalize it to "unknown"
+        // so it matches FileSystemItem schema.
+        const fileType = rawFileType === "folder" ? "unknown" : rawFileType;
         items.push({
           name: entry.name,
           path: fullPath,
