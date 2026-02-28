@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next"
 import type { FileSystemItem } from "@/client"
 import { ListTable, type ListTableColumn } from "@/components/Common/ListTable"
 import { buildNavigationTarget } from "@/hooks/useFileNavigation"
-import { useIsMobile } from "@/hooks/useMobile"
 import { FileNameLinkCell } from "./FileNameLinkCell"
 import { formatDateTime, formatFileSize, formatFileType } from "./utils"
 
@@ -149,10 +148,9 @@ export function FileTableView({
 
 function TableRowCells({ item }: { item: FileSystemItem }) {
   const { t } = useTranslation()
-  const isMobile = useIsMobile()
   const isFolder = item.item_type === "folder"
   const isArchive = item.file_type === "archive"
-  const target = buildNavigationTarget(item, isMobile)
+  const target = buildNavigationTarget(item)
 
   return (
     <>

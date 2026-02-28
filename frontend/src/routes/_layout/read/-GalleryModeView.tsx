@@ -8,7 +8,6 @@ import {
   GalleryVertical,
   MoreVertical,
   RotateCw,
-  Smartphone,
 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -341,14 +340,6 @@ export function GalleryModeView({
         <div className="gallery-meta__actions">
           <Button variant="ghost" size="sm" onClick={rotate} title={t("reader.rotate")}>
             <RotateCw className="mr-1 size-3.5" />{t("reader.rotate")}
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navToRead(navigate, { path, page: currentPage, mode: "mobile" })}
-          >
-            <Smartphone className="mr-1 size-3.5" />{t("reader.mobileView")}
           </Button>
 
           <Button

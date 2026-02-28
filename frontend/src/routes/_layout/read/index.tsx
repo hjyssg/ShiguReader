@@ -1,5 +1,5 @@
 /**
- * 阅读器主路由 — 支持 gallery / audio / mobile / waterfall 四种模式
+ * 阅读器主路由 — 支持 gallery / audio / waterfall 三种模式
  * mode 通过 URL search param 切换，默认为 gallery
  */
 import { useMutation } from "@/shims/react-query"
@@ -22,7 +22,6 @@ import { navToRead } from "@/utils/appNavigate"
 
 import { AudioModeView } from "./-AudioModeView"
 import { GalleryModeView } from "./-GalleryModeView"
-import { MobileModeView } from "./-MobileModeView"
 import { WaterfallModeView } from "./-WaterfallModeView"
 import type { ReadMode } from "./-types"
 import "./read.css"
@@ -184,19 +183,6 @@ function ReadPage() {
         imagesReady={imagesReady}
         mtimeText={mtimeText}
         sizeText={sizeText}
-      />
-    )
-  }
-
-  // ── Mobile mode ──
-  if (mode === "mobile") {
-    return (
-      <MobileModeView
-        path={path}
-        isFolderSource={isFolderSource}
-        currentPage={currentPage}
-        imageEntries={imageEntries}
-        onPageChange={(p) => goToPage(p)}
       />
     )
   }

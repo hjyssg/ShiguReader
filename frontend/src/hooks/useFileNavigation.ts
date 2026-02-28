@@ -1,7 +1,7 @@
 import type { FileSystemItem } from "@/client"
 
 /** 根据文件类型构建导航目标 */
-export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
+export function buildNavigationTarget(item: FileSystemItem) {
   const isFolder = item.item_type === "folder"
   const isArchive = item.file_type === "archive"
   const isVideo = item.file_type === "video"
@@ -20,7 +20,6 @@ export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
       search: {
         path: item.path,
         page: 0,
-        mode: isMobile ? ("mobile" as const) : undefined,
       },
     }
   }
@@ -46,7 +45,6 @@ export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
       search: {
         path: item.path,
         page: 0,
-        mode: isMobile ? ("mobile" as const) : undefined,
       },
     }
   }

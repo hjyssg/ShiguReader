@@ -225,3 +225,21 @@ scan and watch是坏的
     点开单张图片也不记录record
     你在后端限制就行。
     
+
+----
+[thumb] Failed to generate thumbnail for E:\_Happy_Picture\Unread\ZinieQ - Sameko Saba (videos).zip: Error: No image found in archive: E:\_Happy_Picture\Unread\ZinieQ - Sameko Saba (videos).zip
+    at generateArchiveThumb (D:\Git\Shigureader-vibecode\backendnode\src\services\thumbService.ts:53:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async <anonymous> (D:\Git\Shigureader-vibecode\backendnode\src\services\thumbService.ts:165:9)
+
+
+    没有就没有，不要大惊小怪。不用log出来。
+
+
+
+waterfall的时候，
+1 .reader-page的overflow要改成auto
+2 reader-waterfall-actions要在reader-toolbar的右侧。
+3 http://localhost:5173/read?path=D%3A%5C_TEMP_DOWNLOADS%5C%E5%AE%87%E5%AE%99%E3%82%88%E3%82%8A%E3%82%82%E9%81%A0%E3%81%84%E5%A0%B4%E6%89%80+%E3%83%95%E3%82%A1%E3%83%B3%E3%83%96%E3%83%83%E3%82%AF%5Ci-036.jpg&page=0&mode=waterfall 加载不了图片，一般zip可以
+
+ reader-toolbar在waterfall模式，position不需要是fixed。
