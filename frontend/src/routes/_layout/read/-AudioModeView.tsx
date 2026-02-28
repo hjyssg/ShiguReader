@@ -36,7 +36,6 @@ export function AudioModeView({
   const { t } = useTranslation()
   const [audioIndex, setAudioIndex] = useState(0)
   const [imageIndex, setImageIndex] = useState(0)
-  const [imageLoaded, setImageLoaded] = useState(false)
   const selectedTrack = audioTracks[audioIndex]
   const parentPath = getParentPath(path)
   const isFolderSource = !isArchive(path)
@@ -48,14 +47,40 @@ export function AudioModeView({
   const canShowImage = isFolderSource || imagesReady
 
   const imgRef = useRef<HTMLImageElement>(null)
+  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const clearRetryTimeout = () => {
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current)
+      retryTimeoutRef.current = null
+    }
+  }
+
+  useEffect(() => {
+    return () => clearRetryTimeout()
+  }, [])
+
+  useEffect(() => {
+    if (totalImages <= 0) {
+      setImageIndex(0)
+      return
+    }
+    setImageIndex((prev) => Math.min(prev, totalImages - 1))
+  }, [totalImages])
+
+  useEffect(() => {
+    clearRetryTimeout()
+    setImageIndex(0)
+  }, [path])
+
   const handleImageError = () => {
     if (!imgRef.current || !currentImageSrc) return
     const img = imgRef.current
-    setImageLoaded(false)
     const retryCount = Number(img.dataset.retry || 0)
     if (retryCount < 5) {
       img.dataset.retry = String(retryCount + 1)
-      setTimeout(() => {
+      clearRetryTimeout()
+      retryTimeoutRef.current = setTimeout(() => {
         if (imgRef.current) {
           imgRef.current.src = `${currentImageSrc}${currentImageSrc.includes("?") ? "&" : "?"}_t=${Date.now()}`
         }
@@ -64,11 +89,10 @@ export function AudioModeView({
   }
   const handleImageLoad = () => {
     if (imgRef.current) imgRef.current.dataset.retry = "0"
-    setImageLoaded(true)
   }
 
-  const goPrevImage = () => { setImageLoaded(false); setImageIndex((i) => (i - 1 + totalImages) % totalImages) }
-  const goNextImage = () => { setImageLoaded(false); setImageIndex((i) => (i + 1) % totalImages) }
+  const goPrevImage = () => { clearRetryTimeout(); setImageIndex((i) => (i - 1 + totalImages) % totalImages) }
+  const goNextImage = () => { clearRetryTimeout(); setImageIndex((i) => (i + 1) % totalImages) }
 
   useEffect(() => {
     if (totalImages === 0) return
@@ -76,11 +100,11 @@ export function AudioModeView({
       const key = e.key.toLowerCase()
       if (key === "arrowright" || key === "d") {
         e.preventDefault()
-        setImageLoaded(false)
+        clearRetryTimeout()
         setImageIndex((i) => (i + 1) % totalImages)
       } else if (key === "arrowleft" || key === "a") {
         e.preventDefault()
-        setImageLoaded(false)
+        clearRetryTimeout()
         setImageIndex((i) => (i - 1 + totalImages) % totalImages)
       }
     }
@@ -126,12 +150,13 @@ export function AudioModeView({
               )}
               {canShowImage && currentImageSrc && (
                 <img
+                  key={currentImageSrc}
                   ref={imgRef}
                   src={currentImageSrc}
                   alt={currentImageEntry?.name}
                   onError={handleImageError}
                   onLoad={handleImageLoad}
-                  className={`h-full w-full object-contain transition-opacity duration-300 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+                  className={`h-full w-full object-contain transition-opacity duration-300`}
                 />
               )}
               <button
