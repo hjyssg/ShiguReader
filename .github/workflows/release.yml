@@ -116,6 +116,14 @@ jobs:
           Compress-Archive -Path "$pkg" -DestinationPath "release_pkg\${pkgName}.zip" -Force
           Write-Host "Package created: release_pkg\${pkgName}.zip"
 
+      - name: Upload package as Actions artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ShiguReader-${{ env.PACKAGE_VERSION }}-windows-x64
+          path: release_pkg/*.zip
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Create GitHub Release
         if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.dry_run == false && inputs.release_tag != '') }}
         uses: softprops/action-gh-release@v2
