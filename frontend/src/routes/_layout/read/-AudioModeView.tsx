@@ -4,7 +4,6 @@
 import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import { buttonVariants } from "@/components/ui/button"
 import { isArchive } from "@common/fileTypeUtil"
-import { getParentPath } from "@/lib/path-utils"
 import { Link } from "@tanstack/react-router"
 import { ChevronLeft, ChevronRight, Music4 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
@@ -12,6 +11,7 @@ import AudioPlayer from "react-h5-audio-player"
 import { useTranslation } from "react-i18next"
 import "react-h5-audio-player/lib/styles.css"
 import { Skeleton } from "@/components/ui/skeleton"
+import { getReadExplorerSearch } from "./-explorerNav"
 import { buildReadImageUrl } from "./-imageUrl"
 
 import type { AudioTrack, ImageEntry } from "./-types"
@@ -21,6 +21,7 @@ interface AudioModeViewProps {
   audioTracks: AudioTrack[]
   imageEntries: ImageEntry[]
   imagesReady: boolean
+  extractCacheDir?: string
   mtimeText: string
   sizeText: string
 }
@@ -30,6 +31,7 @@ export function AudioModeView({
   audioTracks,
   imageEntries,
   imagesReady,
+  extractCacheDir,
   mtimeText,
   sizeText,
 }: AudioModeViewProps) {
@@ -37,8 +39,8 @@ export function AudioModeView({
   const [audioIndex, setAudioIndex] = useState(0)
   const [imageIndex, setImageIndex] = useState(0)
   const selectedTrack = audioTracks[audioIndex]
-  const parentPath = getParentPath(path)
   const isFolderSource = !isArchive(path)
+  const explorerSearch = getReadExplorerSearch({ path, isFolderSource, extractCacheDir })
 
   const totalImages = imageEntries.length
   const currentImageEntry = imageEntries[imageIndex]
@@ -131,7 +133,7 @@ export function AudioModeView({
             )}
             <Link
               to="/explorer"
-              search={{ path: parentPath, sortField: "name", sortOrder: "asc", viewMode: "table" }}
+              search={explorerSearch}
               className={buttonVariants({ variant: "ghost", size: "sm", className: "reader-toolbar__text-button" })}
             >
               Explorer

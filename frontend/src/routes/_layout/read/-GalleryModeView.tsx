@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { getParentPath, wrapPageIndex } from "@/lib/path-utils"
 import { useFileOperationDialogs } from "@/hooks/useFileOperationDialogs"
 import { navToRead } from "@/utils/appNavigate"
+import { getReadExplorerSearch } from "./-explorerNav"
 import { buildReadImageUrl } from "./-imageUrl"
 
 import type { AudioTrack, ImageEntry, ReadMode } from "./-types"
@@ -75,6 +76,11 @@ export function GalleryModeView({
   const navigate = useNavigate()
   const { t } = useTranslation()
   const parentPath = getParentPath(path)
+  const explorerSearch = getReadExplorerSearch({
+    path,
+    isFolderSource,
+    extractCacheDir: extractStatus?.cache_dir,
+  })
   const { openRename, openDelete, openMove, openCompress, dialogs: fileOpDialogs } = useFileOperationDialogs({
     currentPath: parentPath,
     onAfterRename: () => navigate({ to: "/" }),
@@ -350,7 +356,7 @@ export function GalleryModeView({
           {!isFolderSource && (
             <Link
               to="/explorer"
-              search={{ path: extractStatus?.cache_dir || path, sortField: "name", sortOrder: "asc", viewMode: "table" }}
+              search={explorerSearch}
               className={buttonVariants({ variant: "ghost", size: "sm" })}
             >
               <FolderOpen className="mr-1 size-3.5" />{t("nav.explorer")}
@@ -362,7 +368,7 @@ export function GalleryModeView({
             isFolderSource && (
             <Link
               to="/explorer"
-              search={{ path: getParentPath(path), sortField: "name", sortOrder: "asc", viewMode: "table" }}
+              search={explorerSearch}
               className={buttonVariants({ variant: "ghost", size: "sm" })}
             >
               <FolderOpen className="mr-1 size-3.5" />{t("nav.explorer")}

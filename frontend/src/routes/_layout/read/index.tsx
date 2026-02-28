@@ -21,6 +21,7 @@ import { getBaseName, getParentPath, wrapPageIndex } from "@/lib/path-utils"
 import { navToRead } from "@/utils/appNavigate"
 
 import { AudioModeView } from "./-AudioModeView"
+import { getReadExplorerSearch } from "./-explorerNav"
 import { GalleryModeView } from "./-GalleryModeView"
 import { WaterfallModeView } from "./-WaterfallModeView"
 import type { ReadMode } from "./-types"
@@ -66,6 +67,11 @@ function ReadPage() {
   // sibling 模式下图片也是通过 filePath 访问（同 folder 模式），所以 isFolderSource 包含 sibling
   const isFolderSource = source === "folder" || source === "sibling"
   const isArchiveSource = source === "archive"
+  const explorerSearch = getReadExplorerSearch({
+    path,
+    isFolderSource,
+    extractCacheDir: extractStatus?.cache_dir,
+  })
 
   type ParseMetaData = Awaited<ReturnType<typeof ParseService.getParseResult>> | null
   const [parseMeta, setParseMeta] = useState<ParseMetaData>(null)
@@ -181,6 +187,7 @@ function ReadPage() {
         audioTracks={audioTracks}
         imageEntries={imageEntries}
         imagesReady={imagesReady}
+        extractCacheDir={extractStatus?.cache_dir}
         mtimeText={mtimeText}
         sizeText={sizeText}
       />
@@ -211,7 +218,7 @@ function ReadPage() {
               <>
                 <Link
                   to="/explorer"
-                  search={{ path: extractStatus?.cache_dir || path, sortField: "name", sortOrder: "asc", viewMode: "table" }}
+                  search={explorerSearch}
                   className={buttonVariants({ variant: "default", size: "sm", className: "animate-pulse" })}
                 >
                   {t("nav.explorer")}
