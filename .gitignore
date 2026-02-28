@@ -57,3 +57,4 @@ backend/app/file_processing/name_parser/coser_names.idx
 /data/index_node.db-wal
 /backendnode/dist
 /docs/history-import-report.md
+/data/cache/tmp/
