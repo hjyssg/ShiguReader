@@ -369,6 +369,18 @@ export function GalleryModeView({
             </Link>
           )}
 
+          
+          {
+            isFolderSource && (
+            <Link
+              to="/explorer"
+              search={{ path: getParentPath(path), sortField: "name", sortOrder: "asc", viewMode: "table" }}
+              className={buttonVariants({ variant: "ghost", size: "sm" })}
+            >
+              {t("nav.explorer")}
+            </Link>
+          )}
+
           {audioTracks.length > 0 && (
             <Link
               to="/read"

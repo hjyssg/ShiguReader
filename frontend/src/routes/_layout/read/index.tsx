@@ -51,12 +51,7 @@ function ReadPage() {
   const parentPath = getParentPath(path)
 
   const hasAutoSwitchedRef = useRef(false)
-  // sibling 模式初始定位标记：path 变化时重置，确保只在首次加载时做 findIndex 定位
-  const siblingInitializedRef = useRef(false)
-  useEffect(() => {
-    hasAutoSwitchedRef.current = false
-    siblingInitializedRef.current = false
-  }, [path])
+  useEffect(() => { hasAutoSwitchedRef.current = false }, [path])
 
   const {
     isLoading,
@@ -105,26 +100,27 @@ function ReadPage() {
     }
   }, [shouldAutoAudio, navigate, path])
 
-  // sibling 模式（点开单张图片）：初始加载时 page=0，需要定位到当前图片在兄弟列表中的位置
-  // 其他模式（archive/folder）：直接用 URL 中的 page
-  // 注意：不能用 `page || findIndex`，因为 page=0 是 falsy，翻回第 0 页时会错误触发 findIndex
-  // 用 siblingInitializedRef 标记是否已完成初始定位，避免翻回第 0 页时重复触发 findIndex
+  // sibling 模式：path 就是当前图片，resolvedPage 始终通过 findIndex(path) 得到
+  // 翻页时同步更新 path 到新图片的 filePath，这样 resolvedPage 永远准确，无需额外 ref
+  // 其他模式（archive/folder）：直接用 URL 中的 page 参数
+  const totalPages = imageEntries.length
   let resolvedPage: number
-  if (source === "sibling" && page === 0 && !siblingInitializedRef.current && imageEntries.length > 0) {
-    // 初始打开：定位到当前图片在父目录图片列表中的索引，并标记已初始化
+  if (source === "sibling") {
     const idx = imageEntries.findIndex((e) => e.filePath === path)
     resolvedPage = Math.max(0, idx)
-    siblingInitializedRef.current = true
   } else {
-    // 正常翻页：直接使用 URL 中的 page 参数
     resolvedPage = page
   }
-  const totalPages = imageEntries.length
   const currentPage = wrapPageIndex(resolvedPage, totalPages)
 
   const goToPage = (nextPage: number) => {
     const target = wrapPageIndex(nextPage, totalPages)
-    navToRead(navigate, { path, page: target, mode }, true)
+    if (source === "sibling" && imageEntries[target]) {
+      // sibling 模式：翻页时同步把 path 更新为目标图片的 filePath
+      navToRead(navigate, { path: imageEntries[target].filePath, page: 0, mode }, true)
+    } else {
+      navToRead(navigate, { path, page: target, mode }, true)
+    }
   }
 
   // 记录阅读历史
