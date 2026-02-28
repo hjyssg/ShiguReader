@@ -275,6 +275,7 @@ export const ExtractStatus = Type.Object(
     extracted_count: Type.Integer(),
     total_count: Type.Integer(),
     cache_dir: Type.String(),
+    avg_image_size: Type.Optional(Nullable(Type.Integer())),
     entries: Type.Optional(Nullable(Type.Array(Type.Ref(ArchiveEntry)))),
     mtime: Type.Optional(Nullable(Type.Integer())),
     filesize: Type.Optional(Nullable(Type.Integer())),
