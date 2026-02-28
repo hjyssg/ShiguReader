@@ -33,6 +33,8 @@ import { buildReadImageUrl } from "./-imageUrl"
 
 import type { AudioTrack, ImageEntry, ReadMode } from "./-types"
 
+const READER_KEYBOARD_SCROLL_STEP = 150
+
 interface GalleryModeViewProps {
   path: string
   isFolderSource: boolean
@@ -161,8 +163,8 @@ export function GalleryModeView({
       if (key === "v") { e.preventDefault(); openMove(path, undefined, "favorite"); return }
       if (key === "x") { e.preventDefault(); openMove(path, undefined, "already_read"); return }
       if (key === "m") { e.preventDefault(); openMove(path); return }
-      if (key === "w" || key === "arrowup") window.scrollBy({ top: -80, behavior: "smooth" })
-      else if (key === "s" || key === "arrowdown") window.scrollBy({ top: 80, behavior: "smooth" })
+      if (key === "w" || key === "arrowup") window.scrollBy({ top: -READER_KEYBOARD_SCROLL_STEP, behavior: "smooth" })
+      else if (key === "s" || key === "arrowdown") window.scrollBy({ top: READER_KEYBOARD_SCROLL_STEP, behavior: "smooth" })
     }
     window.addEventListener("keydown", onKeydown)
     return () => window.removeEventListener("keydown", onKeydown)
