@@ -334,6 +334,7 @@
   gap: 0.625rem;
   border-top: 1px solid hsl(var(--border));
   background: hsl(var(--background));
+  align-items: center;
 }
 
 .gallery-meta__breadcrumb {
