@@ -649,7 +649,7 @@
         "type": "object",
         "required": [
           "favorite_dir",
-          "fs_roots",
+          "fs_quick_access",
           "already_read_dir",
           "move_place_dir",
           "env_file_path",
@@ -659,7 +659,7 @@
           "favorite_dir": {
             "type": "string"
           },
-          "fs_roots": {
+          "fs_quick_access": {
             "type": "string"
           },
           "already_read_dir": {
@@ -690,7 +690,7 @@
               }
             ]
           },
-          "fs_roots": {
+          "fs_quick_access": {
             "anyOf": [
               {
                 "type": "string"
@@ -2011,9 +2011,9 @@
     }
   },
   "paths": {
-    "/api/v1/fs/roots": {
+    "/api/v1/fs/quickAccess": {
       "get": {
-        "operationId": "getRoots",
+        "operationId": "getQuickAccess",
         "summary": "获取配置的根目录列表",
         "tags": [
           "Filesystem"
@@ -4277,7 +4277,7 @@
                   "type": "object",
                   "required": [
                     "favorite_dir",
-                    "fs_roots",
+                    "fs_quick_access",
                     "already_read_dir",
                     "move_place_dir",
                     "env_file_path",
@@ -4287,7 +4287,7 @@
                     "favorite_dir": {
                       "type": "string"
                     },
-                    "fs_roots": {
+                    "fs_quick_access": {
                       "type": "string"
                     },
                     "already_read_dir": {
@@ -4311,7 +4311,7 @@
       },
       "put": {
         "operationId": "updateSettings",
-        "summary": "更新设置（fs_roots/favorite_dir 等）",
+        "summary": "更新设置（fs_quick_access/favorite_dir 等）",
         "tags": [
           "Settings"
         ],
@@ -4333,7 +4333,7 @@
                       }
                     ]
                   },
-                  "fs_roots": {
+                  "fs_quick_access": {
                     "anyOf": [
                       {
                         "type": "string"
@@ -4378,7 +4378,7 @@
                   "type": "object",
                   "required": [
                     "favorite_dir",
-                    "fs_roots",
+                    "fs_quick_access",
                     "already_read_dir",
                     "move_place_dir",
                     "env_file_path",
@@ -4388,7 +4388,7 @@
                     "favorite_dir": {
                       "type": "string"
                     },
-                    "fs_roots": {
+                    "fs_quick_access": {
                       "type": "string"
                     },
                     "already_read_dir": {

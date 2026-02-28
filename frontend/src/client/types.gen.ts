@@ -316,7 +316,7 @@ export type SearchResponse = {
 
 export type SettingsResponse = {
     favorite_dir: string;
-    fs_roots: string;
+    fs_quick_access: string;
     already_read_dir: string;
     move_place_dir: string;
     env_file_path: string;
@@ -325,7 +325,7 @@ export type SettingsResponse = {
 
 export type SettingsUpdate = {
     favorite_dir?: (string | null);
-    fs_roots?: (string | null);
+    fs_quick_access?: (string | null);
     already_read_dir?: (string | null);
     move_place_dir?: (string | null);
 };
@@ -782,7 +782,7 @@ export type LocalCheckBatchResponse2 = ({
 
 export type GetSettingsResponse = ({
     favorite_dir: string;
-    fs_roots: string;
+    fs_quick_access: string;
     already_read_dir: string;
     move_place_dir: string;
     env_file_path: string;
@@ -792,7 +792,7 @@ export type GetSettingsResponse = ({
 export type UpdateSettingsData = {
     requestBody: {
         favorite_dir?: (string | null);
-        fs_roots?: (string | null);
+        fs_quick_access?: (string | null);
         already_read_dir?: (string | null);
         move_place_dir?: (string | null);
     };
@@ -800,7 +800,7 @@ export type UpdateSettingsData = {
 
 export type UpdateSettingsResponse = ({
     favorite_dir: string;
-    fs_roots: string;
+    fs_quick_access: string;
     already_read_dir: string;
     move_place_dir: string;
     env_file_path: string;

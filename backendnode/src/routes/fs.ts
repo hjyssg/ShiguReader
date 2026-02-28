@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { Type } from "@sinclair/typebox";
 import {
-  getRoots,
+  getQuickAccess,
   getDrives,
   listDirectory,
   getLibraryOverview,
@@ -65,7 +65,7 @@ import {
 
 export async function fsRoutes(app: FastifyInstance) {
   // ── 目录 / 信息 ──────────────────────────────────────────────────────────
-  app.get("/roots", { schema: { operationId: "getRoots", summary: "获取配置的根目录列表", tags: ["Filesystem"], response: { 200: Type.Array(Type.Ref(RootItem)) } } }, getRoots);
+  app.get("/quickAccess", { schema: { operationId: "getQuickAccess", summary: "获取配置的快速访问目录列表", tags: ["Filesystem"], response: { 200: Type.Array(Type.Ref(RootItem)) } } }, getQuickAccess);
   app.get("/drives", { schema: { operationId: "getDrives", summary: "获取系统盘符 (Windows)", tags: ["Filesystem"], response: { 200: Type.Array(Type.Ref(RootItem)) } } }, getDrives);
   app.get("/listdir", { schema: { operationId: "listDirectory", summary: "列出目录内容（文件+文件夹）", tags: ["Filesystem"], querystring: ListDirQuery, response: { 200: ListResponse } } }, listDirectory);
   app.get("/library-overview", { schema: { operationId: "getLibraryOverview", summary: "获取库概览统计", tags: ["Filesystem"], response: { 200: LibraryOverviewResponse } } }, getLibraryOverview);

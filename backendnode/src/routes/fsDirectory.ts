@@ -31,17 +31,17 @@ export interface FileSystemItem {
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 export function parseRoots(): string[] {
-  if (!config.FS_ROOTS) {
+  if (!config.FS_QUICK_ACCESS) {
     return [];
   }
-  return config.FS_ROOTS.split(",")
+  return config.FS_QUICK_ACCESS.split(",")
     .map((r) => r.trim())
     .filter(Boolean);
 }
 
 // ─── handlers ────────────────────────────────────────────────────────────────
 
-export async function getRoots(_req: FastifyRequest, reply: FastifyReply) {
+export async function getQuickAccess(_req: FastifyRequest, reply: FastifyReply) {
   const roots = parseRoots();
   return reply.send(roots.map((r) => ({ path: r, dirname: path.basename(r) || r })));
 }

@@ -5,7 +5,7 @@ export const baseTestConfig = {
     API_V1_STR: "/api/v1",
     ENVIRONMENT: "local",
     INDEX_SQLITE_PATH: "./data/index.db",
-    FS_ROOTS: "",
+    FS_QUICK_ACCESS: "",
     FAVORITE_DIR: "",
     ALREADY_READ_DIR: "",
     THUMB_CONCURRENCY: 3,

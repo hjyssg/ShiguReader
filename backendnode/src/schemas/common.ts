@@ -171,7 +171,7 @@ export const LocalCheckBatchResponse = Type.Object(
 export const SettingsResponse = Type.Object(
   {
     favorite_dir: Type.String(),
-    fs_roots: Type.String(),
+    fs_quick_access: Type.String(),
     already_read_dir: Type.String(),
     move_place_dir: Type.String(),
     env_file_path: Type.String(),
@@ -183,7 +183,7 @@ export const SettingsResponse = Type.Object(
 export const SettingsUpdate = Type.Object(
   {
     favorite_dir: Type.Optional(Nullable(Type.String())),
-    fs_roots: Type.Optional(Nullable(Type.String())),
+    fs_quick_access: Type.Optional(Nullable(Type.String())),
     already_read_dir: Type.Optional(Nullable(Type.String())),
     move_place_dir: Type.Optional(Nullable(Type.String())),
   },

@@ -61,7 +61,7 @@ function Dashboard() {
   const { t } = useTranslation()
   const { data: roots, isLoading } = useQuery({
     queryKey: ["fs-roots"],
-    queryFn: () => FilesystemService.getRoots(),
+    queryFn: () => FilesystemService.getQuickAccess(),
   })
 
   const { data: drives } = useQuery({

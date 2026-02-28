@@ -38,7 +38,7 @@ export const config = {
   INDEX_SQLITE_PATH: env("INDEX_SQLITE_PATH", "data/index_node.db"),
 
   // File system
-  FS_ROOTS: env("FS_ROOTS", ""),
+  FS_QUICK_ACCESS: env("FS_QUICK_ACCESS", ""),
   FAVORITE_DIR: env("FAVORITE_DIR", ""),
   ALREADY_READ_DIR: env("ALREADY_READ_DIR", ""),
   MOVE_PLACE_DIR: env("MOVE_PLACE_DIR", ""),

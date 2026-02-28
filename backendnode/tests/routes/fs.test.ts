@@ -77,10 +77,10 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("GET /api/v1/fs/roots", () => {
-  it("returns empty array when FS_ROOTS not set", async () => {
+describe("GET /api/v1/fs/quickAccess", () => {
+  it("returns empty array when FS_QUICK_ACCESS not set", async () => {
     const app = buildApp();
-    const res = await app.inject({ method: "GET", url: "/api/v1/fs/roots" });
+    const res = await app.inject({ method: "GET", url: "/api/v1/fs/quickAccess" });
     expect(res.statusCode).toBe(200);
     expect(res.json()).toEqual([]);
   });

@@ -549,12 +549,12 @@ export const LocalCheckBatchResponseSchema = {
 export const SettingsResponseSchema = {
     title: 'SettingsResponse',
     type: 'object',
-    required: ['favorite_dir', 'fs_roots', 'already_read_dir', 'move_place_dir', 'env_file_path', 'db_file_path'],
+    required: ['favorite_dir', 'fs_quick_access', 'already_read_dir', 'move_place_dir', 'env_file_path', 'db_file_path'],
     properties: {
         favorite_dir: {
             type: 'string'
         },
-        fs_roots: {
+        fs_quick_access: {
             type: 'string'
         },
         already_read_dir: {
@@ -586,7 +586,7 @@ export const SettingsUpdateSchema = {
                 }
             ]
         },
-        fs_roots: {
+        fs_quick_access: {
             anyOf: [
                 {
                     type: 'string'

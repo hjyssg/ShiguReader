@@ -82,10 +82,10 @@ export class FilesystemService {
      * @returns RootItem Default Response
      * @throws ApiError
      */
-    public static getRoots(): CancelablePromise<GetRootsResponse> {
+    public static getQuickAccess(): CancelablePromise<GetRootsResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/fs/roots'
+            url: '/api/v1/fs/quickAccess'
         });
     }
     
@@ -637,7 +637,7 @@ export class SettingsService {
     }
     
     /**
-     * 更新设置（fs_roots/favorite_dir 等）
+     * 更新设置（fs_quick_access/favorite_dir 等）
      * @param data The data for the request.
      * @param data.requestBody
      * @returns unknown Default Response

@@ -87,8 +87,8 @@ jobs:
 # =============================================
 
 # 【必填】漫画/图片根目录，多个目录用逗号分隔
-# 例如: FS_ROOTS=D:\manga,E:\comics
-FS_ROOTS=
+# 例如: FS_QUICK_ACCESS=D:\manga,E:\comics
+FS_QUICK_ACCESS=
 
 # 【可选】收藏夹目录
 FAVORITE_DIR=
@@ -121,12 +121,12 @@ title ShiguReader
 
 cd /d "%~dp0"
 
-:: Check if FS_ROOTS is configured (look for empty FS_ROOTS= line)
-for /f "tokens=2 delims==" %%a in ('findstr /i "^FS_ROOTS=" .env') do set ROOTS_VAL=%%a
+:: Check if FS_QUICK_ACCESS is configured (look for empty FS_QUICK_ACCESS= line)
+for /f "tokens=2 delims==" %%a in ('findstr /i "^FS_QUICK_ACCESS=" .env') do set ROOTS_VAL=%%a
 if not defined ROOTS_VAL (
     echo [!] 请先编辑 .env 文件，填写您的漫画目录路径
-    echo     找到 FS_ROOTS= 这一行，填上您的目录，例如:
-    echo     FS_ROOTS=D:\manga
+    echo     找到 FS_QUICK_ACCESS= 这一行，填上您的目录，例如:
+    echo     FS_QUICK_ACCESS=D:\manga
     echo.
     notepad .env
     pause
@@ -156,7 +156,7 @@ pause
 
             1. 下载下方的 `ShiguReader-*-windows-x64.zip`
             2. 解压到任意目录（路径不要含中文）
-            3. 编辑 `.env` 文件，填写您的漫画目录：`FS_ROOTS=D:\你的漫画目录`
+            3. 编辑 `.env` 文件，填写您的漫画目录：`FS_QUICK_ACCESS=D:\你的漫画目录`
             4. 双击 `ShiguReader.bat` 启动，浏览器会自动打开
 
             **无需安装 Node.js 或任何其他软件。**
