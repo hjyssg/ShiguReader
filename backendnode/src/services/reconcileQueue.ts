@@ -12,6 +12,7 @@
 
 import { getDb, nowTs } from "../db/client.js";
 import { IndexRepository } from "../db/repository.js";
+import { logger } from "../logger.js";
 
 // ── 类型 ──────────────────────────────────────────────────────────────────────
 
@@ -89,8 +90,10 @@ function flush(): void {
     for (const ev of events) {
       lastFlushed.set(ev.filepath, ev.observedAt);
     }
-  } catch {
-    // DB 写失败不影响主流程，静默忽略
-    // TODO 不要失败啊，而且要不要漏了！可以考虑失败后重试一次，或者把失败的事件重新放回队列等策略。
+  } catch (err) {
+    logger.warn(
+      `reconcileQueue flush failed: events=${events.length}, sample=${events[0]?.filepath ?? "<none>"}, error=${String(err)}`,
+    );
+    // DB 写失败不影响主流程，记录 warning 后忽略
   }
 }

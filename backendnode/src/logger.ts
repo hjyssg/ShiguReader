@@ -26,4 +26,6 @@ export const logger = {
   compress: (msg: string) => console.log(`${ts()} [COMPRESS] ${msg}`),
   /** 解压缓存 */
   extract: (msg: string) => console.log(`${ts()} [EXTRACT]  ${msg}`),
+  /** 警告 */
+  warn: (msg: string) => console.warn(`${ts()} [WARN]     ${msg}`),
 };
