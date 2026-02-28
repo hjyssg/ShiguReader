@@ -210,6 +210,7 @@ export function AudioModeView({
               <AudioPlayer
                 src={selectedTrack.url}
                 autoPlay={false}
+                autoPlayAfterSrcChange
                 showSkipControls={false}
                 showJumpControls={false}
               />
