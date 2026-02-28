@@ -77,67 +77,23 @@ jobs:
           # Copy built frontend
           Copy-Item -Recurse "frontend\dist\*" -Destination "$pkg\frontend\dist\"
 
-          # Create .env with user-friendly defaults
-          # Note: INDEX_SQLITE_PATH is resolved as path.resolve(__dirname, "../../", value)
-          # where __dirname = package-root/backend/dist/, so "../../" = package-root/
-          # Therefore "data/index_node.db" correctly resolves to package-root/data/index_node.db
-          @"
-# =============================================
-# ShiguReader 配置文件
-# =============================================
-
-# 【必填】漫画/图片根目录，多个目录用逗号分隔
-# 例如: FS_QUICK_ACCESS=D:\manga,E:\comics
-FS_QUICK_ACCESS=
-
-# 【可选】收藏夹目录
-FAVORITE_DIR=
-
-# 【可选】已读目录
-ALREADY_READ_DIR=
-
-# 【可选】移动目标目录
-MOVE_PLACE_DIR=
-
-# 端口（默认 8000，如有冲突可修改）
-PORT=8000
-
-# 数据库路径（相对于 backend/dist/ 上两级，即程序根目录）
-INDEX_SQLITE_PATH=data/index_node.db
-
-# 缩略图缓存目录（相对于程序根目录）
-THUMB_CACHE_DIR=./data/thumb_cache
-EXTRACT_CACHE_DIR=./data/extract_cache
-
-# 缩略图并发数（根据电脑性能调整，默认 3）
-THUMB_CONCURRENCY=3
-"@ | Set-Content "$pkg\.env" -Encoding UTF8
+          # Copy env template for end users
+          Copy-Item ".env.example" -Destination "$pkg\.env"
 
           # Create launcher bat
           @"
-@echo off
-chcp 65001 >nul
-title ShiguReader
+          @echo off
+          chcp 65001 >nul
+          title ShiguReader
 
-cd /d "%~dp0"
+          cd /d "%~dp0"
 
-:: Check if FS_QUICK_ACCESS is configured (look for empty FS_QUICK_ACCESS= line)
-for /f "tokens=2 delims==" %%a in ('findstr /i "^FS_QUICK_ACCESS=" .env') do set ROOTS_VAL=%%a
-if not defined ROOTS_VAL (
-    echo [!] 请先编辑 .env 文件，填写您的漫画目录路径
-    echo     找到 FS_QUICK_ACCESS= 这一行，填上您的目录，例如:
-    echo     FS_QUICK_ACCESS=D:\manga
-    echo.
-    notepad .env
-    pause
-    exit /b 1
-)
-
-echo Starting ShiguReader...
-start "" "http://localhost:8000"
-node.exe --experimental-sqlite backend\dist\server.js
-pause
-"@ | Set-Content "$pkg\ShiguReader.bat" -Encoding UTF8
+          echo Starting ShiguReader...
+          echo [Tip] 如需设置资源目录，请编辑同目录 .env 中的 FS_QUICK_ACCESS
+          start "" "http://localhost:8000"
+          node.exe --experimental-sqlite backend\dist\server.js
+          pause
+          "@ | Set-Content "$pkg\ShiguReader.bat" -Encoding UTF8
 
           # Copy README
           Copy-Item "README.md" -Destination "$pkg\README.md"
