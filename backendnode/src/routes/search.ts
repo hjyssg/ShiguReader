@@ -1,7 +1,9 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { SearchRequest, SearchResponse, LocalCheckBatchRequest, LocalCheckBatchResponse } from "../schemas/common.js";
 import { getRepo, buildThumbUrl } from "./_listUtils.js";
 import { parseName } from "../utils/nameParser.js";
 import { compareTitles } from "../utils/titleMatcher.js";
+import { sortFileByName } from "../../../common/src/fileTypeUtil.js";
 
 function toItem(row: {
   filepath: string;
@@ -67,7 +69,8 @@ async function searchFiles(
     }
   }
 
-  const allItems = [...byPath.values()].sort((a, b) => a.name.localeCompare(b.name));
+  // sort by name with numeric awareness ("2" before "10")
+  const allItems = [...byPath.values()].sort(sortFileByName);
   const total = allItems.length;
   const items = allItems.slice(offset, offset + limit);
   return reply.send({ items, total });
@@ -246,10 +249,22 @@ async function localCheckBatch(
 export { localCheckBatch as localCheckBatchHandler };
 
 export async function searchRoutes(app: FastifyInstance) {
-  app.post("", { schema: { summary: "搜索文件（支持文件名/作者/coser/标签）", tags: ["搜索"] } }, searchFiles);
-  app.post(
-    "/local-check-batch",
-    { schema: { summary: "批量本地持有检查（油猴脚本用）", tags: ["搜索"] } },
-    localCheckBatch,
-  );
+  app.post("", {
+    schema: {
+      operationId: "searchFiles",
+      summary: "搜索文件（支持文件名/作者/coser/标签）",
+      tags: ["Search"],
+      body: SearchRequest,
+      response: { 200: SearchResponse },
+    },
+  }, searchFiles);
+  app.post("/local-check-batch", {
+    schema: {
+      operationId: "localCheckBatch",
+      summary: "批量本地持有检查（油猴脚本用）",
+      tags: ["Search"],
+      body: LocalCheckBatchRequest,
+      response: { 200: LocalCheckBatchResponse },
+    },
+  }, localCheckBatch);
 }

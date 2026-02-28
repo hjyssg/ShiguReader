@@ -20,7 +20,8 @@ type RecentActivityResponse = {
 }
 
 type TopOpenedFoldersResponse = {
-  folder_ids: string[]
+  folder_pathes?: string[]
+  folder_ids?: string[]
 }
 
 function HomeFolderLinkCard({
@@ -60,7 +61,7 @@ function Dashboard() {
   const { t } = useTranslation()
   const { data: roots, isLoading } = useQuery({
     queryKey: ["fs-roots"],
-    queryFn: () => FilesystemService.getRoots(),
+    queryFn: () => FilesystemService.getQuickAccess(),
   })
 
   const { data: drives } = useQuery({
@@ -101,11 +102,13 @@ function Dashboard() {
     queryFn: async (): Promise<TopOpenedFoldersResponse> => {
       const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/top-opened-folders?limit=5`)
       if (!response.ok) {
-        return { folder_ids: [] }
+        return { folder_pathes: [] }
       }
       return response.json()
     },
   })
+
+  const topOpenedFolderPaths = topOpenedFolders?.folder_pathes ?? topOpenedFolders?.folder_ids ?? []
 
   // 当月 good 子文件夹路径，由后端启动时保证已创建，前端直接计算无需 listdir
   const favoriteMonthlyPath = favoriteRoot?.path
@@ -170,14 +173,14 @@ function Dashboard() {
       <section className="home-section">
         <h2 className="home-section__title">{t("home.topOpenedFolders")}</h2>
         <div className="home-grid home-grid--folders">
-          {topOpenedFolders?.folder_ids.map((folderPath) => (
+          {topOpenedFolderPaths.map((folderPath) => (
             <HomeFolderLinkCard
               key={folderPath}
               path={folderPath}
               icon={Folder}
             />
           ))}
-          {topOpenedFolders && topOpenedFolders.folder_ids.length === 0 ? <div className="home-empty">{t("home.noTopOpenedFolders")}</div> : null}
+          {topOpenedFolders && topOpenedFolderPaths.length === 0 ? <div className="home-empty">{t("home.noTopOpenedFolders")}</div> : null}
         </div>
       </section>
 

@@ -5,11 +5,11 @@ import { Link, useNavigate } from "@tanstack/react-router"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
-import { OpenAPI } from "@/client"
 import { ReaderToolbar } from "@/components/Reader/ReaderToolbar"
 import { ExtractingIndicator } from "@/components/semantic/layout"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { buildReadImageUrl } from "./-imageUrl"
 
 import type { ImageEntry } from "./-types"
 
@@ -52,12 +52,14 @@ function WaterfallImage({ src, alt }: { src: string; alt: string }) {
 
 interface WaterfallModeViewProps {
   path: string
+  isFolderSource: boolean
   imageEntries: ImageEntry[]
   extractStatus: { cache_dir?: string; status?: "extracting" | "completed" | "error" | "started" | "already_running" } | null
 }
 
 export function WaterfallModeView({
   path,
+  isFolderSource,
   imageEntries,
   extractStatus,
 }: WaterfallModeViewProps) {
@@ -65,36 +67,38 @@ export function WaterfallModeView({
   const navigate = useNavigate()
 
   return (
-    <div className="reader-page">
+    <div className="reader-page reader-page--waterfall">
       <ReaderToolbar
         sourcePath={path}
+        actions={(
+          <div className="reader-waterfall-actions">
+            <Button
+              onClick={() =>
+                navigate({
+                  to: "/read",
+                  search: { path, page: 0, mode: undefined },
+                  replace: true,
+                })
+              }
+            >
+              {t("reader.openReader")}
+            </Button>
+            <ExtractingIndicator
+              status={extractStatus?.status}
+              variant="inline"
+            />
+          </div>
+        )}
       />
 
       <div className="reader-waterfall-page flex-1 overflow-auto">
-        <div className="reader-waterfall-actions">
-          <Button
-            onClick={() =>
-              navigate({
-                to: "/read",
-                search: { path, page: 0, mode: undefined },
-                replace: true,
-              })
-            }
-          >
-            {t("reader.openReader")}
-          </Button>
-          <ExtractingIndicator
-            status={extractStatus?.status}
-            variant="inline"
-          />
-        </div>
-
         <div className="reader-waterfall-list">
           {imageEntries.map((entry, index) => {
-            const imageUrl = `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(entry.entryPath || "")}`
+            const imageUrl = buildReadImageUrl({ path, isFolderSource, entry })
+            if (!imageUrl) return null
             return (
               <Link
-                key={entry.entryPath}
+                key={entry.entryPath || entry.filePath || `${index}`}
                 to="/read"
                 search={{ path, page: index, mode: "gallery" } as any}
                 className="reader-waterfall-item"

@@ -99,11 +99,11 @@ describe("POST /api/v1/search", () => {
 
 // ── quick-match-batch tests ───────────────────────────────────────────────────
 
-describe("POST /api/v1/search/quick-match-batch", () => {
+describe("POST /api/v1/search/local-check-batch", () => {
   it("returns empty results for empty queries", async () => {
     const app = buildApp();
     const res = await app.inject({
-      method: "POST", url: "/api/v1/search/quick-match-batch", payload: { queries: [] },
+      method: "POST", url: "/api/v1/search/local-check-batch", payload: { queries: [] },
     });
     expect(res.statusCode).toBe(200);
     expect(res.json().results).toEqual([]);
@@ -113,7 +113,7 @@ describe("POST /api/v1/search/quick-match-batch", () => {
     mockRepo.quickMatchCandidates.mockReturnValue([]);
     const app = buildApp();
     const res = await app.inject({
-      method: "POST", url: "/api/v1/search/quick-match-batch",
+      method: "POST", url: "/api/v1/search/local-check-batch",
       payload: { queries: ["[Author] SomeTitle"] },
     });
     const r = res.json().results[0];
@@ -129,7 +129,7 @@ describe("POST /api/v1/search/quick-match-batch", () => {
     }]);
     const app = buildApp();
     const res = await app.inject({
-      method: "POST", url: "/api/v1/search/quick-match-batch",
+      method: "POST", url: "/api/v1/search/local-check-batch",
       payload: { queries: ["[Author] SomeTitle"] },
     });
     const r = res.json().results[0];
@@ -145,7 +145,7 @@ describe("POST /api/v1/search/quick-match-batch", () => {
     }]);
     const app = buildApp();
     const res = await app.inject({
-      method: "POST", url: "/api/v1/search/quick-match-batch",
+      method: "POST", url: "/api/v1/search/local-check-batch",
       payload: { queries: ["[Author] SomeTitle"] },
     });
     const r = res.json().results[0];
@@ -156,7 +156,7 @@ describe("POST /api/v1/search/quick-match-batch", () => {
     mockRepo.quickMatchCandidates.mockReturnValue([]);
     const app = buildApp();
     const res = await app.inject({
-      method: "POST", url: "/api/v1/search/quick-match-batch",
+      method: "POST", url: "/api/v1/search/local-check-batch",
       payload: { queries: ["[A] Title1", "[B] Title2", "[C] Title3"] },
     });
     expect(res.json().results).toHaveLength(3);
@@ -171,7 +171,7 @@ describe("POST /api/v1/search/quick-match-batch", () => {
     mockRepo.quickMatchCandidates.mockReturnValue(candidates);
     const app = buildApp();
     const res = await app.inject({
-      method: "POST", url: "/api/v1/search/quick-match-batch",
+      method: "POST", url: "/api/v1/search/local-check-batch",
       payload: { queries: ["[Author] SomeTitle"], limit: 3 },
     });
     expect(res.json().results[0].hits.length).toBeLessThanOrEqual(3);

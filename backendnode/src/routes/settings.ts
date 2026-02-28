@@ -1,10 +1,12 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import type { Static } from "@sinclair/typebox";
 import fs from "node:fs";
 import path from "node:path";
 import { fileExists } from "../utils/fsUtils.js";
 import { config, ENV_FILE_PATH, DB_FILE_PATH } from "../config.js";
 import { getDb } from "../db/client.js";
 import { IndexRepository } from "../db/repository.js";
+import { SettingsResponse, SettingsUpdate } from "../schemas/common.js";
 
 const ENV_FILE = ENV_FILE_PATH;
 const DB_FILE = DB_FILE_PATH;
@@ -12,7 +14,7 @@ const DB_FILE = DB_FILE_PATH;
 function buildResponse() {
   return {
     favorite_dir: config.FAVORITE_DIR || "",
-    fs_roots: config.FS_ROOTS || "",
+    fs_quick_access: config.FS_QUICK_ACCESS || "",
     already_read_dir: config.ALREADY_READ_DIR || "",
     move_place_dir: config.MOVE_PLACE_DIR || "",
     env_file_path: ENV_FILE,
@@ -26,10 +28,10 @@ async function getSettings(_req: FastifyRequest, reply: FastifyReply) {
 }
 
 // PUT /api/v1/settings
-// Request: { favorite_dir?, fs_roots?, already_read_dir?, move_place_dir? }
+// Request: { favorite_dir?, fs_quick_access?, already_read_dir?, move_place_dir? }
 async function updateSettings(
   req: FastifyRequest<{
-    Body: { favorite_dir?: string | null; fs_roots?: string | null; already_read_dir?: string | null; move_place_dir?: string | null };
+    Body: { favorite_dir?: string | null; fs_quick_access?: string | null; already_read_dir?: string | null; move_place_dir?: string | null };
   }>,
   reply: FastifyReply,
 ) {
@@ -39,8 +41,8 @@ async function updateSettings(
   if (body.favorite_dir !== undefined && body.favorite_dir !== null) {
     process.env.FAVORITE_DIR = body.favorite_dir;
   }
-  if (body.fs_roots !== undefined && body.fs_roots !== null) {
-    process.env.FS_ROOTS = body.fs_roots;
+  if (body.fs_quick_access !== undefined && body.fs_quick_access !== null) {
+    process.env.FS_QUICK_ACCESS = body.fs_quick_access;
   }
   if (body.already_read_dir !== undefined && body.already_read_dir !== null) {
     process.env.ALREADY_READ_DIR = body.already_read_dir;
@@ -57,8 +59,8 @@ async function updateSettings(
       if (body.favorite_dir !== undefined && body.favorite_dir !== null) {
         updates.FAVORITE_DIR = body.favorite_dir;
       }
-      if (body.fs_roots !== undefined && body.fs_roots !== null) {
-        updates.FS_ROOTS = body.fs_roots;
+      if (body.fs_quick_access !== undefined && body.fs_quick_access !== null) {
+        updates.FS_QUICK_ACCESS = body.fs_quick_access;
       }
       if (body.already_read_dir !== undefined && body.already_read_dir !== null) {
         updates.ALREADY_READ_DIR = body.already_read_dir;
@@ -85,7 +87,7 @@ async function updateSettings(
   // Return current values from process.env (config is frozen at startup)
   return reply.send({
     favorite_dir: process.env.FAVORITE_DIR ?? config.FAVORITE_DIR ?? "",
-    fs_roots: process.env.FS_ROOTS ?? config.FS_ROOTS ?? "",
+    fs_quick_access: process.env.FS_QUICK_ACCESS ?? config.FS_QUICK_ACCESS ?? "",
     already_read_dir: process.env.ALREADY_READ_DIR ?? config.ALREADY_READ_DIR ?? "",
     move_place_dir: process.env.MOVE_PLACE_DIR ?? config.MOVE_PLACE_DIR ?? "",
     env_file_path: ENV_FILE,
@@ -157,7 +159,22 @@ async function verifyFiles(_req: FastifyRequest, reply: FastifyReply) {
 }
 
 export async function settingsRoutes(app: FastifyInstance) {
-  app.get("", { schema: { summary: "获取当前设置", tags: ["设置"] } }, getSettings);
-  app.put("", { schema: { summary: "更新设置（fs_roots/favorite_dir 等）", tags: ["设置"] } }, updateSettings);
-  app.post("/verify-files", { schema: { summary: "验证 DB 中文件是否存在，标记缺失", tags: ["设置"] } }, verifyFiles);
+  app.get("", {
+    schema: {
+      operationId: "getSettings",
+      summary: "获取当前设置",
+      tags: ["Settings"],
+      response: { 200: SettingsResponse },
+    },
+  }, getSettings);
+  app.put("", {
+    schema: {
+      operationId: "updateSettings",
+      summary: "更新设置（fs_quick_access/favorite_dir 等）",
+      tags: ["Settings"],
+      body: SettingsUpdate,
+      response: { 200: SettingsResponse },
+    },
+  }, updateSettings);
+  app.post("/verify-files", { schema: { operationId: "verifyFiles", summary: "验证 DB 中文件是否存在，标记缺失", tags: ["Settings"] } }, verifyFiles);
 }

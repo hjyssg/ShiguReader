@@ -48,30 +48,6 @@ describe("IndexRepository – files", () => {
     expect(repo.getFile("/no/such/file")).toBeUndefined();
   });
 
-  it("deleteFile removes the row", () => {
-    repo.upsertFile(base);
-    repo.deleteFile(base.filepath);
-    expect(repo.getFile(base.filepath)).toBeUndefined();
-  });
-
-  it("batchUpsertFiles inserts multiple rows", () => {
-    const items = [
-      { ...base, filepath: "/a/1.zip", filename: "1.zip", fingerprint: "fp1" },
-      { ...base, filepath: "/a/2.zip", filename: "2.zip", fingerprint: "fp2" },
-      { ...base, filepath: "/a/3.zip", filename: "3.zip", fingerprint: "fp3" },
-    ];
-    repo.batchUpsertFiles(items);
-    expect(repo.getFile("/a/1.zip")).toBeDefined();
-    expect(repo.getFile("/a/3.zip")).toBeDefined();
-  });
-
-  it("countFilesByType counts correctly", () => {
-    repo.upsertFile({ ...base, filepath: "/a/1.zip", filename: "1.zip", fingerprint: "fp1" });
-    repo.upsertFile({ ...base, filepath: "/a/2.zip", filename: "2.zip", fingerprint: "fp2" });
-    expect(repo.countFilesByType("archive")).toBe(2);
-    expect(repo.countFilesByType("video")).toBe(0);
-  });
-
   it("findFilesByFilename returns matching rows", () => {
     repo.upsertFile({ ...base, filepath: "/a/test.zip", filename: "test.zip", fingerprint: "fp1" });
     repo.upsertFile({ ...base, filepath: "/b/test.zip", filename: "test.zip", fingerprint: "fp2" });
@@ -93,14 +69,6 @@ describe("IndexRepository – files", () => {
     expect(row!.thumbnail_filepath).toBe("/thumbs/test.jpg");
   });
 
-  it("deleteByPrefix removes files and folders under prefix", () => {
-    repo.upsertFile({ ...base, filepath: "/root/sub/a.zip", filename: "a.zip", fingerprint: "fp1" });
-    repo.upsertFile({ ...base, filepath: "/root/sub/b.zip", filename: "b.zip", fingerprint: "fp2" });
-    repo.upsertFile({ ...base, filepath: "/other/c.zip", filename: "c.zip", fingerprint: "fp3" });
-    repo.deleteByPrefix("/root/sub");
-    expect(repo.getFile("/root/sub/a.zip")).toBeUndefined();
-    expect(repo.getFile("/other/c.zip")).toBeDefined();
-  });
 });
 
 // ─── folders ──────────────────────────────────────────────────────────────────
@@ -117,49 +85,37 @@ describe("IndexRepository – folders", () => {
     expect(repo.countFolders()).toBe(1);
   });
 
-  it("batchUpsertFolders inserts multiple", () => {
-    repo.batchUpsertFolders([
-      { filepath: "/a", dirname: "a" },
-      { filepath: "/b", dirname: "b" },
-    ]);
-    expect(repo.countFolders()).toBe(2);
-  });
 });
 
 // ─── archive_meta ─────────────────────────────────────────────────────────────
 
 describe("IndexRepository – archive_meta", () => {
   const fp = "/a/test.zip";
+  const folder = "/a";
 
-  it("upsertArchiveMeta and getArchiveMeta round-trip", () => {
-    repo.upsertArchiveMeta(fp, "zip", 10, 8, 1, 1);
-    const row = repo.getArchiveMeta(fp);
+  it("upsertArchiveMeta 后可通过 getArchiveMetasByFolder 读取", () => {
+    repo.upsertFile({ filepath: fp, folderpath: folder, filename: "test.zip", mtime: 1700000000, filesize: 1024, file_type: "archive", ext: ".zip" });
+    repo.upsertArchiveMeta(fp, "zip", 10, 8, 1, 1, 12345, null, null);
+    const metas = repo.getArchiveMetasByFolder(folder);
+    const row = metas.get(fp);
     expect(row).toBeDefined();
     expect(row!.entry_count).toBe(10);
     expect(row!.image_file_num).toBe(8);
-  });
-
-  it("upsertArchiveMeta updates on conflict", () => {
-    repo.upsertArchiveMeta(fp, "zip", 10, 8, 1, 1);
-    repo.upsertArchiveMeta(fp, "zip", 20, 15, 3, 2);
-    const row = repo.getArchiveMeta(fp);
-    expect(row!.entry_count).toBe(20);
-  });
-
-  it("getArchiveMeta returns undefined for missing path", () => {
-    expect(repo.getArchiveMeta("/no/such.zip")).toBeUndefined();
+    expect(row!.avg_image_size).toBe(12345);
   });
 
   it("upsertArchiveMeta 保存 version_sig 和 cover_entry", () => {
-    repo.upsertArchiveMeta(fp, "zip", 10, 8, 1, 1, "1700000000:2048", "img/cover.jpg");
-    const row = repo.getArchiveMeta(fp);
-    expect(row!.version_sig).toBe("1700000000:2048");
+    repo.upsertFile({ filepath: fp, folderpath: folder, filename: "test.zip", mtime: 1700000000, filesize: 1024, file_type: "archive", ext: ".zip" });
+    repo.upsertArchiveMeta(fp, "zip", 10, 8, 1, 1, 2048, "1700000000:2048", "img/cover.jpg");
+    const metas = repo.getArchiveMetasByFolder(folder);
+    const row = metas.get(fp);
+    expect(repo.getArchiveVersionSig(fp)).toBe("1700000000:2048");
     expect(row!.cover_entry).toBe("img/cover.jpg");
     expect(row!.index_status).toBe("fresh");
   });
 
   it("getArchiveVersionSig 返回已存储的签名", () => {
-    repo.upsertArchiveMeta(fp, "zip", 5, 4, 0, 0, "1700000000:1024", null);
+    repo.upsertArchiveMeta(fp, "zip", 5, 4, 0, 0, 1024, "1700000000:1024", null);
     expect(repo.getArchiveVersionSig(fp)).toBe("1700000000:1024");
   });
 
@@ -168,12 +124,13 @@ describe("IndexRepository – archive_meta", () => {
   });
 
   it("version_sig 变化时 upsertArchiveMeta 应该更新", () => {
-    repo.upsertArchiveMeta(fp, "zip", 10, 8, 1, 1, "old_sig", "old_cover.jpg");
-    repo.upsertArchiveMeta(fp, "zip", 12, 10, 1, 1, "new_sig", "new_cover.jpg");
-    const row = repo.getArchiveMeta(fp);
-    expect(row!.version_sig).toBe("new_sig");
-    expect(row!.cover_entry).toBe("new_cover.jpg");
+    repo.upsertFile({ filepath: fp, folderpath: folder, filename: "test.zip", mtime: 1700000000, filesize: 1024, file_type: "archive", ext: ".zip" });
+    repo.upsertArchiveMeta(fp, "zip", 10, 8, 1, 1, 1111, "old_sig", "old_cover.jpg");
+    repo.upsertArchiveMeta(fp, "zip", 12, 10, 1, 1, 2222, "new_sig", "new_cover.jpg");
+    expect(repo.getArchiveVersionSig(fp)).toBe("new_sig");
+    const row = repo.getArchiveMetasByFolder(folder).get(fp);
     expect(row!.entry_count).toBe(12);
+    expect(row!.avg_image_size).toBe(2222);
   });
 });
 

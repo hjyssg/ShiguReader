@@ -39,8 +39,13 @@ export interface ArchiveExtractResult {
   mtime: number | null
   /** 文件大小（字节） */
   filesize: number | null
-  /** 推断出的数据源类型 */
-  source: "archive" | "folder"
+  /**
+   * 推断出的数据源类型：
+   * - "archive"：压缩包，图片来自解压结果
+   * - "folder"：文件夹，图片来自目录列表
+   * - "sibling"：单张图片/音频/视频文件，图片来自父目录列表（兄弟文件）
+   */
+  source: "archive" | "folder" | "sibling"
 }
 
 type InternalSource = "archive" | "folder" | "sibling"
@@ -57,7 +62,8 @@ export function useArchiveExtract(
 ): ArchiveExtractResult {
   const parentPath = getParentPath(path)
   const internalSource = inferInternalSource(path)
-  const source = internalSource === "archive" ? "archive" : "folder"
+  // source 直接透传 internalSource，让调用方能区分 sibling 模式
+  const source = internalSource
 
   const [folderData, setFolderData] = useState<ListResponse | null>(null)
   const [extractStatus, setExtractStatus] = useState<ExtractStatus | null>(null)
@@ -65,33 +71,36 @@ export function useArchiveExtract(
   const [loadError, setLoadError] = useState<unknown>(null)
   const [imagesReady, setImagesReady] = useState(internalSource !== "archive")
 
+  // sibling 模式下翻页只改 path，parentPath 不变，不需要重新 fetch
+  // 用 fetchKey 作为 effect 依赖：sibling 用 parentPath，其他用 path
+  const fetchKey = internalSource === "sibling" ? parentPath : path
+
   useEffect(() => {
     let cancelled = false
 
     const load = async () => {
-      if (!path) return
+      if (!fetchKey) return
+
+      // 根据 fetchKey 推断实际 source（sibling 时 fetchKey=parentPath 是文件夹）
+      const src = inferInternalSource(fetchKey)
 
       setIsLoading(true)
       setLoadError(null)
       setFolderData(null)
       setExtractStatus(null)
-      const src = inferInternalSource(path)
       setImagesReady(src !== "archive")
 
       try {
         if (src === "archive") {
           setImagesReady(false)
-          const result = await FilesystemService.extractArchive({ path, page: 0 })
+          const result = await FilesystemService.extractArchive({ path: fetchKey, page: 0 })
           if (!cancelled) {
             setExtractStatus(result)
             setImagesReady(true)
           }
-        } else if (src === "folder") {
-          const data = await FilesystemService.listDirectory({ path })
-          if (!cancelled) setFolderData(data)
         } else {
-          // sibling: list parent directory to get sibling files
-          const data = await FilesystemService.listDirectory({ path: parentPath })
+          // folder 或 sibling（parentPath 是文件夹，inferInternalSource 返回 "folder"）
+          const data = await FilesystemService.listDirectory({ path: fetchKey })
           if (!cancelled) setFolderData(data)
         }
       } catch (error) {
@@ -106,7 +115,7 @@ export function useArchiveExtract(
 
     void load()
     return () => { cancelled = true }
-  }, [path, parentPath])
+  }, [fetchKey])
 
   const archiveEntries = extractStatus?.entries ?? []
 

@@ -1,5 +1,5 @@
 /**
- * 阅读器主路由 — 支持 gallery / audio / mobile / waterfall 四种模式
+ * 阅读器主路由 — 支持 gallery / audio / waterfall 三种模式
  * mode 通过 URL search param 切换，默认为 gallery
  */
 import { useMutation } from "@/shims/react-query"
@@ -21,8 +21,8 @@ import { getBaseName, getParentPath, wrapPageIndex } from "@/lib/path-utils"
 import { navToRead } from "@/utils/appNavigate"
 
 import { AudioModeView } from "./-AudioModeView"
+import { getReadExplorerSearch } from "./-explorerNav"
 import { GalleryModeView } from "./-GalleryModeView"
-import { MobileModeView } from "./-MobileModeView"
 import { WaterfallModeView } from "./-WaterfallModeView"
 import type { ReadMode } from "./-types"
 import "./read.css"
@@ -64,8 +64,14 @@ function ReadPage() {
     filesize,
     source,
   } = useArchiveExtract(path)
-  const isFolderSource = source === "folder"
+  // sibling 模式下图片也是通过 filePath 访问（同 folder 模式），所以 isFolderSource 包含 sibling
+  const isFolderSource = source === "folder" || source === "sibling"
   const isArchiveSource = source === "archive"
+  const explorerSearch = getReadExplorerSearch({
+    path,
+    isFolderSource,
+    extractCacheDir: extractStatus?.cache_dir,
+  })
 
   type ParseMetaData = Awaited<ReturnType<typeof ParseService.getParseResult>> | null
   const [parseMeta, setParseMeta] = useState<ParseMetaData>(null)
@@ -99,13 +105,27 @@ function ReadPage() {
     }
   }, [shouldAutoAudio, navigate, path])
 
-  const resolvedPage = page || Math.max(0, imageEntries.findIndex((e) => e.filePath === path))
+  // sibling 模式：path 就是当前图片，resolvedPage 始终通过 findIndex(path) 得到
+  // 翻页时同步更新 path 到新图片的 filePath，这样 resolvedPage 永远准确，无需额外 ref
+  // 其他模式（archive/folder）：直接用 URL 中的 page 参数
   const totalPages = imageEntries.length
+  let resolvedPage: number
+  if (source === "sibling") {
+    const idx = imageEntries.findIndex((e) => e.filePath === path)
+    resolvedPage = Math.max(0, idx)
+  } else {
+    resolvedPage = page
+  }
   const currentPage = wrapPageIndex(resolvedPage, totalPages)
 
   const goToPage = (nextPage: number) => {
     const target = wrapPageIndex(nextPage, totalPages)
-    navToRead(navigate, { path, page: target, mode }, true)
+    if (source === "sibling" && imageEntries[target]) {
+      // sibling 模式：翻页时同步把 path 更新为目标图片的 filePath
+      navToRead(navigate, { path: imageEntries[target].filePath, page: 0, mode }, true)
+    } else {
+      navToRead(navigate, { path, page: target, mode }, true)
+    }
   }
 
   // 记录阅读历史
@@ -167,21 +187,9 @@ function ReadPage() {
         audioTracks={audioTracks}
         imageEntries={imageEntries}
         imagesReady={imagesReady}
+        extractCacheDir={extractStatus?.cache_dir}
         mtimeText={mtimeText}
         sizeText={sizeText}
-      />
-    )
-  }
-
-  // ── Mobile mode ──
-  if (mode === "mobile") {
-    return (
-      <MobileModeView
-        path={path}
-        isFolderSource={isFolderSource}
-        currentPage={currentPage}
-        imageEntries={imageEntries}
-        onPageChange={(p) => goToPage(p)}
       />
     )
   }
@@ -191,6 +199,7 @@ function ReadPage() {
     return (
       <WaterfallModeView
         path={path}
+        isFolderSource={isFolderSource}
         imageEntries={imageEntries}
         extractStatus={extractStatus}
       />
@@ -209,7 +218,7 @@ function ReadPage() {
               <>
                 <Link
                   to="/explorer"
-                  search={{ path: extractStatus?.cache_dir || path, sortField: "name", sortOrder: "asc", viewMode: "table" }}
+                  search={explorerSearch}
                   className={buttonVariants({ variant: "default", size: "sm", className: "animate-pulse" })}
                 >
                   {t("nav.explorer")}

@@ -7,6 +7,7 @@ import { getRepo, buildThumbUrl } from "./_listUtils.js";
 import { parseName } from "../utils/nameParser.js";
 import { isHiddenFile } from "../utils/fileFilters.js";
 import { fileExists } from "../utils/fsUtils.js";
+import { sortFileByName } from "../../../common/src/fileTypeUtil.js";
 
 // ─── types ───────────────────────────────────────────────────────────────────
 
@@ -30,17 +31,17 @@ export interface FileSystemItem {
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 export function parseRoots(): string[] {
-  if (!config.FS_ROOTS) {
+  if (!config.FS_QUICK_ACCESS) {
     return [];
   }
-  return config.FS_ROOTS.split(",")
+  return config.FS_QUICK_ACCESS.split(",")
     .map((r) => r.trim())
     .filter(Boolean);
 }
 
 // ─── handlers ────────────────────────────────────────────────────────────────
 
-export async function getRoots(_req: FastifyRequest, reply: FastifyReply) {
+export async function getQuickAccess(_req: FastifyRequest, reply: FastifyReply) {
   const roots = parseRoots();
   return reply.send(roots.map((r) => ({ path: r, dirname: path.basename(r) || r })));
 }
@@ -125,7 +126,11 @@ export async function listDirectory(
           last_read_at: null,
         });
       } else if (entry.isFile()) {
-        const fileType = getFileType(entry.name);
+        const rawFileType = getFileType(entry.name);
+        // getFileType() returns "folder" when extension is missing.
+        // For real file entries in listdir response, normalize it to "unknown"
+        // so it matches FileSystemItem schema.
+        const fileType = rawFileType === "folder" ? "unknown" : rawFileType;
         items.push({
           name: entry.name,
           path: fullPath,
@@ -229,8 +234,8 @@ export async function listDirectory(
     );
   }
 
-  // Sort: folders first (by name), then files
-  const folders = filteredItems.filter((i) => i.item_type === "folder").sort((a, b) => a.name.localeCompare(b.name));
+  // Sort: folders first (by name numeric), then files
+  const folders = filteredItems.filter((i) => i.item_type === "folder").sort(sortFileByName);
   const files = filteredItems.filter((i) => i.item_type === "file");
   const rev = sort_order === "desc" ? -1 : 1;
   files.sort((a, b) => {
@@ -246,7 +251,8 @@ export async function listDirectory(
     if (sort_by === "image_count") {
       return rev * ((a.image_count ?? 0) - (b.image_count ?? 0));
     }
-    return rev * a.name.localeCompare(b.name);
+    // default: sort by name with numeric awareness ("2" before "10")
+    return rev * sortFileByName(a, b);
   });
 
   return reply.send({ items: [...folders, ...files] });
@@ -257,10 +263,10 @@ export async function getLibraryOverview(_req: FastifyRequest, reply: FastifyRep
 }
 
 export async function getRecentActivity(
-  req: FastifyRequest<{ Querystring: { limit?: string; since_latest_startup?: string } }>,
+  req: FastifyRequest<{ Querystring: { limit?: number; since_latest_startup?: string } }>,
   reply: FastifyReply,
 ) {
-  const limit = Math.min(500, Math.max(1, parseInt(req.query.limit ?? "200", 10) || 200));
+  const limit = Math.min(500, Math.max(1, req.query.limit ?? 200));
   const sinceStartup = req.query.since_latest_startup !== "false";
   const repo = getRepo();
   const rows = sinceStartup ? repo.listActivityLogsSinceLatestStartup(limit) : repo.listActivityLogs(limit);
@@ -279,9 +285,9 @@ export async function getRecentActivity(
 }
 
 export async function getTopOpenedFolders(
-  req: FastifyRequest<{ Querystring: { limit?: string } }>,
+  req: FastifyRequest<{ Querystring: { limit?: number } }>,
   reply: FastifyReply,
 ) {
-  const limit = Math.min(20, Math.max(1, parseInt(req.query.limit ?? "5", 10) || 5));
-  return reply.send({ folder_ids: getRepo().listTopOpenedFolderIds(limit) });
+  const limit = Math.min(20, Math.max(1, req.query.limit ?? 5));
+  return reply.send({ folder_pathes: getRepo().listTopOpenedFolderIds(limit) });
 }

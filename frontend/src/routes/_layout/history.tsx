@@ -27,7 +27,6 @@ import { UnifiedPagination } from "@/components/Common/UnifiedPagination"
 import { Skeleton } from "@/components/ui/skeleton"
 import { buildNavigationTarget } from "@/hooks/useFileNavigation"
 import { navToHistory } from "@/utils/appNavigate"
-import { useIsMobile } from "@/hooks/useMobile"
 import { getParentPath } from "@/lib/path-utils"
 
 type SortOrder = "asc" | "desc"
@@ -69,7 +68,6 @@ export const Route = createFileRoute("/_layout/history")({
 function HistoryPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const isMobile = useIsMobile()
   const { page, view, sort_order } = Route.useSearch()
   const pageSize = view === "grid" ? 24 : 50
 
@@ -210,8 +208,7 @@ function HistoryPage() {
           rows={data?.items ?? []}
           renderRow={(item) => {
             const target = buildNavigationTarget(
-              toFileSystemItem(item),
-              isMobile,
+              toFileSystemItem(item)
             )
 
             return (

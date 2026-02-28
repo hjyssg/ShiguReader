@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
-import { makeListHandler } from "../_listUtils.js";
+import { makeListHandler, EntityPageQuerySchema } from "../_listUtils.js";
+import { CosersResponse } from "../../schemas/common.js";
 
 const listCosers = makeListHandler({
   count: (repo) => repo.countArtists("coser"),
@@ -10,5 +11,5 @@ const listCosers = makeListHandler({
 });
 
 export async function cosersRoutes(app: FastifyInstance) {
-  app.get("", { schema: { summary: "获取 Coser 列表（分页，含文件数）", tags: ["标签/作者"] } }, listCosers);
+  app.get("", { schema: { operationId: "listCosers", summary: "获取 Coser 列表（分页，含文件数）", tags: ["Entities"], querystring: EntityPageQuerySchema, response: { 200: CosersResponse } } }, listCosers);
 }

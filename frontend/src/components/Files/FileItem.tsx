@@ -16,7 +16,6 @@ import {
   FileName,
   ItemCard,
 } from "@/components/semantic/layout"
-import { useIsMobile } from "@/hooks/useMobile"
 import { cn } from "@/lib/utils"
 
 import { getLinkTarget } from "@/constants/openBehavior"
@@ -46,9 +45,8 @@ export function FileItem({
   thumbnailTooltip,
 }: FileItemProps) {
   const { t } = useTranslation()
-  const isMobile = useIsMobile()
   const isFolder = item.item_type === "folder"
-  const href = buildItemHref(item, isMobile)
+  const href = buildItemHref(item)
   const infoMetrics =
     !isFolder && item.filesize
       ? [
@@ -75,7 +73,7 @@ export function FileItem({
       : []
 
 
-  const linkTarget = getLinkTarget(item.path)
+  const linkTarget = getLinkTarget(item.path, isFolder)
 
   const fileNameNode = href ? (
     <a href={href} className="file-item-name-link" draggable={false} target={linkTarget}>
@@ -89,12 +87,12 @@ export function FileItem({
     </FileName>
   )
 
-  const likeScore = item.likeScore ?? item.recommendation_score
+  const recommendation_score = item.recommendation_score
   const lastReadAt = item.last_read_at
   const defaultThumbnailTooltip = [
     getParentPath(item.path),
     `${t("explorer.table.dateModified")}: ${item.mtime ? formatDateTime(item.mtime) : "-"}`,
-    `${t("explorer.table.likeScore")}: ${likeScore != null ? Number(likeScore).toFixed(3) : "-"}`,
+    `${t("explorer.table.recommendation_score")}: ${recommendation_score != null ? Number(recommendation_score).toFixed(3) : "-"}`,
     `${t("explorer.table.lastReadAt")}: ${lastReadAt ? formatDateTime(lastReadAt) : "-"}`,
   ].join("\n")
 
@@ -170,7 +168,7 @@ export function FileItem({
   )
 }
 
-function buildItemHref(item: FileSystemItem, isMobile: boolean): string | null {
+function buildItemHref(item: FileSystemItem): string | null {
   const params = new URLSearchParams()
 
   if (item.item_type === "folder") {
@@ -181,7 +179,6 @@ function buildItemHref(item: FileSystemItem, isMobile: boolean): string | null {
   if (item.file_type === "archive") {
     params.set("path", item.path)
     params.set("page", "0")
-    if (isMobile) params.set("mode", "mobile")
     return `/read?${params.toString()}`
   }
 
@@ -201,7 +198,6 @@ function buildItemHref(item: FileSystemItem, isMobile: boolean): string | null {
   if (item.file_type === "image") {
     params.set("path", item.path)
     params.set("page", "0")
-    if (isMobile) params.set("mode", "mobile")
     return `/read?${params.toString()}`
   }
 

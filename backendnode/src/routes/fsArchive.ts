@@ -31,9 +31,10 @@ function _backfillArchiveMeta(
     try {
       const repo = getRepo();
       const versionSig = `${Math.floor(archiveStat.mtimeMs / 1000)}:${archiveStat.size}`;
-      if (repo.getArchiveVersionSig(archivePath) === versionSig) {
-        return;
-      }
+      // 按需求：即使 versionSig 一致也强制回填，避免历史漏写数据长期不修复
+      // if (repo.getArchiveVersionSig(archivePath) === versionSig) {
+      //   return;
+      // }
 
       const imageEntries = entries.filter((e) => e.file_type === "image");
       const videoEntries = entries.filter((e) => e.file_type === "video");
@@ -49,9 +50,9 @@ function _backfillArchiveMeta(
         imageEntries.length,
         videoEntries.length,
         audioEntries.length,
+        avgImgSize,
         versionSig,
         coverEntry,
-        avgImgSize,
       );
 
       const fileRow = repo.getFile(archivePath);
@@ -90,11 +91,10 @@ export async function listArchive(req: FastifyRequest<{ Querystring: { path: str
 }
 
 export async function extractArchive(
-  req: FastifyRequest<{ Querystring: { path: string; page?: string } }>,
+  req: FastifyRequest<{ Querystring: { path: string; page?: number } }>,
   reply: FastifyReply,
 ) {
-  const { path: archivePath, page: pageStr = "0" } = req.query;
-  const page = parseInt(pageStr, 10) || 0;
+  const { path: archivePath, page = 0 } = req.query;
   if (!archivePath) {
     return reply.status(400).send({ error: "path is required" });
   }

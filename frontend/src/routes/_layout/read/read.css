@@ -4,12 +4,16 @@
   overflow: hidden;
 }
 
+.reader-page--waterfall {
+  overflow: auto;
+}
+
 .reader-toolbar {
-  position: absolute;
+  /* position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 10;
+  z-index: 10; */
   display: flex;
   align-items: center;
   padding: 0.25rem 1rem;
@@ -189,6 +193,43 @@
   right: 1rem;
 }
 
+/* ── 大列按钮：透明的全高点击区域，hover 时显示内部的 nav-button ── */
+.big-column-hover-area {
+  background-color: transparent;
+  position: absolute;
+  top: 0;
+  width: 10vw;
+  height: calc(100% - 2rem); /* 减去 toolbar 的高度，避免覆盖 toolbar */
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  padding: 0;
+}
+
+.big-column-hover-area.prev {
+  left: 0;
+}
+
+.big-column-hover-area.next {
+  right: 0;
+}
+
+/* hover 大列区域时，显示内部的圆形 nav-button */
+.big-column-hover-area:hover .reader-nav-button {
+  opacity: 1;
+}
+
+/* 大列按钮内的 nav-button 用 flex 居中，不用 absolute 定位 */
+.big-column-hover-area .reader-nav-button {
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  transform: none;
+}
+
 .reader-meta-bar {
   position: absolute;
   bottom: 0;
@@ -350,6 +391,7 @@
   padding: 10px;
 }
 
+
 .reader-empty-header {
   display: flex;
   align-items: center;
@@ -427,61 +469,3 @@
   color: hsl(var(--muted-foreground));
 }
 
-/* ── Mobile reader ── */
-.mobile-reader {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background: #000;
-  color: #fff;
-}
-
-.mobile-reader__toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 1rem;
-  flex-shrink: 0;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 10;
-}
-
-.mobile-reader__page {
-  font-size: 0.875rem;
-  font-variant-numeric: tabular-nums;
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.mobile-reader__close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.85);
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 0.25rem;
-}
-
-.mobile-reader__close:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.mobile-reader__stage {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  cursor: pointer;
-  user-select: none;
-}
-
-.mobile-reader__image {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  pointer-events: none;
-}

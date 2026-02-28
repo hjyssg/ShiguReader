@@ -5,15 +5,14 @@ import { Link, useNavigate } from "@tanstack/react-router"
 import {
   ChevronLeft,
   ChevronRight,
+  FolderOpen,
   GalleryVertical,
   MoreVertical,
   RotateCw,
-  Smartphone,
 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
-import { OpenAPI } from "@/client"
 import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import { FileActionMenuItems } from "@/components/Files/FileActionMenuItems"
 import { formatDateTime, formatFileSize } from "@/components/Files/utils"
@@ -29,8 +28,12 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { getParentPath, wrapPageIndex } from "@/lib/path-utils"
 import { useFileOperationDialogs } from "@/hooks/useFileOperationDialogs"
 import { navToRead } from "@/utils/appNavigate"
+import { getReadExplorerSearch } from "./-explorerNav"
+import { buildReadImageUrl } from "./-imageUrl"
 
 import type { AudioTrack, ImageEntry, ReadMode } from "./-types"
+
+const READER_KEYBOARD_SCROLL_STEP = 150
 
 interface GalleryModeViewProps {
   path: string
@@ -75,6 +78,11 @@ export function GalleryModeView({
   const navigate = useNavigate()
   const { t } = useTranslation()
   const parentPath = getParentPath(path)
+  const explorerSearch = getReadExplorerSearch({
+    path,
+    isFolderSource,
+    extractCacheDir: extractStatus?.cache_dir,
+  })
   const { openRename, openDelete, openMove, openCompress, dialogs: fileOpDialogs } = useFileOperationDialogs({
     currentPath: parentPath,
     onAfterRename: () => navigate({ to: "/" }),
@@ -112,10 +120,7 @@ export function GalleryModeView({
 
   const settledEntry = imageEntries[settledPage]
   const settledImageUrl = useMemo(() => {
-    if (!settledEntry) return undefined
-    return isFolderSource
-      ? `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(settledEntry.filePath || "")}`
-      : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(settledEntry.entryPath || "")}`
+    return buildReadImageUrl({ path, isFolderSource, entry: settledEntry })
   }, [settledEntry, isFolderSource, path])
 
   // Preload adjacent pages
@@ -128,9 +133,8 @@ export function GalleryModeView({
     for (const idx of preloadIndices) {
       const entry = imageEntries[idx]
       if (!entry) continue
-      const url = isFolderSource
-        ? `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(entry.filePath || "")}`
-        : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(entry.entryPath || "")}`
+      const url = buildReadImageUrl({ path, isFolderSource, entry })
+      if (!url) continue
       const img = new Image()
       img.src = url
     }
@@ -159,8 +163,8 @@ export function GalleryModeView({
       if (key === "v") { e.preventDefault(); openMove(path, undefined, "favorite"); return }
       if (key === "x") { e.preventDefault(); openMove(path, undefined, "already_read"); return }
       if (key === "m") { e.preventDefault(); openMove(path); return }
-      if (key === "w" || key === "arrowup") window.scrollBy({ top: -80, behavior: "smooth" })
-      else if (key === "s" || key === "arrowdown") window.scrollBy({ top: 80, behavior: "smooth" })
+      if (key === "w" || key === "arrowup") window.scrollBy({ top: -READER_KEYBOARD_SCROLL_STEP, behavior: "smooth" })
+      else if (key === "s" || key === "arrowdown") window.scrollBy({ top: READER_KEYBOARD_SCROLL_STEP, behavior: "smooth" })
     }
     window.addEventListener("keydown", onKeydown)
     return () => window.removeEventListener("keydown", onKeydown)
@@ -265,13 +269,17 @@ export function GalleryModeView({
           />
         )}
 
-        {/* 左右翻页按钮 */}
-        <button type="button" className="reader-nav-button reader-nav-button--left" onClick={goPrev} aria-label={t("reader.prevPage")}>
-          <ChevronLeft className="reader-nav-button__icon" />
-        </button>
-        <button type="button" className="reader-nav-button reader-nav-button--right" onClick={goNext} aria-label={t("reader.nextPage")}>
-          <ChevronRight className="reader-nav-button__icon" />
-        </button>
+        {/* 左右翻页大列按钮：透明全高区域，hover 时显示圆形 nav-button */}
+        <div className="big-column-hover-area prev" aria-label="Previous page">
+          <div className="reader-nav-button" role="button" aria-hidden="true" onClick={goPrev}>
+            <ChevronLeft className="reader-nav-button__icon" />
+          </div>
+        </div>
+        <div className="big-column-hover-area next" aria-label="Next page">
+          <div className="reader-nav-button" role="button" aria-hidden="true" onClick={goNext}>
+            <ChevronRight className="reader-nav-button__icon" />
+          </div>
+        </div>
 
         {!isFolderSource && <ExtractingIndicator status={extractStatus?.status} variant="overlay" />}
       </div>
@@ -342,14 +350,6 @@ export function GalleryModeView({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navToRead(navigate, { path, page: currentPage, mode: "mobile" })}
-          >
-            <Smartphone className="mr-1 size-3.5" />{t("reader.mobileView")}
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
             onClick={() => navToRead(navigate, { path, page: 0, mode: "waterfall" })}
           >
             <GalleryVertical className="mr-1 size-3.5" />{t("reader.waterfall")}
@@ -358,10 +358,22 @@ export function GalleryModeView({
           {!isFolderSource && (
             <Link
               to="/explorer"
-              search={{ path: extractStatus?.cache_dir || path, sortField: "name", sortOrder: "asc", viewMode: "table" }}
+              search={explorerSearch}
               className={buttonVariants({ variant: "ghost", size: "sm" })}
             >
-              {t("nav.explorer")}
+              <FolderOpen className="mr-1 size-3.5" />{t("nav.explorer")}
+            </Link>
+          )}
+
+          
+          {
+            isFolderSource && (
+            <Link
+              to="/explorer"
+              search={explorerSearch}
+              className={buttonVariants({ variant: "ghost", size: "sm" })}
+            >
+              <FolderOpen className="mr-1 size-3.5" />{t("nav.explorer")}
             </Link>
           )}
 

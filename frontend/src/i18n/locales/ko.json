@@ -69,7 +69,7 @@
       "dateModified": "수정일",
       "type": "유형",
       "size": "크기",
-      "likeScore": "선호도 점수",
+      "recommendation_score": "선호도 점수",
       "imageCount": "이미지 수",
       "lastReadAt": "마지막 열람 시간"
     }
@@ -185,8 +185,7 @@
     "reset": "초기화",
     "page": "페이지",
     "of": "/",
-    "waterfall": "워터폴",
-    "mobileView": "모바일 뷰"
+    "waterfall": "워터폴"
   },
   "settings": {
     "title": "설정",

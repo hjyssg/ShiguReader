@@ -17,4 +17,4 @@ export interface AudioTrack {
 }
 
 /** Read 页面的 mode 类型 */
-export type ReadMode = "gallery" | "audio" | "mobile" | "waterfall"
+export type ReadMode = "gallery" | "audio" | "waterfall"

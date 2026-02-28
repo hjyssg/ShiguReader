@@ -69,7 +69,7 @@
       "dateModified": "修改日期",
       "type": "类型",
       "size": "大小",
-      "likeScore": "Like Score",
+      "recommendation_score": "Like Score",
       "imageCount": "图片数",
       "lastReadAt": "最后阅读时间"
     }
@@ -186,8 +186,7 @@
     "reset": "重置",
     "page": "第",
     "of": "页，共",
-    "waterfall": "瀑布流",
-    "mobileView": "移动端视图"
+    "waterfall": "瀑布流"
   },
   "settings": {
     "title": "设置",

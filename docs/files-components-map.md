@@ -41,7 +41,7 @@ FileViewContainer                          ← 顶层容器，被 Explorer / Sea
 
 ### FileViewContainer
 顶层容器，负责：
-- 排序（内部状态 or 受控，支持 name / type / mtime / likeScore / image_count / last_read_at）
+- 排序（内部状态 or 受控，支持 name / type / mtime / recommendation_score / image_count / last_read_at）
 - 分页（文件夹和视频固定展示在第一页，不参与分页计数；压缩包/图片/音频参与分页）
 - 视图模式切换（grid / table / mixed）
 - 将处理后的 `pagedItems` 分发给子视图

@@ -191,3 +191,77 @@ scan and watch是坏的
 
 
 ----
+1 explorer的sort by name没有按照文件名内部的数字来，我记得有个numeric啥的。前后端各种给图片按名字排序都要 fileNameA. localeCompare(fileNameB, undefined, { numeric: true });
+
+
+2 read的nav-button要包裹在
+.big-column-hover-area {
+
+    background-color: transparent;
+
+    &.next {
+        right: 0;
+    }
+
+    &.prev {
+        left: 0;
+    }
+
+    position: fixed;
+    top: 0;
+    width: $zoom-width;
+    height: 100%;
+    z-index: 10;
+
+    // 被hover就显示它包裹的nav-button
+}
+
+
+
+3 read sibiling mode下一页有问题。好像没有按照page递增递减，你code review
+
+
+4 点开解压cache里面的任何文件不进行history的record。
+    点开单张图片也不记录record
+    你在后端限制就行。
+    
+
+----
+[thumb] Failed to generate thumbnail for E:\_Happy_Picture\Unread\ZinieQ - Sameko Saba (videos).zip: Error: No image found in archive: E:\_Happy_Picture\Unread\ZinieQ - Sameko Saba (videos).zip
+    at generateArchiveThumb (D:\Git\Shigureader-vibecode\backendnode\src\services\thumbService.ts:53:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async <anonymous> (D:\Git\Shigureader-vibecode\backendnode\src\services\thumbService.ts:165:9)
+
+
+    没有图片导致的没有，不要大惊小怪。不用log出来。
+
+
+
+
+waterfall的时候，
+1 .reader-page的overflow要改成auto
+2 reader-waterfall-actions要在reader-toolbar的右侧。
+3 http://localhost:5173/read?path=D%3A%5C_TEMP_DOWNLOADS%5C%E5%AE%87%E5%AE%99%E3%82%88%E3%82%8A%E3%82%82%E9%81%A0%E3%81%84%E5%A0%B4%E6%89%80+%E3%83%95%E3%82%A1%E3%83%B3%E3%83%96%E3%83%83%E3%82%AF%5Ci-036.jpg&page=0&mode=waterfall 加载不了图片，一般zip可以
+
+ reader-toolbar在waterfall模式，position不需要是fixed。
+-----------------
+
+http://localhost:8000/api/v1/fs/listdir?path=D%3A%5CGit%5Cweibo-crawler
+Request Method
+GET
+Status Code
+500 Internal Server Erro  {
+    "error": "The value of 'FileSystemItem#/properties/file_type' does not match schema definition.",
+    "stack": "TypeError: The value of 'FileSystemItem#/properties/file_type' does not match schema definition.\n    at main (eval at build (D:\\Git\\Shigureader-vibecode\\backendnode\\node_modules\\fast-json-stringify\\index.js:239:23), <anonymous>:460:16)\n    at serialize (D:\\Git\\Shigureader-vibecode\\backendnode\\node_modules\\fastify\\lib\\reply.js:999:12)\n    at preSerializationHookEnd (D:\\Git\\Shigureader-vibecode\\backendnode\\node_modules\\fastify\\lib\\reply.js:514:17)\n    at preSerializationHook (D:\\Git\\Shigureader-vibecode\\backendnode\\node_modules\\fastify\\lib\\reply.js:498:5)\n    at Reply.send (D:\\Git\\Shigureader-vibecode\\backendnode\\node_modules\\fastify\\lib\\reply.js:205:7)\n    at Object.listDirectory (D:\\Git\\Shigureader-vibecode\\backendnode\\src\\routes\\fsDirectory.ts:254:16)"
+} 好像是出现其他文件就报错
+
+
+audio mode翻页之后图片就不见了
+
+-------------
+1 local check有点慢
+2 setting Select directories to scan
+    多加一个scan and watch
+
+
+backfille完avg_image_size不见了

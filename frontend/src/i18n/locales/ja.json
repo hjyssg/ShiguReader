@@ -69,7 +69,7 @@
       "dateModified": "更新日時",
       "type": "種類",
       "size": "サイズ",
-      "likeScore": "Like Score",
+      "recommendation_score": "Like Score",
       "imageCount": "画像数",
       "lastReadAt": "最終閲覧日時"
     }
@@ -185,8 +185,7 @@
     "reset": "リセット",
     "page": "ページ",
     "of": "/",
-    "waterfall": "ウォーターフォール",
-    "mobileView": "モバイルビュー"
+    "waterfall": "ウォーターフォール"
   },
   "settings": {
     "title": "設定",

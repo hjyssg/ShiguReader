@@ -5,11 +5,10 @@ import { useTranslation } from "react-i18next"
 import type { FileSystemItem } from "@/client"
 import { ListTable, type ListTableColumn } from "@/components/Common/ListTable"
 import { buildNavigationTarget } from "@/hooks/useFileNavigation"
-import { useIsMobile } from "@/hooks/useMobile"
 import { FileNameLinkCell } from "./FileNameLinkCell"
 import { formatDateTime, formatFileSize, formatFileType } from "./utils"
 
-export type SortField = "name" | "type" | "mtime" | "likeScore" | "image_count" | "last_read_at"
+export type SortField = "name" | "type" | "mtime" | "recommendation_score" | "image_count" | "last_read_at"
 export type SortOrder = "asc" | "desc"
 
 interface FileTableViewProps {
@@ -86,15 +85,15 @@ export function FileTableView({
       headerClassName: "w-[100px] text-right",
     },
     {
-      key: "likeScore",
+      key: "recommendation_score",
       header: (
         <button
           type="button"
           className="ml-auto inline-flex items-center"
-          onClick={() => onSort("likeScore")}
+          onClick={() => onSort("recommendation_score")}
         >
-          {t("explorer.table.likeScore")}
-          <SortIcon field="likeScore" />
+          {t("explorer.table.recommendation_score")}
+          <SortIcon field="recommendation_score" />
         </button>
       ),
       headerClassName: "w-[130px] text-right",
@@ -149,10 +148,9 @@ export function FileTableView({
 
 function TableRowCells({ item }: { item: FileSystemItem }) {
   const { t } = useTranslation()
-  const isMobile = useIsMobile()
   const isFolder = item.item_type === "folder"
   const isArchive = item.file_type === "archive"
-  const target = buildNavigationTarget(item, isMobile)
+  const target = buildNavigationTarget(item)
 
   return (
     <>

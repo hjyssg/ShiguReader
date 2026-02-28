@@ -47,7 +47,7 @@ export const Route = createFileRoute("/_layout/settings")({
 /** GET /api/v1/settings 的响应结构 */
 interface SettingsResponse {
   favorite_dir: string   // 收藏目录
-  fs_roots: string       // 快捷访问目录，逗号分隔
+  fs_quick_access: string       // 快捷访问目录，逗号分隔
   already_read_dir: string
   move_place_dir: string
   env_file_path: string  // .env 文件路径（只读展示）
@@ -57,7 +57,7 @@ interface SettingsResponse {
 /** PUT /api/v1/settings 的请求体，所有字段可选 */
 interface SettingsUpdate {
   favorite_dir?: string
-  fs_roots?: string
+  fs_quick_access?: string
   already_read_dir?: string
   move_place_dir?: string
 }
@@ -78,7 +78,7 @@ interface ScanStatusItem {
   watcher_active: boolean  // 是否有 fs.watch 监听器在运行
 }
 
-/** 将逗号分隔的 fs_roots 字符串解析为数组，至少保留一个空项 */
+/** 将逗号分隔的 fs_quick_access 字符串解析为数组，至少保留一个空项 */
 const parseFsRoots = (value: string): string[] => {
   const paths = (value || "")
     .split(",")
@@ -151,7 +151,7 @@ function SinglePathSection({
   )
 }
 
-/** fs_roots 列表中的单行路径输入 + 删除按钮 */
+/** fs_quick_access 列表中的单行路径输入 + 删除按钮 */
 type PathRowProps = {
   index: number
   value: string
@@ -202,7 +202,7 @@ type ScanPathEntry = {
  * allPaths 由 settings 中的三类路径聚合而来：
  *   favorite_dir → heart 图标
  *   already_read_dir → star 图标
- *   fs_roots（逗号分隔）→ folder 图标
+ *   fs_quick_access（逗号分隔）→ folder 图标
  */
 type ScanTabProps = {
   settings: SettingsResponse | undefined
@@ -221,7 +221,7 @@ function ScanTab({ settings, scanStatus, t, showSuccessToast, showErrorToast }: 
     if (settings?.already_read_dir?.trim()) {
       entries.push({ path: settings.already_read_dir.trim(), label: t("settings.alreadyReadDir"), icon: "star", checked: true })
     }
-    const roots = (settings?.fs_roots || "").split(",").map(r => r.trim()).filter(Boolean)
+    const roots = (settings?.fs_quick_access || "").split(",").map(r => r.trim()).filter(Boolean)
     for (const r of roots) {
       entries.push({ path: r, label: t("settings.fsRoots"), icon: "folder", checked: true })
     }
@@ -398,7 +398,7 @@ function SettingsPage() {
 
   useEffect(() => {
     if (!settings) return
-    setFsRootList(parseFsRoots(settings.fs_roots || ""))
+    setFsRootList(parseFsRoots(settings.fs_quick_access || ""))
     setFavoriteDir(settings.favorite_dir || "")
     setAlreadyReadDir(settings.already_read_dir || "")
     setMovePlaceDir(settings.move_place_dir || "")
@@ -429,7 +429,7 @@ function SettingsPage() {
     },
   })
 
-  const currentFsRoots = settings?.fs_roots || ""
+  const currentFsRoots = settings?.fs_quick_access || ""
   const normalizedFsRoots = fsRootList
     .map((item) => item.trim())
     .filter(Boolean)
@@ -441,7 +441,7 @@ function SettingsPage() {
 
   const saveFsRootsIfChanged = () => {
     if (updateMutation.isPending || normalizedFsRoots === currentFsRoots) return
-    updateMutation.mutate({ fs_roots: normalizedFsRoots })
+    updateMutation.mutate({ fs_quick_access: normalizedFsRoots })
   }
 
   const saveFavoriteDirIfChanged = () => {
@@ -620,6 +620,22 @@ function SettingsPage() {
           </section>
 
           <SinglePathSection
+            title={t("settings.favoriteDir")}
+            description={t("settings.favoriteDirDesc")}
+            value={favoriteDir}
+            placeholder={t("settings.favoriteDirPlaceholder")}
+            id="favoriteDir"
+            colorClass="settings-section--blue"
+            onChange={setFavoriteDir}
+            onSave={saveFavoriteDirIfChanged}
+            onReset={() => {
+              setFavoriteDir("")
+              setTimeout(saveFavoriteDirIfChanged, 0)
+            }}
+            t={t}
+          />
+
+          <SinglePathSection
             title={t("settings.alreadyReadDir")}
             description={t("settings.alreadyReadDirDesc")}
             value={alreadyReadDir}
@@ -663,21 +679,7 @@ function SettingsPage() {
             <Input value={settings?.env_file_path || ""} readOnly />
           </section>
 
-          <SinglePathSection
-            title={t("settings.favoriteDir")}
-            description={t("settings.favoriteDirDesc")}
-            value={favoriteDir}
-            placeholder={t("settings.favoriteDirPlaceholder")}
-            id="favoriteDir"
-            colorClass="settings-section--blue"
-            onChange={setFavoriteDir}
-            onSave={saveFavoriteDirIfChanged}
-            onReset={() => {
-              setFavoriteDir("")
-              setTimeout(saveFavoriteDirIfChanged, 0)
-            }}
-            t={t}
-          />
+
 
 
         </TabsContent>

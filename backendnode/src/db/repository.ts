@@ -179,38 +179,9 @@ export class IndexRepository {
       );
   }
 
-  /** 批量 upsert 文件，包裹在单个事务中提升性能 */
-  batchUpsertFiles(list: UpsertFileInput[]): void {
-    if (!list.length) {
-      return;
-    }
-    this.db.exec("BEGIN");
-    try {
-      for (const item of list) {
-        this.upsertFile(item);
-      }
-      this.db.exec("COMMIT");
-    } catch (e) {
-      this.db.exec("ROLLBACK");
-      throw e;
-    }
-  }
-
   /** 按 filepath 查询单条文件记录 */
   getFile(filepath: string): FileRow | undefined {
     return this.db.prepare("SELECT * FROM files WHERE filepath = ?").get(filepath) as FileRow | undefined;
-  }
-
-  /** 物理删除文件记录，并清理孤立的 tags/artists */
-  deleteFile(filepath: string): void {
-    this.db.prepare("DELETE FROM files WHERE filepath = ?").run(filepath);
-    this._pruneOrphans();
-  }
-
-  /** Mark a file as missing (deleted from disk). Keeps the record for history. */
-  markFileDeleted(filepath: string): void {
-    const now = nowTs();
-    this.db.prepare("UPDATE files SET is_missing=1, updated_at=? WHERE filepath=?").run(now, filepath);
   }
 
   /** After listing a folder, mark DB entries not present on disk as missing. */
@@ -285,13 +256,6 @@ export class IndexRepository {
     }
   }
 
-  /** 删除指定路径前缀下的所有文件和目录记录（用于目录整体删除） */
-  deleteByPrefix(prefix: string): void {
-    this.db.prepare("DELETE FROM files WHERE filepath LIKE ?").run(`${prefix}%`);
-    this.db.prepare("DELETE FROM folders WHERE filepath LIKE ?").run(`${prefix}%`);
-    this._pruneOrphans();
-  }
-
   /** 按文件名精确匹配，返回最近扫描到的记录，可排除自身路径（用于查找重复文件） */
   findFilesByFilename(filename: string, excludePath = "", limit = 10): FileRow[] {
     const result = rows<FileRow>(
@@ -300,15 +264,6 @@ export class IndexRepository {
         .all(filename, limit),
     );
     return excludePath ? result.filter((r) => r.filepath !== excludePath) : result;
-  }
-
-  /** 统计指定类型的非缺失文件数量 */
-  countFilesByType(fileType: string): number {
-    return (
-      this.db.prepare("SELECT COUNT(*) as n FROM files WHERE file_type = ? AND is_missing = 0").get(fileType) as {
-        n: number;
-      }
-    ).n;
   }
 
   /** 更新文件的缩略图路径 */
@@ -457,23 +412,6 @@ export class IndexRepository {
       .run(data.filepath, data.dirname, data.mtime ?? null, now, now, now);
   }
 
-  /** 批量 upsert 目录，包裹在单个事务中 */
-  batchUpsertFolders(list: UpsertFolderInput[]): void {
-    if (!list.length) {
-      return;
-    }
-    this.db.exec("BEGIN");
-    try {
-      for (const item of list) {
-        this.upsertFolder(item);
-      }
-      this.db.exec("COMMIT");
-    } catch (e) {
-      this.db.exec("ROLLBACK");
-      throw e;
-    }
-  }
-
   /** 返回 folders 表总行数 */
   countFolders(): number {
     return (this.db.prepare("SELECT COUNT(*) as n FROM folders").get() as { n: number }).n;
@@ -489,9 +427,9 @@ export class IndexRepository {
     imageNum: number,
     videoNum: number,
     musicNum: number,
-    versionSig?: string | null,
-    coverEntry?: string | null,
-    avgImageSize?: number | null,
+    avgImageSize: number | null,
+    versionSig: string | null = null,
+    coverEntry: string | null = null,
   ): void {
     const now = nowTs();
     this.db
@@ -518,7 +456,7 @@ export class IndexRepository {
         imageNum,
         videoNum,
         musicNum,
-        avgImageSize ?? null,
+        avgImageSize,
         now,
         versionSig ?? null,
         coverEntry ?? null,
@@ -531,11 +469,6 @@ export class IndexRepository {
       | { version_sig: string | null }
       | undefined;
     return row?.version_sig ?? null;
-  }
-
-  /** 获取单条压缩包元数据 */
-  getArchiveMeta(filepath: string): ArchiveMetaRow | undefined {
-    return this.db.prepare("SELECT * FROM archive_meta WHERE filepath = ?").get(filepath) as ArchiveMetaRow | undefined;
   }
 
   /** 批量获取某目录下所有压缩包的元数据，返回 filepath → ArchiveMetaRow 的 Map */
@@ -788,19 +721,6 @@ export class IndexRepository {
       map.set(r.filepath, arr);
     }
     return map;
-  }
-
-  /** 批量获取多个文件的解析元数据，返回 filepath → ParsedMetaRow 的 Map */
-  getParsedMetadataByFilepaths(filepaths: string[]): Map<string, ParsedMetaRow> {
-    if (!filepaths.length) {
-      return new Map();
-    }
-    const result = rows<ParsedMetaRow>(
-      this.db
-        .prepare(`SELECT * FROM parsed_metadata WHERE filepath IN (${filepaths.map(() => "?").join(",")})`)
-        .all(...filepaths),
-    );
-    return new Map(result.map((r) => [r.filepath, r]));
   }
 
   /** 批量获取某目录下所有文件的 rec_score 和最近阅读时间，用于列表排序 */

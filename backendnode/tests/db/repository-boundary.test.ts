@@ -19,32 +19,13 @@ describe("boundary: files", () => {
     expect(repo.getFile("")).toBeUndefined();
   });
 
-  it("deleteFile on non-existent path does not throw", () => {
-    expect(() => repo.deleteFile("/nonexistent")).not.toThrow();
-  });
-
-  it("batchUpsertFiles with empty array does nothing", () => {
-    expect(() => repo.batchUpsertFiles([])).not.toThrow();
-  });
-
   it("findFilesByFilename with empty filename returns empty", () => {
     expect(repo.findFilesByFilename("")).toEqual([]);
   });
 
-  it("countFilesByType with unknown type returns 0", () => {
-    expect(repo.countFilesByType("nonexistent")).toBe(0);
-  });
-
-  it("deleteByPrefix with empty prefix does not crash", () => {
-    expect(() => repo.deleteByPrefix("")).not.toThrow();
-  });
 });
 
 describe("boundary: folders", () => {
-  it("batchUpsertFolders with empty array does nothing", () => {
-    expect(() => repo.batchUpsertFolders([])).not.toThrow();
-  });
-
   it("countFolders returns 0 when no folders", () => {
     expect(repo.countFolders()).toBe(0);
   });
@@ -87,10 +68,6 @@ describe("boundary: tags and artists", () => {
 
   it("getTagsByFilepaths with empty array returns empty map", () => {
     expect(repo.getTagsByFilepaths([])).toEqual(new Map());
-  });
-
-  it("getParsedMetadataByFilepaths with empty array returns empty map", () => {
-    expect(repo.getParsedMetadataByFilepaths([])).toEqual(new Map());
   });
 
   it("countTags returns 0 when no tags", () => {

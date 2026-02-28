@@ -3,7 +3,7 @@
  * Uses initDb() with a temp file so getDb() works without any mocking.
  *
  * Covers Task 4 requirements from task-writeup.md:
- *   - search (file/author/tag), history/record+list, quick-match-batch
+ *   - search (file/author/tag), history/record+list, local-check-batch
  *   - authors / tags listing, presence_filter, dedup, pagination
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
@@ -154,19 +154,6 @@ describe("POST /api/v1/search — integration", () => {
     expect(res.json().items).toEqual([]);
   });
 
-  it("presence_filter=present excludes missing files", async () => {
-    const mangaDir = path.join(tmpDir, "manga");
-    const missingPath = path.join(mangaDir, "missing.zip");
-    repo.upsertFile({ filepath: missingPath, filename: "missing.zip", folderpath: mangaDir, mtime: 1, filesize: 1 });
-    repo.markFileDeleted(missingPath);
-
-    const app = buildApp();
-    const res = await app.inject({
-      method: "POST", url: "/api/v1/search",
-      payload: { q: "missing", scopes: ["file"], presence_filter: "present" },
-    });
-    expect(res.json().items).toHaveLength(0);
-  });
 });
 
 // ── history ───────────────────────────────────────────────────────────────────
@@ -228,9 +215,9 @@ describe("history/record + history/list — integration", () => {
   });
 });
 
-// ── quick-match-batch ─────────────────────────────────────────────────────────
+// ── local-check-batch ─────────────────────────────────────────────────────────
 
-describe("POST /api/v1/search/quick-match-batch — integration", () => {
+describe("POST /api/v1/search/local-check-batch — integration", () => {
   beforeEach(() => {
     const mangaDir = path.join(tmpDir, "manga");
     fs.mkdirSync(mangaDir, { recursive: true });
@@ -256,7 +243,7 @@ describe("POST /api/v1/search/quick-match-batch — integration", () => {
   it("same book with DL版 noise → downloaded", async () => {
     const app = buildApp();
     const res = await app.inject({
-      method: "POST", url: "/api/v1/search/quick-match-batch",
+      method: "POST", url: "/api/v1/search/local-check-batch",
       payload: {
         queries: ["(コミティア155) [準特注くろますく (へたれん)] 勇者レベルアップでシスターから祝福をII (オリジナル) [DL版]"],
         presence_filter: "all",
@@ -270,7 +257,7 @@ describe("POST /api/v1/search/quick-match-batch — integration", () => {
   it("different volume (vol 2 not in DB) → not downloaded", async () => {
     const app = buildApp();
     const res = await app.inject({
-      method: "POST", url: "/api/v1/search/quick-match-batch",
+      method: "POST", url: "/api/v1/search/local-check-batch",
       payload: {
         queries: ["(コミティア155) [準特注くろますく (へたれん)] 勇者レベルアップでシスターから祝福を2 (オリジナル) [DL版]"],
         presence_filter: "all",
@@ -283,7 +270,7 @@ describe("POST /api/v1/search/quick-match-batch — integration", () => {
   it("empty queries → empty results", async () => {
     const app = buildApp();
     const res = await app.inject({
-      method: "POST", url: "/api/v1/search/quick-match-batch",
+      method: "POST", url: "/api/v1/search/local-check-batch",
       payload: { queries: [] },
     });
     expect(res.json().results).toEqual([]);
@@ -292,16 +279,16 @@ describe("POST /api/v1/search/quick-match-batch — integration", () => {
   it("completely different title → different", async () => {
     const app = buildApp();
     const res = await app.inject({
-      method: "POST", url: "/api/v1/search/quick-match-batch",
+      method: "POST", url: "/api/v1/search/local-check-batch",
       payload: { queries: ["[SomeOtherAuthor] 全然違うタイトル"] },
     });
     expect(res.json().results[0].match_level).toBe("different");
   });
 
-  it("compat alias /api/search/quick-match-batch works", async () => {
+  it("compat alias /api/search/local-check-batch works", async () => {
     const app = buildApp();
     const res = await app.inject({
-      method: "POST", url: "/api/search/quick-match-batch",
+      method: "POST", url: "/api/search/local-check-batch",
       payload: { queries: [] },
     });
     expect(res.statusCode).toBe(200);

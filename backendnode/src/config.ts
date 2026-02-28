@@ -38,7 +38,7 @@ export const config = {
   INDEX_SQLITE_PATH: env("INDEX_SQLITE_PATH", "data/index_node.db"),
 
   // File system
-  FS_ROOTS: env("FS_ROOTS", ""),
+  FS_QUICK_ACCESS: env("FS_QUICK_ACCESS", ""),
   FAVORITE_DIR: env("FAVORITE_DIR", ""),
   ALREADY_READ_DIR: env("ALREADY_READ_DIR", ""),
   MOVE_PLACE_DIR: env("MOVE_PLACE_DIR", ""),
@@ -48,6 +48,7 @@ export const config = {
 
   // Thumbnails
   THUMB_CACHE_DIR: env("THUMB_CACHE_DIR", "../data/thumb_cache"),
+  TMP_CACHE_DIR: env("TMP_CACHE_DIR", "data/cache/tmp"),
   THUMB_CONCURRENCY: envInt("THUMB_CONCURRENCY", 3),
   EXTRACT_CONCURRENCY: envInt("EXTRACT_CONCURRENCY", 2),
   THUMB_TIMEOUT_SEC: envInt("THUMB_TIMEOUT_SEC", 10),

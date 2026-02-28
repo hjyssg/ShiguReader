@@ -111,8 +111,8 @@ export function FileViewContainer({
       } else if (sortField === "image_count") {
         comparison = (a.image_count ?? 0) - (b.image_count ?? 0)
         if (comparison === 0) comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
-      } else if (sortField === "likeScore") {
-        comparison = (a.recommendation_score ?? a.likeScore ?? 0) - (b.recommendation_score ?? b.likeScore ?? 0)
+      } else if (sortField === "recommendation_score") {
+        comparison = (a.recommendation_score ?? 0) - (b.recommendation_score ?? 0)
         if (comparison === 0) comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
       } else if (sortField === "last_read_at") {
         comparison = (a.last_read_at ?? 0) - (b.last_read_at ?? 0)
@@ -195,7 +195,7 @@ export function FileViewContainer({
         className={cn(
           "group flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors hover:bg-accent/50",
         )}
-        target={getLinkTarget(item.path)}
+        target={getLinkTarget(item.path, item.item_type === "folder")}
       >
         <FileIcon
           fileType={item.file_type}
@@ -233,7 +233,7 @@ export function FileViewContainer({
               <SelectItem className="text-xs" value="name">{t("explorer.table.name")}</SelectItem>
               <SelectItem className="text-xs" value="type">{t("explorer.table.type")}</SelectItem>
               <SelectItem className="text-xs" value="mtime">{t("explorer.table.dateModified")}</SelectItem>
-              <SelectItem className="text-xs" value="likeScore">{t("explorer.table.likeScore")}</SelectItem>
+              <SelectItem className="text-xs" value="recommendation_score">{t("explorer.table.recommendation_score")}</SelectItem>
               <SelectItem className="text-xs" value="image_count">{t("explorer.table.imageCount")}</SelectItem>
               <SelectItem className="text-xs" value="last_read_at">{t("explorer.table.lastReadAt")}</SelectItem>
             </SelectContent>

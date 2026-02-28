@@ -55,7 +55,7 @@ export const Route = createFileRoute("/_layout/explorer")({
       "name",
       "type",
       "mtime",
-      "likeScore",
+      "recommendation_score",
       "image_count",
       "last_read_at",
     ]

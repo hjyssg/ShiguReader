@@ -1,11 +1,9 @@
 /**
  * 音频播放模式 — 单页翻图 + 音频列表 + 播放器
  */
-import { OpenAPI } from "@/client"
 import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import { buttonVariants } from "@/components/ui/button"
 import { isArchive } from "@common/fileTypeUtil"
-import { getParentPath } from "@/lib/path-utils"
 import { Link } from "@tanstack/react-router"
 import { ChevronLeft, ChevronRight, Music4 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
@@ -13,6 +11,8 @@ import AudioPlayer from "react-h5-audio-player"
 import { useTranslation } from "react-i18next"
 import "react-h5-audio-player/lib/styles.css"
 import { Skeleton } from "@/components/ui/skeleton"
+import { getReadExplorerSearch } from "./-explorerNav"
+import { buildReadImageUrl } from "./-imageUrl"
 
 import type { AudioTrack, ImageEntry } from "./-types"
 
@@ -21,6 +21,7 @@ interface AudioModeViewProps {
   audioTracks: AudioTrack[]
   imageEntries: ImageEntry[]
   imagesReady: boolean
+  extractCacheDir?: string
   mtimeText: string
   sizeText: string
 }
@@ -30,36 +31,58 @@ export function AudioModeView({
   audioTracks,
   imageEntries,
   imagesReady,
+  extractCacheDir,
   mtimeText,
   sizeText,
 }: AudioModeViewProps) {
   const { t } = useTranslation()
   const [audioIndex, setAudioIndex] = useState(0)
   const [imageIndex, setImageIndex] = useState(0)
-  const [imageLoaded, setImageLoaded] = useState(false)
   const selectedTrack = audioTracks[audioIndex]
-  const parentPath = getParentPath(path)
   const isFolderSource = !isArchive(path)
+  const explorerSearch = getReadExplorerSearch({ path, isFolderSource, extractCacheDir })
 
   const totalImages = imageEntries.length
   const currentImageEntry = imageEntries[imageIndex]
-  const currentImageSrc = currentImageEntry
-    ? isFolderSource
-      ? `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(currentImageEntry.filePath || "")}`
-      : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(currentImageEntry.entryPath || "")}`
-    : undefined
+  const currentImageSrc = buildReadImageUrl({ path, isFolderSource, entry: currentImageEntry })
 
   const canShowImage = isFolderSource || imagesReady
 
   const imgRef = useRef<HTMLImageElement>(null)
+  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const clearRetryTimeout = () => {
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current)
+      retryTimeoutRef.current = null
+    }
+  }
+
+  useEffect(() => {
+    return () => clearRetryTimeout()
+  }, [])
+
+  useEffect(() => {
+    if (totalImages <= 0) {
+      setImageIndex(0)
+      return
+    }
+    setImageIndex((prev) => Math.min(prev, totalImages - 1))
+  }, [totalImages])
+
+  useEffect(() => {
+    clearRetryTimeout()
+    setImageIndex(0)
+  }, [path])
+
   const handleImageError = () => {
     if (!imgRef.current || !currentImageSrc) return
     const img = imgRef.current
-    setImageLoaded(false)
     const retryCount = Number(img.dataset.retry || 0)
     if (retryCount < 5) {
       img.dataset.retry = String(retryCount + 1)
-      setTimeout(() => {
+      clearRetryTimeout()
+      retryTimeoutRef.current = setTimeout(() => {
         if (imgRef.current) {
           imgRef.current.src = `${currentImageSrc}${currentImageSrc.includes("?") ? "&" : "?"}_t=${Date.now()}`
         }
@@ -68,11 +91,10 @@ export function AudioModeView({
   }
   const handleImageLoad = () => {
     if (imgRef.current) imgRef.current.dataset.retry = "0"
-    setImageLoaded(true)
   }
 
-  const goPrevImage = () => { setImageLoaded(false); setImageIndex((i) => (i - 1 + totalImages) % totalImages) }
-  const goNextImage = () => { setImageLoaded(false); setImageIndex((i) => (i + 1) % totalImages) }
+  const goPrevImage = () => { clearRetryTimeout(); setImageIndex((i) => (i - 1 + totalImages) % totalImages) }
+  const goNextImage = () => { clearRetryTimeout(); setImageIndex((i) => (i + 1) % totalImages) }
 
   useEffect(() => {
     if (totalImages === 0) return
@@ -80,11 +102,11 @@ export function AudioModeView({
       const key = e.key.toLowerCase()
       if (key === "arrowright" || key === "d") {
         e.preventDefault()
-        setImageLoaded(false)
+        clearRetryTimeout()
         setImageIndex((i) => (i + 1) % totalImages)
       } else if (key === "arrowleft" || key === "a") {
         e.preventDefault()
-        setImageLoaded(false)
+        clearRetryTimeout()
         setImageIndex((i) => (i - 1 + totalImages) % totalImages)
       }
     }
@@ -111,7 +133,7 @@ export function AudioModeView({
             )}
             <Link
               to="/explorer"
-              search={{ path: parentPath, sortField: "name", sortOrder: "asc", viewMode: "table" }}
+              search={explorerSearch}
               className={buttonVariants({ variant: "ghost", size: "sm", className: "reader-toolbar__text-button" })}
             >
               Explorer
@@ -130,12 +152,13 @@ export function AudioModeView({
               )}
               {canShowImage && currentImageSrc && (
                 <img
+                  key={currentImageSrc}
                   ref={imgRef}
                   src={currentImageSrc}
                   alt={currentImageEntry?.name}
                   onError={handleImageError}
                   onLoad={handleImageLoad}
-                  className={`h-full w-full object-contain transition-opacity duration-300 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+                  className={`h-full w-full object-contain transition-opacity duration-300`}
                 />
               )}
               <button
@@ -189,6 +212,7 @@ export function AudioModeView({
               <AudioPlayer
                 src={selectedTrack.url}
                 autoPlay={false}
+                autoPlayAfterSrcChange
                 showSkipControls={false}
                 showJumpControls={false}
               />

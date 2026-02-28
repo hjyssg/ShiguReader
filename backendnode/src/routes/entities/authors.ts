@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
-import { makeListHandler } from "../_listUtils.js";
+import { makeListHandler, EntityPageQuerySchema } from "../_listUtils.js";
+import { AuthorsResponse } from "../../schemas/common.js";
 
 const listAuthors = makeListHandler({
   count: (repo) => repo.countArtists(""),
@@ -10,5 +11,5 @@ const listAuthors = makeListHandler({
 });
 
 export async function authorsRoutes(app: FastifyInstance) {
-  app.get("", { schema: { summary: "获取作者列表（分页，含文件数）", tags: ["标签/作者"] } }, listAuthors);
+  app.get("", { schema: { operationId: "listAuthors", summary: "获取作者列表（分页，含文件数）", tags: ["Entities"], querystring: EntityPageQuerySchema, response: { 200: AuthorsResponse } } }, listAuthors);
 }

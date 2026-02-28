@@ -184,7 +184,7 @@ function SearchPage() {
   const { data: fileData, isLoading: fileLoading } = useQuery({
     queryKey: ["search", submittedQ, scopes, mode, presenceFilter],
     queryFn: () =>
-      SearchService.searchFiles({
+      SearchService.files({
         requestBody: {
           q: submittedQ,
           scopes,

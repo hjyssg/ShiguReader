@@ -86,20 +86,4 @@ export function refreshAllRecScores(): void {
   }
 }
 
-export function updateRecScoresForFiles(filepaths: string[]): void {
-  if (!_initialized || !filepaths.length) {
-    return;
-  }
-  try {
-    const repo = new IndexRepository(getDb());
-    const artistsByFile = repo.getArtistsByFilepaths(filepaths);
-    const tagsByFile = repo.getTagsByFilepaths(filepaths);
-    const scores = new Map<string, number>();
-    for (const fp of filepaths) {
-      scores.set(fp, computeScore(artistsByFile.get(fp) ?? [], tagsByFile.get(fp) ?? []));
-    }
-    repo.batchUpdateRecScores(scores);
-  } catch {
-    // ignore
-  }
-}
+
