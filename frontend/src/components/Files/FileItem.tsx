@@ -73,7 +73,7 @@ export function FileItem({
       : []
 
 
-  const linkTarget = getLinkTarget(item.path)
+  const linkTarget = getLinkTarget(item.path, isFolder)
 
   const fileNameNode = href ? (
     <a href={href} className="file-item-name-link" draggable={false} target={linkTarget}>

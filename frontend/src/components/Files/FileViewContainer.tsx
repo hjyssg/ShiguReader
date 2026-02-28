@@ -195,7 +195,7 @@ export function FileViewContainer({
         className={cn(
           "group flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors hover:bg-accent/50",
         )}
-        target={getLinkTarget(item.path)}
+        target={getLinkTarget(item.path, item.item_type === "folder")}
       >
         <FileIcon
           fileType={item.file_type}

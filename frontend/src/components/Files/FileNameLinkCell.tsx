@@ -49,7 +49,7 @@ export function FileNameLinkCell({
       to={target.to as any}
       search={target.search as any}
       className="flex min-w-0 items-center gap-2"
-      target={getLinkTarget(filepath)}
+      target={getLinkTarget(filepath, isFolder)}
     >
       {content}
     </Link>
