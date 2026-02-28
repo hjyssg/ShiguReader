@@ -4,12 +4,26 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "仅构建打包，不创建 GitHub Release"
+        required: true
+        type: boolean
+        default: true
+      release_tag:
+        description: "手动创建 Release 时使用的 tag（例如 v0.1.0-test1）"
+        required: false
+        type: string
+        default: ""
 
 jobs:
   release-windows:
     runs-on: windows-latest
     permissions:
       contents: write
+    env:
+      PACKAGE_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag != '' && inputs.release_tag || github.ref_name }}
 
     steps:
       - name: Checkout
@@ -50,7 +64,7 @@ jobs:
       - name: Assemble release package
         shell: pwsh
         run: |
-          $version = "${{ github.ref_name }}"
+          $version = "${{ env.PACKAGE_VERSION }}"
           $pkgName = "ShiguReader-${version}-windows-x64"
           $pkg = "release_pkg\$pkgName"
 
@@ -103,8 +117,11 @@ jobs:
           Write-Host "Package created: release_pkg\${pkgName}.zip"
 
       - name: Create GitHub Release
+        if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.dry_run == false && inputs.release_tag != '') }}
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ env.PACKAGE_VERSION }}
+          name: ${{ env.PACKAGE_VERSION }}
           files: release_pkg/*.zip
           generate_release_notes: true
           body: |
