@@ -5,6 +5,7 @@ import { Link, useNavigate } from "@tanstack/react-router"
 import {
   ChevronLeft,
   ChevronRight,
+  FolderOpen,
   GalleryVertical,
   MoreVertical,
   RotateCw,
@@ -352,7 +353,7 @@ export function GalleryModeView({
               search={{ path: extractStatus?.cache_dir || path, sortField: "name", sortOrder: "asc", viewMode: "table" }}
               className={buttonVariants({ variant: "ghost", size: "sm" })}
             >
-              {t("nav.explorer")}
+              <FolderOpen className="mr-1 size-3.5" />{t("nav.explorer")}
             </Link>
           )}
 
@@ -364,7 +365,7 @@ export function GalleryModeView({
               search={{ path: getParentPath(path), sortField: "name", sortOrder: "asc", viewMode: "table" }}
               className={buttonVariants({ variant: "ghost", size: "sm" })}
             >
-              {t("nav.explorer")}
+              <FolderOpen className="mr-1 size-3.5" />{t("nav.explorer")}
             </Link>
           )}
 
