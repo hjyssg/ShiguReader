@@ -261,15 +261,15 @@ export function GalleryModeView({
         )}
 
         {/* 左右翻页大列按钮：透明全高区域，hover 时显示圆形 nav-button */}
-        <div className="big-column-button prev" role="button" onClick={goPrev} aria-label="Previous page">
-          <span className="reader-nav-button" aria-hidden="true">
+        <div className="big-column-hover-area prev" aria-label="Previous page">
+          <div className="reader-nav-button" role="button" aria-hidden="true" onClick={goPrev}>
             <ChevronLeft className="reader-nav-button__icon" />
-          </span>
+          </div>
         </div>
-        <div className="big-column-button next" role="button" onClick={goNext} aria-label="Next page">
-          <span className="reader-nav-button" aria-hidden="true">
+        <div className="big-column-hover-area next" aria-label="Next page">
+          <div className="reader-nav-button" role="button" aria-hidden="true" onClick={goNext}>
             <ChevronRight className="reader-nav-button__icon" />
-          </span>
+          </div>
         </div>
 
         {!isFolderSource && <ExtractingIndicator status={extractStatus?.status} variant="overlay" />}

@@ -195,7 +195,7 @@ scan and watch是坏的
 
 
 2 read的nav-button要包裹在
-.big-column-button {
+.big-column-hover-area {
 
     background-color: transparent;
 
