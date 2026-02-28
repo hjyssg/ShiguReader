@@ -55,6 +55,9 @@ export const config = {
   THUMB_JPEG_QUALITY: envInt("THUMB_JPEG_QUALITY", 70),
 
   PROJECT_NAME: env("PROJECT_NAME", "ShiguReader"),
+
+  // Simple access check
+  ACCESS_PASSWORD: env("ACCESS_PASSWORD", ""),
 } as const;
 
 export const DB_FILE_PATH = resolveProjectPath(config.INDEX_SQLITE_PATH);

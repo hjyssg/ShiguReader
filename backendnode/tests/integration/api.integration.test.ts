@@ -13,6 +13,7 @@ import path from "node:path";
 import { initDb, closeDb } from "../../src/db/client.js";
 import { IndexRepository } from "../../src/db/repository.js";
 import { buildApp } from "../../src/app.js";
+import { config } from "../../src/config.js";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -335,5 +336,42 @@ describe("authors + tags listing — integration", () => {
     const t1 = res.json().items.find((t: { name: string }) => t.name === "tag1");
     expect(t1).toBeDefined();
     expect(t1.file_count).toBe(2);
+  });
+});
+
+
+describe("access password guard — integration", () => {
+  it("returns unauthorized without cookie when ACCESS_PASSWORD is set", async () => {
+    (config as { ACCESS_PASSWORD: string }).ACCESS_PASSWORD = "secret";
+    const app = buildApp();
+
+    const res = await app.inject({ method: "GET", url: "/api/v1/history/list" });
+    expect(res.statusCode).toBe(401);
+
+    (config as { ACCESS_PASSWORD: string }).ACCESS_PASSWORD = "";
+  });
+
+  it("login sets cookie and then can access protected api", async () => {
+    (config as { ACCESS_PASSWORD: string }).ACCESS_PASSWORD = "secret";
+    const app = buildApp();
+
+    const loginRes = await app.inject({
+      method: "POST",
+      url: "/api/v1/access/login",
+      payload: { password: "secret" },
+    });
+    expect(loginRes.statusCode).toBe(200);
+
+    const setCookie = loginRes.cookies.find(c => c.name === "shigureader_access");
+    expect(setCookie).toBeTruthy();
+
+    const protectedRes = await app.inject({
+      method: "GET",
+      url: "/api/v1/history/list",
+      cookies: { shigureader_access: "secret" },
+    });
+    expect(protectedRes.statusCode).toBe(200);
+
+    (config as { ACCESS_PASSWORD: string }).ACCESS_PASSWORD = "";
   });
 });
