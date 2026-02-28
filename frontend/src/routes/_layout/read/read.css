@@ -4,12 +4,16 @@
   overflow: hidden;
 }
 
+.reader-page--waterfall {
+  overflow: auto;
+}
+
 .reader-toolbar {
-  position: absolute;
+  /* position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 10;
+  z-index: 10; */
   display: flex;
   align-items: center;
   padding: 0.25rem 1rem;
@@ -334,7 +338,6 @@
   gap: 0.625rem;
   border-top: 1px solid hsl(var(--border));
   background: hsl(var(--background));
-  align-items: center;
 }
 
 .gallery-meta__breadcrumb {

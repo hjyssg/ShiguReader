@@ -233,7 +233,8 @@ scan and watch是坏的
     at async <anonymous> (D:\Git\Shigureader-vibecode\backendnode\src\services\thumbService.ts:165:9)
 
 
-    没有就没有，不要大惊小怪。不用log出来。
+    没有图片导致的没有，不要大惊小怪。不用log出来。
+
 
 
 

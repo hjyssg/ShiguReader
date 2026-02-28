@@ -50,7 +50,7 @@ async function generateArchiveThumb(archivePath: string, outputPath: string): Pr
   const entries = await listEntries(archivePath);
   const firstImageEntry = entries.find((e) => e.file_type === "image");
   if (!firstImageEntry) {
-    throw new Error(`No image found in archive: ${archivePath}`);
+    return;
   }
 
   // Step 2: Extract only that one file using a temp list file to avoid encoding issues
