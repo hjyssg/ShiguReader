@@ -2,6 +2,6 @@
   "name": "shigureader-workspace",
   "private": true,
   "scripts": {
-    "sync-openapi": "npm --prefix backendnode run dump-openapi && npm --prefix frontend run generate-client"
+    "sync-openapi": "npm --prefix backend run dump-openapi && npm --prefix frontend run generate-client"
   }
 }

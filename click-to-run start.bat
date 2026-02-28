@@ -12,9 +12,9 @@ if not exist "%~dp0frontend\node_modules" (
 )
 
 :: Install backend dependencies if needed
-if not exist "%~dp0backendnode\node_modules" (
+if not exist "%~dp0backend\node_modules" (
     echo [Setup] Installing backend dependencies...
-    cd /d "%~dp0backendnode"
+    cd /d "%~dp0backend"
     call npm install
 )
 
@@ -28,7 +28,7 @@ if errorlevel 1 (
 )
 
 echo [2/2] Starting ShiguReader on http://localhost:8000 ...
-cd /d "%~dp0backendnode"
+cd /d "%~dp0backend"
 
 :: Auto-open browser after a short delay
 start "" /b cmd /c "timeout /t 2 /nobreak >nul && start http://localhost:8000"

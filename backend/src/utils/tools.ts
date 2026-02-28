@@ -7,7 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// src/utils/ → ../.. → backendnode/tools/
+// src/utils/ → ../.. → backend/tools/
 export const TOOLS_DIR = path.resolve(__dirname, "../../tools");
 
 function resolveTool(subpath: string, fallback: string): string {

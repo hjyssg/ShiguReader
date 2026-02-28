@@ -8,7 +8,7 @@
 
 ## 后端
 
-### `backendnode/src/services/archiveService.ts`
+### `backend/src/services/archiveService.ts`
 
 **新增类型**
 ```ts
@@ -48,7 +48,7 @@ export interface CompressArchiveImagesResult {
 
 ---
 
-### `backendnode/src/routes/fsArchive.ts`
+### `backend/src/routes/fsArchive.ts`
 
 `compressImages` handler 变更：
 - Body 新增 `output_mode?: "new" | "replace" | null`

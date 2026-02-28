@@ -21,12 +21,12 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
-          cache-dependency-path: backendnode/package-lock.json
+          cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
-        working-directory: backendnode
+        working-directory: backend
         run: npm ci
 
       - name: Run tests
-        working-directory: backendnode
+        working-directory: backend
         run: npx vitest --run

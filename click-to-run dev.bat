@@ -17,9 +17,9 @@ if not exist "%~dp0frontend\node_modules" (
 )
 
 :: Install backend dependencies if needed
-if not exist "%~dp0backendnode\node_modules" (
+if not exist "%~dp0backend\node_modules" (
     echo [Setup] Installing backend dependencies...
-    cd /d "%~dp0backendnode"
+    cd /d "%~dp0backend"
     call npm install
 )
 
@@ -27,7 +27,7 @@ if not exist "%~dp0backendnode\node_modules" (
 start "ShiguReader Frontend" cmd /k "chcp 65001 >nul && cd /d "%~dp0frontend" && npm run dev"
 
 :: Start backend with tsx watch in a new window
-start "ShiguReader Backend" cmd /k "chcp 65001 >nul && cd /d "%~dp0backendnode" && npx tsx watch src/server.ts"
+start "ShiguReader Backend" cmd /k "chcp 65001 >nul && cd /d "%~dp0backend" && npx tsx watch src/server.ts"
 
 :: Open browser after a short delay
 timeout /t 3 /nobreak >nul

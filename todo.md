@@ -228,9 +228,9 @@ scan and watch是坏的
 
 ----
 [thumb] Failed to generate thumbnail for E:\_Happy_Picture\Unread\ZinieQ - Sameko Saba (videos).zip: Error: No image found in archive: E:\_Happy_Picture\Unread\ZinieQ - Sameko Saba (videos).zip
-    at generateArchiveThumb (D:\Git\Shigureader-vibecode\backendnode\src\services\thumbService.ts:53:11)
+    at generateArchiveThumb (D:\Git\Shigureader-vibecode\backend\src\services\thumbService.ts:53:11)
     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
-    at async <anonymous> (D:\Git\Shigureader-vibecode\backendnode\src\services\thumbService.ts:165:9)
+    at async <anonymous> (D:\Git\Shigureader-vibecode\backend\src\services\thumbService.ts:165:9)
 
 
     没有图片导致的没有，不要大惊小怪。不用log出来。
@@ -252,7 +252,7 @@ GET
 Status Code
 500 Internal Server Erro  {
     "error": "The value of 'FileSystemItem#/properties/file_type' does not match schema definition.",
-    "stack": "TypeError: The value of 'FileSystemItem#/properties/file_type' does not match schema definition.\n    at main (eval at build (D:\\Git\\Shigureader-vibecode\\backendnode\\node_modules\\fast-json-stringify\\index.js:239:23), <anonymous>:460:16)\n    at serialize (D:\\Git\\Shigureader-vibecode\\backendnode\\node_modules\\fastify\\lib\\reply.js:999:12)\n    at preSerializationHookEnd (D:\\Git\\Shigureader-vibecode\\backendnode\\node_modules\\fastify\\lib\\reply.js:514:17)\n    at preSerializationHook (D:\\Git\\Shigureader-vibecode\\backendnode\\node_modules\\fastify\\lib\\reply.js:498:5)\n    at Reply.send (D:\\Git\\Shigureader-vibecode\\backendnode\\node_modules\\fastify\\lib\\reply.js:205:7)\n    at Object.listDirectory (D:\\Git\\Shigureader-vibecode\\backendnode\\src\\routes\\fsDirectory.ts:254:16)"
+    "stack": "TypeError: The value of 'FileSystemItem#/properties/file_type' does not match schema definition.\n    at main (eval at build (D:\\Git\\Shigureader-vibecode\\backend\\node_modules\\fast-json-stringify\\index.js:239:23), <anonymous>:460:16)\n    at serialize (D:\\Git\\Shigureader-vibecode\\backend\\node_modules\\fastify\\lib\\reply.js:999:12)\n    at preSerializationHookEnd (D:\\Git\\Shigureader-vibecode\\backend\\node_modules\\fastify\\lib\\reply.js:514:17)\n    at preSerializationHook (D:\\Git\\Shigureader-vibecode\\backend\\node_modules\\fastify\\lib\\reply.js:498:5)\n    at Reply.send (D:\\Git\\Shigureader-vibecode\\backend\\node_modules\\fastify\\lib\\reply.js:205:7)\n    at Object.listDirectory (D:\\Git\\Shigureader-vibecode\\backend\\src\\routes\\fsDirectory.ts:254:16)"
 } 好像是出现其他文件就报错
 
 

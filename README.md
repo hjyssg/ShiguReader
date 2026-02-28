@@ -42,7 +42,7 @@ ShiguReader 是一个面向本地 / 局域网的内容整理与浏览工具，�
 
 ```bash
 # 安装后端依赖
-cd backendnode
+cd backend
 npm install
 
 # 安装前端依赖
@@ -56,7 +56,7 @@ npm install
 
 ```bash
 # 终端 1 - 后端
-cd backendnode
+cd backend
 npm run dev
 
 # 终端 2 - 前端

@@ -27,13 +27,13 @@ jobs:
           npm run build
 
       - name: Build backend (TypeScript → JS)
-        working-directory: backendnode
+        working-directory: backend
         run: |
           npm ci
           npx tsc
 
       - name: Install backend production dependencies only
-        working-directory: backendnode
+        working-directory: backend
         run: npm ci --omit=dev
 
       - name: Download Node.js portable (for bundling)
@@ -55,9 +55,9 @@ jobs:
           $pkg = "release_pkg\$pkgName"
 
           # Create directory structure
-          New-Item -ItemType Directory -Force -Path "$pkg\backendnode\dist"
-          New-Item -ItemType Directory -Force -Path "$pkg\backendnode\node_modules"
-          New-Item -ItemType Directory -Force -Path "$pkg\backendnode\tools"
+          New-Item -ItemType Directory -Force -Path "$pkg\backend\dist"
+          New-Item -ItemType Directory -Force -Path "$pkg\backend\node_modules"
+          New-Item -ItemType Directory -Force -Path "$pkg\backend\tools"
           New-Item -ItemType Directory -Force -Path "$pkg\frontend\dist"
           New-Item -ItemType Directory -Force -Path "$pkg\data\extract_cache"
           New-Item -ItemType Directory -Force -Path "$pkg\data\thumb_cache"
@@ -66,20 +66,20 @@ jobs:
           Copy-Item "node.exe" -Destination "$pkg\node.exe"
 
           # Copy compiled backend
-          Copy-Item -Recurse "backendnode\dist\*" -Destination "$pkg\backendnode\dist\"
+          Copy-Item -Recurse "backend\dist\*" -Destination "$pkg\backend\dist\"
 
           # Copy backend production node_modules
-          Copy-Item -Recurse "backendnode\node_modules\*" -Destination "$pkg\backendnode\node_modules\"
+          Copy-Item -Recurse "backend\node_modules\*" -Destination "$pkg\backend\node_modules\"
 
           # Copy tools (7zip, imagemagick, ffmpeg)
-          Copy-Item -Recurse "backendnode\tools\*" -Destination "$pkg\backendnode\tools\"
+          Copy-Item -Recurse "backend\tools\*" -Destination "$pkg\backend\tools\"
 
           # Copy built frontend
           Copy-Item -Recurse "frontend\dist\*" -Destination "$pkg\frontend\dist\"
 
           # Create .env with user-friendly defaults
           # Note: INDEX_SQLITE_PATH is resolved as path.resolve(__dirname, "../../", value)
-          # where __dirname = package-root/backendnode/dist/, so "../../" = package-root/
+          # where __dirname = package-root/backend/dist/, so "../../" = package-root/
           # Therefore "data/index_node.db" correctly resolves to package-root/data/index_node.db
           @"
 # =============================================
@@ -102,7 +102,7 @@ MOVE_PLACE_DIR=
 # 端口（默认 8000，如有冲突可修改）
 PORT=8000
 
-# 数据库路径（相对于 backendnode/dist/ 上两级，即程序根目录）
+# 数据库路径（相对于 backend/dist/ 上两级，即程序根目录）
 INDEX_SQLITE_PATH=data/index_node.db
 
 # 缩略图缓存目录（相对于程序根目录）
@@ -135,7 +135,7 @@ if not defined ROOTS_VAL (
 
 echo Starting ShiguReader...
 start "" "http://localhost:8000"
-node.exe --experimental-sqlite backendnode\dist\server.js
+node.exe --experimental-sqlite backend\dist\server.js
 pause
 "@ | Set-Content "$pkg\ShiguReader.bat" -Encoding UTF8
 
