@@ -1,7 +1,6 @@
 /**
  * 音频播放模式 — 单页翻图 + 音频列表 + 播放器
  */
-import { OpenAPI } from "@/client"
 import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import { buttonVariants } from "@/components/ui/button"
 import { isArchive } from "@common/fileTypeUtil"
@@ -13,6 +12,7 @@ import AudioPlayer from "react-h5-audio-player"
 import { useTranslation } from "react-i18next"
 import "react-h5-audio-player/lib/styles.css"
 import { Skeleton } from "@/components/ui/skeleton"
+import { buildReadImageUrl } from "./-imageUrl"
 
 import type { AudioTrack, ImageEntry } from "./-types"
 
@@ -43,11 +43,7 @@ export function AudioModeView({
 
   const totalImages = imageEntries.length
   const currentImageEntry = imageEntries[imageIndex]
-  const currentImageSrc = currentImageEntry
-    ? isFolderSource
-      ? `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(currentImageEntry.filePath || "")}`
-      : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(currentImageEntry.entryPath || "")}`
-    : undefined
+  const currentImageSrc = buildReadImageUrl({ path, isFolderSource, entry: currentImageEntry })
 
   const canShowImage = isFolderSource || imagesReady
 

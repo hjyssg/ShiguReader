@@ -192,6 +192,7 @@ function ReadPage() {
     return (
       <WaterfallModeView
         path={path}
+        isFolderSource={isFolderSource}
         imageEntries={imageEntries}
         extractStatus={extractStatus}
       />

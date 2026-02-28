@@ -12,7 +12,6 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
-import { OpenAPI } from "@/client"
 import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import { FileActionMenuItems } from "@/components/Files/FileActionMenuItems"
 import { formatDateTime, formatFileSize } from "@/components/Files/utils"
@@ -28,6 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { getParentPath, wrapPageIndex } from "@/lib/path-utils"
 import { useFileOperationDialogs } from "@/hooks/useFileOperationDialogs"
 import { navToRead } from "@/utils/appNavigate"
+import { buildReadImageUrl } from "./-imageUrl"
 
 import type { AudioTrack, ImageEntry, ReadMode } from "./-types"
 
@@ -111,10 +111,7 @@ export function GalleryModeView({
 
   const settledEntry = imageEntries[settledPage]
   const settledImageUrl = useMemo(() => {
-    if (!settledEntry) return undefined
-    return isFolderSource
-      ? `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(settledEntry.filePath || "")}`
-      : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(settledEntry.entryPath || "")}`
+    return buildReadImageUrl({ path, isFolderSource, entry: settledEntry })
   }, [settledEntry, isFolderSource, path])
 
   // Preload adjacent pages
@@ -127,9 +124,8 @@ export function GalleryModeView({
     for (const idx of preloadIndices) {
       const entry = imageEntries[idx]
       if (!entry) continue
-      const url = isFolderSource
-        ? `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(entry.filePath || "")}`
-        : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(entry.entryPath || "")}`
+      const url = buildReadImageUrl({ path, isFolderSource, entry })
+      if (!url) continue
       const img = new Image()
       img.src = url
     }
