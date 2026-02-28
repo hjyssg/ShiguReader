@@ -1,0 +1,78 @@
+.video-page {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.video-page .reader-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.25rem 1rem;
+  min-height: 2.5rem;
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--background) / 0.95);
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+}
+
+.video-page .reader-toolbar__left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.video-page .reader-toolbar__right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.video-page .reader-toolbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.video-page .reader-toolbar__icon-button {
+  font-size: 0.75rem;
+}
+
+.video-stage {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  background: hsl(var(--muted));
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.video-player {
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.video-scale-indicator {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 20;
+  font-variant-numeric: tabular-nums;
+  color: hsl(var(--foreground));
+  background: hsl(var(--background) / 0.75);
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}

@@ -4,18 +4,16 @@
 import { MoreVertical, Pencil, Trash2 } from "lucide-react"
 import { createFileRoute } from "@tanstack/react-router"
 import { useMutation } from "@/shims/react-query"
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 
 import { OpenAPI } from "@/client"
 import { DownloadMenuItem } from "@/components/Files/DownloadMenuItem"
 import { DeleteDialog } from "@/components/Files/dialogs/DeleteDialog"
 import { RenameDialog } from "@/components/Files/dialogs/RenameDialog"
-import { ReaderMetaBar } from "@/components/Reader/ReaderMetaBar"
 import { ReaderToolbar } from "@/components/Reader/ReaderToolbar"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { useFileOperations } from "@/hooks/useFileOperations"
-import { useParentMeta } from "@/hooks/useParentMeta"
 import { getBaseName, getParentPath } from "@/lib/path-utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -24,7 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import "./read/read.css"
+import "./video.css"
 
 export const Route = createFileRoute("/_layout/video")({
   component: Video,
@@ -40,12 +38,19 @@ export const Route = createFileRoute("/_layout/video")({
 })
 
 function Video() {
+  const VIDEO_BASE_MAX_WIDTH = 1500
+  const VIDEO_BASE_MAX_HEIGHT = 1000
+  const VIDEO_SCALE_MIN = 0.4
+  const VIDEO_SCALE_MAX = 1.4
+  const VIDEO_SCALE_STEP = 0.05
+
   const { path, entry } = Route.useSearch()
   const navigate = useNavigate()
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const lastSavedAtRef = useRef(0)
   const [renameOpen, setRenameOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [videoScale, setVideoScale] = useState(1)
 
   const { mutate: recordHistory } = useMutation({
     mutationFn: async (payload: { filepath: string }) => {
@@ -74,7 +79,6 @@ function Video() {
   // 读取父目录元数据（用于底部 meta bar）
   const parentPath = entry ? path : getParentPath(path)
   const operations = useFileOperations(parentPath)
-  const { mtimeText, sizeText } = useParentMeta(entry ? path : path, parentPath)
 
   // 播放进度持久化（localStorage）
   const progressStorageKey = useMemo(
@@ -115,8 +119,42 @@ function Video() {
     recordHistory({ filepath: path })
   }
 
+  useEffect(() => {
+    const onKeydown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      ) {
+        return
+      }
+
+      if (e.key === "+" || e.key === "=" || e.key === "Add") {
+        e.preventDefault()
+        setVideoScale((prev) => {
+          const next = prev + VIDEO_SCALE_STEP
+          return Math.min(VIDEO_SCALE_MAX, Math.max(VIDEO_SCALE_MIN, Number(next.toFixed(2))))
+        })
+        return
+      }
+
+      if (e.key === "-" || e.key === "Subtract") {
+        e.preventDefault()
+        setVideoScale((prev) => {
+          const next = prev - VIDEO_SCALE_STEP
+          return Math.min(VIDEO_SCALE_MAX, Math.max(VIDEO_SCALE_MIN, Number(next.toFixed(2))))
+        })
+      }
+    }
+
+    window.addEventListener("keydown", onKeydown)
+    return () => window.removeEventListener("keydown", onKeydown)
+  }, [VIDEO_SCALE_MAX, VIDEO_SCALE_MIN, VIDEO_SCALE_STEP])
+
   return (
-    <div className="reader-page">
+    <div className="video-page">
       <ReaderToolbar
         sourcePath={path}
         actions={(
@@ -154,12 +192,16 @@ function Video() {
       />
 
       {/* 视频播放区域 */}
-      <div className="reader-image-stage">
+      <div className="video-stage">
         <video
           ref={videoRef}
           src={videoUrl}
           controls
-          className="max-w-full max-h-full"
+          className="video-player"
+          style={{
+            maxWidth: `${Math.round(VIDEO_BASE_MAX_WIDTH * videoScale)}px`,
+            maxHeight: `${Math.round(VIDEO_BASE_MAX_HEIGHT * videoScale)}px`,
+          }}
           controlsList="nodownload"
           onLoadedMetadata={() => restoreProgress(videoRef.current)}
           onPlay={recordOpenedHistory}
@@ -168,16 +210,10 @@ function Video() {
         >
           Your browser does not support the video tag.
         </video>
+        <div className="video-scale-indicator" aria-live="polite">
+          {Math.round(videoScale * 100)}%
+        </div>
       </div>
-
-      {/* <ReaderMetaBar
-        left={
-          <>
-            <span title="修改时间" className="text-foreground cursor-default">{mtimeText}</span>
-            <span title="文件大小" className="text-foreground cursor-default">{sizeText}</span>
-          </>
-        }
-      /> */}
 
       <RenameDialog
         open={renameOpen}
