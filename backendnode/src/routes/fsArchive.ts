@@ -49,9 +49,9 @@ function _backfillArchiveMeta(
         imageEntries.length,
         videoEntries.length,
         audioEntries.length,
+        avgImgSize,
         versionSig,
         coverEntry,
-        avgImgSize,
       );
 
       const fileRow = repo.getFile(archivePath);

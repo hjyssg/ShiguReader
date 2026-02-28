@@ -489,9 +489,9 @@ export class IndexRepository {
     imageNum: number,
     videoNum: number,
     musicNum: number,
-    versionSig?: string | null,
-    coverEntry?: string | null,
-    avgImageSize?: number | null,
+    avgImageSize: number | null,
+    versionSig: string | null = null,
+    coverEntry: string | null = null,
   ): void {
     const now = nowTs();
     this.db
@@ -518,7 +518,7 @@ export class IndexRepository {
         imageNum,
         videoNum,
         musicNum,
-        avgImageSize ?? null,
+        avgImageSize,
         now,
         versionSig ?? null,
         coverEntry ?? null,

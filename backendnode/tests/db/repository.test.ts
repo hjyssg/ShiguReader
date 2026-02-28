@@ -132,18 +132,20 @@ describe("IndexRepository – archive_meta", () => {
   const fp = "/a/test.zip";
 
   it("upsertArchiveMeta and getArchiveMeta round-trip", () => {
-    repo.upsertArchiveMeta(fp, "zip", 10, 8, 1, 1);
+    repo.upsertArchiveMeta(fp, "zip", 10, 8, 1, 1, 12345, null, null);
     const row = repo.getArchiveMeta(fp);
     expect(row).toBeDefined();
     expect(row!.entry_count).toBe(10);
     expect(row!.image_file_num).toBe(8);
+    expect(row!.avg_image_size).toBe(12345);
   });
 
   it("upsertArchiveMeta updates on conflict", () => {
-    repo.upsertArchiveMeta(fp, "zip", 10, 8, 1, 1);
-    repo.upsertArchiveMeta(fp, "zip", 20, 15, 3, 2);
+    repo.upsertArchiveMeta(fp, "zip", 10, 8, 1, 1, 1000, null, null);
+    repo.upsertArchiveMeta(fp, "zip", 20, 15, 3, 2, 2000, null, null);
     const row = repo.getArchiveMeta(fp);
     expect(row!.entry_count).toBe(20);
+    expect(row!.avg_image_size).toBe(2000);
   });
 
   it("getArchiveMeta returns undefined for missing path", () => {
@@ -151,7 +153,7 @@ describe("IndexRepository – archive_meta", () => {
   });
 
   it("upsertArchiveMeta 保存 version_sig 和 cover_entry", () => {
-    repo.upsertArchiveMeta(fp, "zip", 10, 8, 1, 1, "1700000000:2048", "img/cover.jpg");
+    repo.upsertArchiveMeta(fp, "zip", 10, 8, 1, 1, 2048, "1700000000:2048", "img/cover.jpg");
     const row = repo.getArchiveMeta(fp);
     expect(row!.version_sig).toBe("1700000000:2048");
     expect(row!.cover_entry).toBe("img/cover.jpg");
@@ -159,7 +161,7 @@ describe("IndexRepository – archive_meta", () => {
   });
 
   it("getArchiveVersionSig 返回已存储的签名", () => {
-    repo.upsertArchiveMeta(fp, "zip", 5, 4, 0, 0, "1700000000:1024", null);
+    repo.upsertArchiveMeta(fp, "zip", 5, 4, 0, 0, 1024, "1700000000:1024", null);
     expect(repo.getArchiveVersionSig(fp)).toBe("1700000000:1024");
   });
 
@@ -168,12 +170,13 @@ describe("IndexRepository – archive_meta", () => {
   });
 
   it("version_sig 变化时 upsertArchiveMeta 应该更新", () => {
-    repo.upsertArchiveMeta(fp, "zip", 10, 8, 1, 1, "old_sig", "old_cover.jpg");
-    repo.upsertArchiveMeta(fp, "zip", 12, 10, 1, 1, "new_sig", "new_cover.jpg");
+    repo.upsertArchiveMeta(fp, "zip", 10, 8, 1, 1, 1111, "old_sig", "old_cover.jpg");
+    repo.upsertArchiveMeta(fp, "zip", 12, 10, 1, 1, 2222, "new_sig", "new_cover.jpg");
     const row = repo.getArchiveMeta(fp);
     expect(row!.version_sig).toBe("new_sig");
     expect(row!.cover_entry).toBe("new_cover.jpg");
     expect(row!.entry_count).toBe(12);
+    expect(row!.avg_image_size).toBe(2222);
   });
 });
 

@@ -18,6 +18,8 @@ export const logger = {
   db: (msg: string) => console.log(`${ts()} [DB]       ${msg}`),
   /** 扫描进度 */
   scan: (msg: string) => console.log(`${ts()} [SCAN]     ${msg}`),
+  /** backfill 进度 */
+  backfill: (msg: string) => console.log(`${ts()} [BACKFILL] ${msg}`),
   /** 文件操作：move / rename / delete */
   fs: (msg: string) => console.log(`${ts()} [FS]       ${msg}`),
   /** 压缩任务 */

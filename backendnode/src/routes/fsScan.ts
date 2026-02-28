@@ -265,7 +265,7 @@ export async function backfill(
   req: FastifyRequest<{ Body: { path: string; recursive?: boolean; fill_thumbnail?: boolean; fill_meta?: boolean } }>,
   reply: FastifyReply,
 ) {
-  const { path: dirPath, fill_thumbnail = true, fill_meta = true } = req.body ?? {};
+  const { path: dirPath, recursive = true, fill_thumbnail = true, fill_meta = true } = req.body ?? {};
   if (!dirPath) {
     return reply.status(400).send({ error: "path is required" });
   }
@@ -281,83 +281,124 @@ export async function backfill(
   let scannedFiles = 0;
   let backfilledThumbnails = 0;
   let backfilledMeta = 0;
+  const PROGRESS_INTERVAL = 200;
 
   try {
     const repo = getRepo();
-    const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
-    for (const entry of entries) {
-      if (!entry.isFile()) {
-        continue;
-      }
-      const fullPath = path.join(dirPath, entry.name);
-      const fileType = getFileType(entry.name);
-      if (fileType === "unknown") {
-        continue;
-      }
+    logger.backfill(`Started: ${dirPath} (recursive=${recursive}, fill_thumbnail=${fill_thumbnail}, fill_meta=${fill_meta})`);
+    const walk = async (currentDir: string): Promise<void> => {
+      const entries = await fs.promises.readdir(currentDir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(currentDir, entry.name);
 
-      try {
-        const s = await fs.promises.stat(fullPath);
-        repo.upsertFile({
-          filepath: fullPath,
-          folderpath: dirPath,
-          filename: entry.name,
-          mtime: Math.floor(s.mtimeMs / 1000),
-          filesize: s.size,
-          file_type: fileType,
-          ext: path.extname(entry.name).toLowerCase() || null,
-        });
-        scannedFiles++;
-
-        if (fill_thumbnail && ["archive", "video", "image"].includes(fileType)) {
-          getOrGenerateThumb(fullPath)
-            .then((thumbPath) => {
-              backfilledThumbnails++;
-              if (thumbPath) {
-                try {
-                  getRepo().updateFileThumbnail(fullPath, thumbPath);
-                } catch {
-                  /* ignore */
-                }
-              }
-            })
-            .catch(() => {
-              /* ignore thumb errors */
-            });
+        if (entry.isDirectory()) {
+          if (recursive) {
+            await walk(fullPath);
+          }
+          continue;
+        }
+        if (!entry.isFile()) {
+          continue;
         }
 
-        if (fill_meta) {
-          const parsed = parseName(entry.name);
-          repo.saveParsedMetadata(fullPath, {
-            title: parsed.title ?? undefined,
-            authors: parsed.authors,
-            cosers: parsed.cosers,
-            groupName: parsed.groupName ?? undefined,
-            rawTags: parsed.rawTags,
-            event: parsed.event ?? undefined,
-            dateTag: parsed.dateTag ?? undefined,
-            mediaType: parsed.mediaType ?? undefined,
-          });
-          backfilledMeta++;
+        const fileType = getFileType(entry.name);
+        if (fileType === "unknown") {
+          continue;
+        }
 
-          if (fileType === "archive") {
-            try {
-              const archiveEntries = await listEntries(fullPath);
-              const imageNum = archiveEntries.filter((e) => e.file_type === "image").length;
-              const videoNum = archiveEntries.filter((e) => e.file_type === "video").length;
-              const audioNum = archiveEntries.filter((e) => e.file_type === "audio").length;
-              const ext = path.extname(entry.name).toLowerCase().slice(1);
-              repo.upsertArchiveMeta(fullPath, ext, archiveEntries.length, imageNum, videoNum, audioNum);
-            } catch {
-              /* skip if archive listing fails */
+        try {
+          const s = await fs.promises.stat(fullPath);
+          repo.upsertFile({
+            filepath: fullPath,
+            folderpath: currentDir,
+            filename: entry.name,
+            mtime: Math.floor(s.mtimeMs / 1000),
+            filesize: s.size,
+            file_type: fileType,
+            ext: path.extname(entry.name).toLowerCase() || null,
+          });
+          scannedFiles++;
+          if (scannedFiles % PROGRESS_INTERVAL === 0) {
+            logger.backfill(
+              `Progress: scanned=${scannedFiles}, meta=${backfilledMeta}, thumbs=${backfilledThumbnails} — ${dirPath}`,
+            );
+          }
+
+          if (fill_thumbnail && ["archive", "video", "image"].includes(fileType)) {
+            getOrGenerateThumb(fullPath)
+              .then((thumbPath) => {
+                backfilledThumbnails++;
+                if (thumbPath) {
+                  try {
+                    getRepo().updateFileThumbnail(fullPath, thumbPath);
+                  } catch {
+                    /* ignore */
+                  }
+                }
+              })
+              .catch(() => {
+                /* ignore thumb errors */
+              });
+          }
+
+          if (fill_meta) {
+            const parsed = parseName(entry.name);
+            repo.saveParsedMetadata(fullPath, {
+              title: parsed.title ?? undefined,
+              authors: parsed.authors,
+              cosers: parsed.cosers,
+              groupName: parsed.groupName ?? undefined,
+              rawTags: parsed.rawTags,
+              event: parsed.event ?? undefined,
+              dateTag: parsed.dateTag ?? undefined,
+              mediaType: parsed.mediaType ?? undefined,
+            });
+            backfilledMeta++;
+
+            if (fileType === "archive") {
+              try {
+                const archiveEntries = await listEntries(fullPath);
+                const imageNum = archiveEntries.filter((e) => e.file_type === "image").length;
+                const videoNum = archiveEntries.filter((e) => e.file_type === "video").length;
+                const audioNum = archiveEntries.filter((e) => e.file_type === "audio").length;
+                const imageSizes = archiveEntries
+                  .filter((e) => e.file_type === "image" && e.size > 0)
+                  .map((e) => e.size);
+                const avgImageSize = imageSizes.length
+                  ? Math.round(imageSizes.reduce((a, b) => a + b, 0) / imageSizes.length)
+                  : null;
+                const coverEntry = archiveEntries.find((e) => e.file_type === "image")?.entry_path ?? null;
+                const versionSig = `${Math.floor(s.mtimeMs / 1000)}:${s.size}`;
+                const ext = path.extname(entry.name).toLowerCase().slice(1);
+                repo.upsertArchiveMeta(
+                  fullPath,
+                  ext,
+                  archiveEntries.length,
+                  imageNum,
+                  videoNum,
+                  audioNum,
+                  avgImageSize,
+                  versionSig,
+                  coverEntry,
+                );
+              } catch {
+                /* skip if archive listing fails */
+              }
             }
           }
+        } catch {
+          /* skip individual file errors */
         }
-      } catch {
-        /* skip individual file errors */
       }
-    }
+    };
+
+    await walk(dirPath);
+    logger.backfill(
+      `Completed: scanned=${scannedFiles}, meta=${backfilledMeta}, thumbs=${backfilledThumbnails} — ${dirPath}`,
+    );
     repo.logActivity("backfill", `Backfill completed: ${dirPath}`, "completed", `backfill:${dirPath}`, dirPath);
   } catch {
+    logger.backfill(`Failed: ${dirPath}`);
     try {
       getRepo().logActivity("backfill", `Backfill failed: ${dirPath}`, "failed", `backfill:${dirPath}`, dirPath);
     } catch {
