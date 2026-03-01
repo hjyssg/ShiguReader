@@ -105,7 +105,18 @@ jobs:
           echo Starting ShiguReader...
           echo [Tip] 如需设置资源目录，请编辑同目录 .env 中的 FS_QUICK_ACCESS
           start "" "http://localhost:8000"
-          node.exe --experimental-sqlite backend\dist\server.js
+
+          set SERVER_JS=
+          if exist "backend\dist\server.js" set SERVER_JS=backend\dist\server.js
+          if not defined SERVER_JS if exist "backend\dist\src\server.js" set SERVER_JS=backend\dist\src\server.js
+
+          if not defined SERVER_JS (
+              echo [ERROR] 找不到后端入口文件（已尝试 backend\dist\server.js 和 backend\dist\src\server.js）
+              pause
+              exit /b 1
+          )
+
+          node.exe --experimental-sqlite "%SERVER_JS%"
           pause
           "@ | Set-Content "$pkg\ShiguReader.bat" -Encoding UTF8
 
