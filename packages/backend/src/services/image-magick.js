@@ -30,6 +30,12 @@ img_convert_min_threshold *= 1024 * 1024;
 
 function logFail(filePath, e) {
     logger.error("[imageMagickHelp]", filePath, e);
+    console.error("[imageMagickHelp]", filePath, e);
+}
+
+function forceLog(...args) {
+    logger.info(...args);
+    console.log(...args);
 }
 
 global._has_magick_ = false;
@@ -156,7 +162,7 @@ module.exports.minifyOneFile = async function (filePath) {
         }
 
         //do a brand new extract
-        logger.info("[minifyOneFile] extractAll....");
+        forceLog("[minifyOneFile] extractAll....");
         const { pathes, error } = await extractAll(filePath, extractOutputPath, true);
         if (error) {
             logFail(filePath, "failed to extractAll", error);
@@ -166,8 +172,8 @@ module.exports.minifyOneFile = async function (filePath) {
         await moveSubfolderContentsToParent(extractOutputPath)
 
 
-        logger.info("[minifyOneFile] begin images convertion --------------");
-        logger.info(filePath);
+        forceLog("[minifyOneFile] begin images convertion --------------");
+        forceLog(filePath);
 
         const { saveSpace } = await minifyFolder(extractOutputPath);
 
@@ -208,7 +214,7 @@ module.exports.minifyOneFile = async function (filePath) {
     } finally {
         //maybe let user to delete file manually?
         deleteCache(extractOutputPath);
-        logger.info("----------------------------------------------------------------");
+        forceLog("----------------------------------------------------------------");
     }
 }
 
@@ -248,7 +254,7 @@ const isNewZipSameWithOriginalFiles = module.exports.isNewZipSameWithOriginalFil
 const userful_percent = 20;
 const fileiterator = require('../utils/file-iterator');
 const minifyFolder = module.exports.minifyFolder = async function (filePath) {
-    logger.info("-----begin images convertion --------------");
+    forceLog("-----begin images convertion --------------");
  
     const { pathes, infos } = await fileiterator(filePath, {});
 
@@ -286,13 +292,13 @@ const minifyFolder = module.exports.minifyFolder = async function (filePath) {
                     saveSpace += (oldSize - newStat.size);
                 }
             }
-            logger.info(`${ii + 1}/${total} ${filePath}`);
+            forceLog(`${ii + 1}/${total} ${filePath}`);
         } catch (e) {
             logger.error(e);
         }
     }
 
-    logger.info("size reduce ", filesizeUitl(saveSpace, { base: 2 }));
+    forceLog("size reduce ", filesizeUitl(saveSpace, { base: 2 }));
     return {
         saveSpace
     }
