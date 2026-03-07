@@ -4,34 +4,20 @@ import './SearchPage.scss';
 
 const clientUtil = require('@utils/clientUtil');
 
-const SEARCH_TYPE_FILE = 'FILE';
-const SEARCH_TYPE_AUTHOR = 'AUTHOR';
-const SEARCH_TYPE_SIMILAR = 'SIMILAR';
+const SEARCH_BY_TEXT = 'SEARCH_BY_TEXT';
+const SEARCH_BY_TAG = 'SEARCH_BY_TAG';
+const SEARCH_BY_AUTHOR = 'SEARCH_BY_AUTHOR';
+const SEARCH_SIMILAR = 'SEARCH_SIMILAR';
 
 const SearchPage = () => {
-    const [searchTypes, setSearchTypes] = useState([SEARCH_TYPE_FILE, SEARCH_TYPE_AUTHOR, SEARCH_TYPE_SIMILAR]);
+    const [searchType, setSearchType] = useState(SEARCH_BY_TEXT);
     const [searchText, setSearchText] = useState('');
 
     useEffect(() => {
         document.title = 'Search';
     }, []);
 
-    const isOn = useCallback((type) => searchTypes.includes(type), [searchTypes]);
-
-    const toggleType = useCallback((type) => {
-        setSearchTypes((prev) => {
-            const next = prev.slice();
-            const index = next.indexOf(type);
-
-            if (index > -1) {
-                next.splice(index, 1);
-            } else {
-                next.push(type);
-            }
-
-            return next;
-        });
-    }, []);
+    const isOn = useCallback((type) => searchType === type, [searchType]);
 
     const onSearchClick = useCallback(() => {
         const trimmedText = (searchText || '').trim();
@@ -39,25 +25,17 @@ const SearchPage = () => {
             return;
         }
 
-        const links = [];
-        if (isOn(SEARCH_TYPE_FILE)) {
-            links.push(clientUtil.getSearhLink(trimmedText));
-        }
-        if (isOn(SEARCH_TYPE_AUTHOR)) {
-            links.push(clientUtil.getAuthorLink(trimmedText));
-        }
-        if (isOn(SEARCH_TYPE_SIMILAR)) {
-            links.push(`/similar-file/?text=${encodeURIComponent(trimmedText)}`);
+        let link = clientUtil.getSearhLink(trimmedText);
+        if (searchType === SEARCH_BY_TAG) {
+            link = clientUtil.getTagLink(trimmedText);
+        } else if (searchType === SEARCH_BY_AUTHOR) {
+            link = clientUtil.getAuthorLink(trimmedText);
+        } else if (searchType === SEARCH_SIMILAR) {
+            link = `/similar-file/?text=${encodeURIComponent(trimmedText)}`;
         }
 
-        links.forEach((link, index) => {
-            if (index === 0) {
-                window.location.href = link;
-                return;
-            }
-            window.open(link, '_blank');
-        });
-    }, [isOn, searchText]);
+        window.location.href = link;
+    }, [searchText, searchType]);
 
     const onInputKeydown = useCallback((e) => {
         if (e.which === 13 || e.keyCode === 13) {
@@ -72,25 +50,32 @@ const SearchPage = () => {
             <div className="location-title">Search</div>
             <div className="search-page-types aji-checkbox-container">
                 <Checkbox
-                    onChange={toggleType.bind(null, SEARCH_TYPE_FILE)}
-                    checked={isOn(SEARCH_TYPE_FILE)}
+                    onChange={setSearchType.bind(null, SEARCH_BY_TEXT)}
+                    checked={isOn(SEARCH_BY_TEXT)}
                     title="/search/?s=xxx"
                 >
-                    Search Files
+                    search by text
                 </Checkbox>
                 <Checkbox
-                    onChange={toggleType.bind(null, SEARCH_TYPE_AUTHOR)}
-                    checked={isOn(SEARCH_TYPE_AUTHOR)}
+                    onChange={setSearchType.bind(null, SEARCH_BY_TAG)}
+                    checked={isOn(SEARCH_BY_TAG)}
+                    title="/tag/?t=xxx"
+                >
+                    search by tag
+                </Checkbox>
+                <Checkbox
+                    onChange={setSearchType.bind(null, SEARCH_BY_AUTHOR)}
+                    checked={isOn(SEARCH_BY_AUTHOR)}
                     title="/author/?a=xxx"
                 >
-                    Search Author
+                    search by author
                 </Checkbox>
                 <Checkbox
-                    onChange={toggleType.bind(null, SEARCH_TYPE_SIMILAR)}
-                    checked={isOn(SEARCH_TYPE_SIMILAR)}
+                    onChange={setSearchType.bind(null, SEARCH_SIMILAR)}
+                    checked={isOn(SEARCH_SIMILAR)}
                     title="/similar-file/?text=xxx"
                 >
-                    Similar File
+                    search similar
                 </Checkbox>
             </div>
             <div className="search-page-bar search-bar">
