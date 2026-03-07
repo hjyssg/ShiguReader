@@ -31,6 +31,10 @@
       margin: 8px auto 10px 10px;
       clear: both;
 
+      .admin-path-output {
+        margin: 6px 2px 8px;
+      }
+
       .admin-intput {
         display: block;
         margin-left: 2px;
@@ -61,8 +65,17 @@
     color: $font_color_white_one;
     margin-bottom: 10px;
 
+    &.link {
+      color: $font_color_white_one;
+    }
+
     &:hover {
       @include hover_effect;
+    }
+
+    &.disabled {
+      pointer-events: none;
+      opacity: 0.6;
     }
   }
 

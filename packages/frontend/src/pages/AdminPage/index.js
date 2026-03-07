@@ -11,6 +11,7 @@ const clientUtil = require("@utils/clientUtil");
 const ThumbnailGenerationUtil = require("@utils/ThumbnailGenerationUtil");
 import { GlobalContext } from '@context/GlobalContext';
 // const util = require("@common/util");
+const util = require("@common/util");
 const classNames = require('classnames');
 import {QRCodeSVG} from 'qrcode.react';
 import { toast } from 'react-toastify';
@@ -125,7 +126,7 @@ function LogoutSection(){
 export default class AdminPage extends Component {
     constructor(prop) {
         super(prop);
-        this.state = { prePath: null, dirs: [] };
+        this.state = { prePath: null, dirs: [], quickOpenPath: "" };
     }
 
     componentDidMount() {
@@ -152,6 +153,55 @@ export default class AdminPage extends Component {
         this.setState({
             prePath: _.isString(e) ? e : e.target.value
         })
+    }
+
+    onQuickOpenPathChange(e) {
+        this.setState({
+            quickOpenPath: e.target.value
+        });
+    }
+
+    getQuickOpenLink(path) {
+        if (!path) {
+            return "";
+        }
+
+        const purePath = path.trim();
+        if (!purePath) {
+            return "";
+        }
+
+        if (util.isCompress(purePath)) {
+            return clientUtil.getBookReadLink(purePath);
+        }
+
+        if (util.isVideo(purePath)) {
+            return clientUtil.getVideoPlayerLink(purePath);
+        }
+
+        return clientUtil.getExplorerLink(purePath);
+    }
+
+    renderQuickOpenSection() {
+        const rawPath = this.state.quickOpenPath || "";
+        const path = rawPath.trim();
+        const toUrl = this.getQuickOpenLink(path);
+
+        return (
+            <div className="admin-section">
+                <div className="admin-section-title"> Quick Open Path </div>
+                <div className="admin-section-content">
+                    <input
+                        className="admin-intput"
+                        value={rawPath}
+                        placeholder="zip/video/folder path"
+                        onChange={this.onQuickOpenPathChange.bind(this)} />
+                    <a className={classNames("submit-button link")} href={path ? toUrl : undefined} target='_blank'>
+                        Open
+                    </a>
+                </div>
+            </div>
+        );
     }
 
     getPasswordInput() {
@@ -296,6 +346,7 @@ export default class AdminPage extends Component {
             <div className="admin-container container">
                 {this.renderPasswordInput()}
                 {this.rendersRightAsNext()}
+                {this.renderQuickOpenSection()}
 
                 <div className="admin-section">
                     <div className="admin-section-title"> Pregenerate Thumbnail and Update Internal Database</div>
