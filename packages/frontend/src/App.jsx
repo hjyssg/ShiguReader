@@ -14,6 +14,7 @@ import HistoryPage from '@pages/HistoryPage';
 import HomePage from '@pages/HomePage';
 import LoginPage from '@pages/LoginPage';
 import SimilarFilePage from '@pages/SimilarFilePage';
+import SearchPage from '@pages/SearchPage';
 import { Switch, Route, Link, Redirect } from 'react-router-dom';
 import screenfull from 'screenfull';
 const clientUtil = require('@utils/clientUtil');
@@ -140,6 +141,7 @@ class App extends Component {
         const renderHistoryPage = (props) => { return (<HistoryPage {...props} />) };
         const renderAdminPage = (props) => { return (<AdminPage {...props} />) };
         const renderSimilarFilePage = (props) => { return (<SimilarFilePage {...props} />) };
+        const renderSearchPage = (props) => { return (<SearchPage {...props} />) };
         const renderLoginPage = (props) => { return (<LoginPage {...props} />) };
 
 
@@ -150,6 +152,7 @@ class App extends Component {
                 <Route path='/tag/' render={renderExplorer} />
                 <Route path='/author/' render={renderExplorer} />
                 <Route path='/search/' render={renderExplorer} />
+                <Route path='/searchPage/' render={renderSearchPage} />
 
                 <Route path='/book/' render={renderBookReadPage} />
                 <Route path='/book-overview/' render={renderBookOverviewPage} />
@@ -202,7 +205,7 @@ class App extends Component {
         const isExplorer = path.includes("/explorer");
         const isTag = path.includes("/tagPage");
         const isAuthor = path.includes("/author");
-        const isSearch = path.includes("/search");
+        const isSearch = path.startsWith('/search/');
         const isLogin = path.includes("/login");
         const isVideo = path.includes("/videoPlayer")
 
@@ -228,6 +231,10 @@ class App extends Component {
                     <Link to='/history'>
                         <i className="fas fa-history" aria-hidden="true" />
                         <span>History</span>
+                    </Link>
+                    <Link to='/searchPage/'>
+                        <i className="fas fa-search" aria-hidden="true" />
+                        <span>Search</span>
                     </Link>
                     <Link to='/admin'>
                         <i className="fas fa-tools" aria-hidden="true" />
