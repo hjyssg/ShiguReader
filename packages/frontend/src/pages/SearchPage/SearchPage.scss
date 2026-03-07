@@ -9,5 +9,25 @@
     .search-page-bar {
         justify-content: center;
         display: flex;
+
+        .search-input {
+            padding: 6px;
+            border: none;
+            font-size: 17px;
+            border-radius: 2px;
+            width: 350px;
+        }
+
+        .search-button {
+            cursor: pointer;
+            border-radius: 0;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #a7a7a7;
+            border: 1px solid #000;
+            margin-left: 1px;
+            width: 50px;
+        }
     }
 }

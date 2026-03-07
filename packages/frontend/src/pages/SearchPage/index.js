@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Checkbox from '@components/common/Checkbox';
 import './SearchPage.scss';
 
@@ -8,54 +8,46 @@ const SEARCH_TYPE_FILE = 'FILE';
 const SEARCH_TYPE_AUTHOR = 'AUTHOR';
 const SEARCH_TYPE_SIMILAR = 'SIMILAR';
 
-export default class SearchPage extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            searchTypes: [SEARCH_TYPE_FILE, SEARCH_TYPE_AUTHOR, SEARCH_TYPE_SIMILAR]
-        };
-    }
+const SearchPage = () => {
+    const [searchTypes, setSearchTypes] = useState([SEARCH_TYPE_FILE, SEARCH_TYPE_AUTHOR, SEARCH_TYPE_SIMILAR]);
+    const [searchText, setSearchText] = useState('');
 
-    componentDidMount() {
+    useEffect(() => {
         document.title = 'Search';
-    }
+    }, []);
 
-    toggleType(type) {
-        const searchTypes = this.state.searchTypes.slice();
-        const index = searchTypes.indexOf(type);
+    const isOn = useCallback((type) => searchTypes.includes(type), [searchTypes]);
 
-        if (index > -1) {
-            searchTypes.splice(index, 1);
-        } else {
-            searchTypes.push(type);
-        }
+    const toggleType = useCallback((type) => {
+        setSearchTypes((prev) => {
+            const next = prev.slice();
+            const index = next.indexOf(type);
 
-        this.setState({ searchTypes });
-    }
+            if (index > -1) {
+                next.splice(index, 1);
+            } else {
+                next.push(type);
+            }
 
-    isOn(type) {
-        return this.state.searchTypes.includes(type);
-    }
+            return next;
+        });
+    }, []);
 
-    onSearchClick() {
-        let searchText = clientUtil.getSearchInputText();
-        if (searchText.trim) {
-            searchText = searchText.trim();
-        }
-
-        if (!searchText) {
+    const onSearchClick = useCallback(() => {
+        const trimmedText = (searchText || '').trim();
+        if (!trimmedText) {
             return;
         }
 
         const links = [];
-        if (this.isOn(SEARCH_TYPE_FILE)) {
-            links.push(clientUtil.getSearhLink(searchText));
+        if (isOn(SEARCH_TYPE_FILE)) {
+            links.push(clientUtil.getSearhLink(trimmedText));
         }
-        if (this.isOn(SEARCH_TYPE_AUTHOR)) {
-            links.push(clientUtil.getAuthorLink(searchText));
+        if (isOn(SEARCH_TYPE_AUTHOR)) {
+            links.push(clientUtil.getAuthorLink(trimmedText));
         }
-        if (this.isOn(SEARCH_TYPE_SIMILAR)) {
-            links.push(`/similar-file/?text=${encodeURIComponent(searchText)}`);
+        if (isOn(SEARCH_TYPE_SIMILAR)) {
+            links.push(`/similar-file/?text=${encodeURIComponent(trimmedText)}`);
         }
 
         links.forEach((link, index) => {
@@ -65,48 +57,55 @@ export default class SearchPage extends Component {
             }
             window.open(link, '_blank');
         });
-    }
+    }, [isOn, searchText]);
 
-    onInputKeydown(e) {
+    const onInputKeydown = useCallback((e) => {
         if (e.which === 13 || e.keyCode === 13) {
-            this.onSearchClick();
+            onSearchClick();
             e.preventDefault();
             e.stopPropagation();
         }
-    }
+    }, [onSearchClick]);
 
-    render() {
-        return (
-            <div className="search-page container">
-                <div className="location-title">Search</div>
-                <div className="search-page-types aji-checkbox-container">
-                    <Checkbox
-                        onChange={this.toggleType.bind(this, SEARCH_TYPE_FILE)}
-                        checked={this.isOn(SEARCH_TYPE_FILE)}
-                        title="/search/?s=xxx"
-                    >
-                        Search Files
-                    </Checkbox>
-                    <Checkbox
-                        onChange={this.toggleType.bind(this, SEARCH_TYPE_AUTHOR)}
-                        checked={this.isOn(SEARCH_TYPE_AUTHOR)}
-                        title="/author/?a=xxx"
-                    >
-                        Search Author
-                    </Checkbox>
-                    <Checkbox
-                        onChange={this.toggleType.bind(this, SEARCH_TYPE_SIMILAR)}
-                        checked={this.isOn(SEARCH_TYPE_SIMILAR)}
-                        title="/similar-file/?text=xxx"
-                    >
-                        Similar File
-                    </Checkbox>
-                </div>
-                <div className="search-page-bar search-bar">
-                    <input className="search-input" type="text" placeholder="Search.." onKeyDown={this.onInputKeydown.bind(this)} />
-                    <div onClick={this.onSearchClick.bind(this)} title="Search" className="fa fa-search search-button" />
-                </div>
+    return (
+        <div className="search-page container">
+            <div className="location-title">Search</div>
+            <div className="search-page-types aji-checkbox-container">
+                <Checkbox
+                    onChange={toggleType.bind(null, SEARCH_TYPE_FILE)}
+                    checked={isOn(SEARCH_TYPE_FILE)}
+                    title="/search/?s=xxx"
+                >
+                    Search Files
+                </Checkbox>
+                <Checkbox
+                    onChange={toggleType.bind(null, SEARCH_TYPE_AUTHOR)}
+                    checked={isOn(SEARCH_TYPE_AUTHOR)}
+                    title="/author/?a=xxx"
+                >
+                    Search Author
+                </Checkbox>
+                <Checkbox
+                    onChange={toggleType.bind(null, SEARCH_TYPE_SIMILAR)}
+                    checked={isOn(SEARCH_TYPE_SIMILAR)}
+                    title="/similar-file/?text=xxx"
+                >
+                    Similar File
+                </Checkbox>
             </div>
-        );
-    }
-}
+            <div className="search-page-bar search-bar">
+                <input
+                    className="search-input"
+                    type="text"
+                    placeholder="Search.."
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    onKeyDown={onInputKeydown}
+                />
+                <button type="button" onClick={onSearchClick} title="Search" className="fa fa-search search-button" />
+            </div>
+        </div>
+    );
+};
+
+export default SearchPage;
