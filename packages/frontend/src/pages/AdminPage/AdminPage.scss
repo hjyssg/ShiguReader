@@ -65,6 +65,10 @@
     color: $font_color_white_one;
     margin-bottom: 10px;
 
+    &.link {
+      color: $font_color_white_one;
+    }
+
     &:hover {
       @include hover_effect;
     }

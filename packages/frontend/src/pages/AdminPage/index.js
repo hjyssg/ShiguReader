@@ -172,7 +172,7 @@ export default class AdminPage extends Component {
         }
 
         if (util.isCompress(purePath)) {
-            return clientUtil.getBookOverviewLink(purePath);
+            return clientUtil.getBookReadLink(purePath);
         }
 
         if (util.isVideo(purePath)) {
@@ -194,10 +194,9 @@ export default class AdminPage extends Component {
                     <input
                         className="admin-intput"
                         value={rawPath}
-                        placeholder="输入 zip/video 文件路径或文件夹路径"
+                        placeholder="zip/video/folder path"
                         onChange={this.onQuickOpenPathChange.bind(this)} />
-                    <div className="admin-path-output">{path ? `FilePath: ${path}` : "FilePath: "}</div>
-                    <a className={classNames("submit-button", { disabled: !path })} href={path ? toUrl : undefined}>
+                    <a className={classNames("submit-button link")} href={path ? toUrl : undefined} target='_blank'>
                         Open
                     </a>
                 </div>
