@@ -88,6 +88,10 @@
       0 2px 10px 0 rgba(0, 0, 0, 0.12) !important;
     z-index: 10;
     object-fit: cover;
+
+    &.moire-reduce {
+      filter: blur(0.5px);
+    }
   }
 
 
