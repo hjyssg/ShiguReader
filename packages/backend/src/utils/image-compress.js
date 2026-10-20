@@ -39,7 +39,8 @@ async function doMinifyTempImage(inputFilePath, outputFilePath, height) {
        
             if (global._has_magick_) {
                 //https://imagemagick.org/Usage/resize/#shrink
-                const opt = [inputFilePath, "-thumbnail", `${height}x${height}\>`, "-quality", "92",  outputFilePath];
+                //-auto-orient：先按EXIF Orientation把像素转正。-thumbnail会丢弃EXIF信息，不先转正的话，相机竖拍的照片会横躺90度
+                const opt = [inputFilePath, "-auto-orient", "-thumbnail", `${height}x${height}\>`, "-quality", "92",  outputFilePath];
                 let { stdout, stderr } = await execa(imageMagick.getMagickCmd(), opt);
                 if (stderr) {
                     throw stderr;
@@ -47,12 +48,13 @@ async function doMinifyTempImage(inputFilePath, outputFilePath, height) {
                 result = outputFilePath;
             } 
             
-            if (!isFileLargerThan1KB(result) && global.sharp) {
-                await global.sharp(inputFilePath).resize({ height }).toFile(outputFilePath);
+            if (!(await isFileLargerThan1KB(result)) && global.sharp) {
+                //sharp输出默认丢弃EXIF（含Orientation），必须显式rotate()把方向写入像素
+                await global.sharp(inputFilePath).rotate().resize({ height }).toFile(outputFilePath);
                 result = outputFilePath;
             }  
             
-            if (!isFileLargerThan1KB(result) && Jimp && height < 300){
+            if (!(await isFileLargerThan1KB(result)) && Jimp && height < 300){
                 // jimp因为是pure js，性能和输出质量比较差。作为最终替代
                 const image = await Jimp.read(inputFilePath);
                 await image.resize(Jimp.AUTO, height, Jimp.RESIZE_NEAREST_NEIGHBOR).quality(60).writeAsync(outputFilePath);
@@ -61,7 +63,7 @@ async function doMinifyTempImage(inputFilePath, outputFilePath, height) {
             let end1 = getCurrentTime();
             // logger.info(`[doMinifyImage] ${(end1 - beg) }ms `);
 
-            if(!isFileLargerThan1KB(result)){
+            if(!(await isFileLargerThan1KB(result))){
                 result = null;
             }
 

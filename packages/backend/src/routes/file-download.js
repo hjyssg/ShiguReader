@@ -20,6 +20,9 @@ const THUMBNAIL_HUGE_THRESHOLD = 2 * 1000 * 1000;  //MB
 const ONEBOOK_HUGE_THRESHOLD_REMOTE = 3 * 1000 * 1000;  // MB
 const ONEBOOK_HUGE_THRESHOLD_LOCAL = 10 * 1000 * 1000;  // MB
 
+// 压缩算法变更时递增，避免继续复用旧的（方向错误的）压缩缓存
+const MINIFY_CACHE_VERSION = "v2";
+
 
 const doMinifyForDownload = async (filePath, outputFn, height) => {
     const outputPath = path.resolve(appState.getCachePath(), outputFn);
@@ -60,11 +63,11 @@ router.get('/api/file/download/', serverUtil.asyncWrapper(async (req, res) => {
             }else{
                 const stat = await pfs.stat(filePath);
                 if (thumbnailMode && stat.size > THUMBNAIL_HUGE_THRESHOLD) {
-                    const outputFn = stringHash(filePath).toString() + "-min.jpg";
+                    const outputFn = stringHash(filePath).toString() + `-min-${MINIFY_CACHE_VERSION}.jpg`;
                     filePath = await doMinifyForDownload(filePath, outputFn, 250);
                     memorycache.put(cacheKey, filePath, 60*1000);
                 }else if(stat.size > onebook_huge_threshold){
-                    const outputFn = stringHash(filePath).toString() + "-min-2.jpg";
+                    const outputFn = stringHash(filePath).toString() + `-min-2-${MINIFY_CACHE_VERSION}.jpg`;
                     filePath = await doMinifyForDownload(filePath, outputFn, 2300);
                     memorycache.put(cacheKey, filePath, 60*1000);
                 }
